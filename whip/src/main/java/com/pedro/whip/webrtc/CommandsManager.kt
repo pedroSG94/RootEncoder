@@ -320,7 +320,7 @@ class CommandsManager {
                 "a=ice-pwd:$uPass\r\n" +
                 "a=ice-options:trickle\r\n" +
                 "a=fingerprint:sha-256 $sdpSha256\r\n" +
-
+/*
                 "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
                 "c=IN IP4 0.0.0.0\r\n" +
                 "a=mid:0\r\n" +
@@ -329,14 +329,13 @@ class CommandsManager {
                 "a=ssrc:$audioSsrc msid:1$cName 1$cName-audio\r\n" +
                 "a=msid:1$cName 1$cName-audio\r\n" +
                 "a=rtcp-mux\r\n" +
-                "a=rtpmap:111 opus/48000/2\r\n"
-            /*videoBody +
+                "a=rtpmap:111 opus/48000/2\r\n"*/
+            videoBody +
                 "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
                 "a=ssrc:$videoSsrc cname: $cName\r\n" +
                 audioBody +
                 "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
                 "a=ssrc:$audioSsrc cname: $cName\r\n"
-*/
     }
 
     fun generateTransactionId(): ByteArray {

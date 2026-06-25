@@ -56,3 +56,29 @@ class RtpSocketUdp(
     }
   }
 }
+
+class RtpSocketUdp2(
+  private val udpSocket: UdpStreamSocket?,
+) : BaseRtpSocket() {
+
+  @Throws(IOException::class)
+  override suspend fun setSocket(socket: TcpStreamSocket) {
+    udpSocket?.connect()
+  }
+
+  @Throws(IOException::class)
+  override suspend fun sendFrame(rtpFrame: RtpFrame) {
+    sendFrameUDP(rtpFrame)
+  }
+
+  override suspend fun flush() { }
+
+  override suspend fun close() {
+    udpSocket?.close()
+  }
+
+  @Throws(IOException::class)
+  private suspend fun sendFrameUDP(rtpFrame: RtpFrame) {
+    udpSocket?.write(rtpFrame.buffer)
+  }
+}

@@ -20,6 +20,7 @@ import com.pedro.common.TimeUtils
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.TcpStreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.toUInt32
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
@@ -71,6 +72,13 @@ abstract class BaseSenderReport internal constructor() {
         } else null
         SenderReportUdp(videoSocket, audioSocket)
       }
+    }
+
+    @JvmStatic
+    fun getInstance(
+      socket: UdpStreamSocket
+    ): BaseSenderReport {
+      return SenderReportUdp2(socket)
     }
   }
 

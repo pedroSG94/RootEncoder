@@ -345,7 +345,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
                     Log.i(TAG, "dtls connected!!")
                     onMainThread { connectChecker.onConnectionSuccess() }
-                    //TODO setup SRTP/SRTCP and start sending
+                    whipSender.setSocketsInfo(socket)
+                    whipSender.start()
                 }.exceptionOrNull()
                 if (error != null) {
                     Log.e(TAG, "connection error", error)

@@ -19,6 +19,7 @@ package com.pedro.rtsp.rtp.sockets
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.TcpStreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import java.io.IOException
@@ -47,6 +48,11 @@ abstract class BaseRtpSocket {
         } else null
         RtpSocketUdp(videoSocket, audioSocket)
       }
+    }
+
+    @JvmStatic
+    fun getInstance(socket: UdpStreamSocket): BaseRtpSocket {
+      return RtpSocketUdp2(socket)
     }
   }
 
