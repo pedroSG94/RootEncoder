@@ -292,7 +292,7 @@ class CommandsManager {
         val cName = "RootEncoder"
         var videoBody = ""
         if (!videoDisabled) {
-            videoBody = when (videoCodec) {
+            val media = when (videoCodec) {
                 VideoCodec.H264 -> {
                     SdpBody.createH264Body(RtpConstants.trackVideo, spsString, ppsString, true)
                 }
@@ -303,43 +303,42 @@ class CommandsManager {
                     SdpBody.createAV1Body(RtpConstants.trackVideo, true)
                 }
             }
+            //rtcp-mux and ssrc must stay inside their own m= section so a disabled track
+            //doesn't leak an extra ssrc into the other section (that is read as Plan B).
+            videoBody = media +
+                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
+                "a=ssrc:$videoSsrc cname:$cName\r\n"
         }
         var audioBody = ""
         if (!audioDisabled) {
-            audioBody = when (audioCodec) {
+            val media = when (audioCodec) {
                 AudioCodec.G711 -> SdpBody.createG711Body(RtpConstants.trackAudio, sampleRate, isStereo, true)
                 AudioCodec.OPUS -> SdpBody.createOpusBody(RtpConstants.trackAudio, true)
                 else  -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
             }
+            audioBody = media +
+                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
+                "a=ssrc:$audioSsrc cname:$cName\r\n"
         }
+        val bundleMids = listOfNotNull(
+            if (!videoDisabled) RtpConstants.trackVideo else null,
+            if (!audioDisabled) RtpConstants.trackAudio else null
+        ).joinToString(" ")
         val sdpSha256 = fingerprint.chunked(2)
             .joinToString(":") { it.uppercase() }
         return "v=0\r\n" +
                 "o=rtc $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
                 "s=-\r\n" +
                 "t=0 0\r\n" +
+                "a=group:BUNDLE $bundleMids\r\n" +
                 "a=msid-semantic:WMS *\r\n" +
                 "a=setup:actpass\r\n" +
                 "a=ice-ufrag:$uFrag\r\n" +
                 "a=ice-pwd:$uPass\r\n" +
                 "a=ice-options:trickle\r\n" +
                 "a=fingerprint:sha-256 $sdpSha256\r\n" +
-/*
-                "m=audio 9 UDP/TLS/RTP/SAVPF 111\r\n" +
-                "c=IN IP4 0.0.0.0\r\n" +
-                "a=mid:0\r\n" +
-                "a=sendonly\r\n" +
-                "a=ssrc:$audioSsrc cname:$cName\r\n" +
-                "a=ssrc:$audioSsrc msid:1$cName 1$cName-audio\r\n" +
-                "a=msid:1$cName 1$cName-audio\r\n" +
-                "a=rtcp-mux\r\n" +
-                "a=rtpmap:111 opus/48000/2\r\n"*/
-            videoBody +
-                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
-                "a=ssrc:$videoSsrc cname: $cName\r\n" +
-                audioBody +
-                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
-                "a=ssrc:$audioSsrc cname: $cName\r\n"
+                videoBody +
+                audioBody
     }
 
     fun generateTransactionId(): ByteArray {
