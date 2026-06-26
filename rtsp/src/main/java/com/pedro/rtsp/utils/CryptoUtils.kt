@@ -22,7 +22,6 @@ import com.pedro.common.toUInt32
 import java.nio.ByteBuffer
 import javax.crypto.Cipher
 import javax.crypto.Mac
-import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 import kotlin.experimental.xor
 
@@ -40,13 +39,35 @@ class CryptoUtils(
     init(SecretKeySpec(cryptoProperties.authKey, "HmacSHA1"))
   }
 
-  private val cipher = Cipher.getInstance("AES/CTR/NoPadding")
+  // AES/ECB is used to implement AES-CM (RFC 3711 §4.1.1).
+  // Java's AES/CTR increments the counter at B[15], but AES-CM XORs j*2^16 at B[13],
+  // so they diverge after the first 16-byte block. We implement AES-CM manually.
+  private val ecbCipher = Cipher.getInstance("AES/ECB/NoPadding")
   private val aesKey = SecretKeySpec(cryptoProperties.sessionKey, "AES")
 
+  init {
+    ecbCipher.init(Cipher.ENCRYPT_MODE, aesKey)
+  }
+
   fun encrypt(buffer: ByteArray, ivData: ByteArray): ByteArray {
-    cipher.init(Cipher.ENCRYPT_MODE, aesKey, IvParameterSpec(ivData))
-    cipher.update(buffer)
-    return cipher.doFinal()
+    // RFC 3711 §4.1.1 AES Counter Mode: keystream_j = E(k, (IV + j) mod 2^128)
+    // The SRTP IV has its low 16 bits set to zero, so the block counter j occupies
+    // bits 15..0 → bytes 14..15 in a 16-byte big-endian block
+    val result = ByteArray(buffer.size)
+    val block = ByteArray(16)
+    var offset = 0
+    var j = 0
+    while (offset < buffer.size) {
+      ivData.copyInto(block)
+      block[15] = (block[15].toInt() xor (j and 0xFF)).toByte()
+      block[14] = (block[14].toInt() xor ((j shr 8) and 0xFF)).toByte()
+      val keystream = ecbCipher.doFinal(block)
+      val toCopy = minOf(16, buffer.size - offset)
+      for (i in 0 until toCopy) result[offset + i] = buffer[offset + i] xor keystream[i]
+      offset += 16
+      j++
+    }
+    return result
   }
 
   fun calculateHmac(buffer: ByteArray, roc: Int): ByteArray {

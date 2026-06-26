@@ -80,7 +80,6 @@ class CameraFragment: Fragment(), ConnectChecker {
     WhipStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
-      getStreamClient().setOnlyAudio(true)
       setAudioCodec(AudioCodec.OPUS)
     }
   }
@@ -91,7 +90,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   val height = 480
   val vBitrate = 1200 * 1000
   private var rotation = 0
-  private val sampleRate = 32000
+  private val sampleRate = 48000
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var recordPath = ""
