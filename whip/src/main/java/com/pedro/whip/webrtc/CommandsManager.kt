@@ -70,6 +70,10 @@ class CommandsManager {
         private set
     var tieBreak = ByteArray(8)
         private set
+    var videoSsrc: Long = 0L
+        private set
+    var audioSsrc: Long = 0L
+        private set
     val spsString: String
         get() = sps?.getData()?.encodeToString() ?: ""
     val ppsString: String
@@ -174,8 +178,8 @@ class CommandsManager {
         val uFrag = secureRandom.nextLong().toString(36).replace("-", "")
         val uPass = (BigInteger(130, secureRandom).toString(32)).replace("-", "")
         val certificate = CryptoUtils.generateCert("RootEncoder", crypto)
-        val videoSsrc = Random.nextLong()
-        val audioSsrc = Random.nextLong()
+        videoSsrc = Random.nextInt().toLong() and 0xFFFFFFFFL
+        audioSsrc = Random.nextInt().toLong() and 0xFFFFFFFFL
         val body = createBody(
             videoSsrc, audioSsrc, uFrag, uPass, certificate.fingerprint
         )

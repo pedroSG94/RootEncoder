@@ -18,8 +18,8 @@
 
 package com.pedro.whip.dtls
 
+import android.util.Log
 import com.pedro.rtsp.utils.CryptoProperties
-import com.pedro.rtsp.utils.encodeToString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -50,8 +50,9 @@ import java.security.cert.CertificateException
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 import java.util.Hashtable
-import java.util.Properties
 import java.util.Vector
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * Created by pedro on 21/7/25.
@@ -61,6 +62,8 @@ class DtlsConnection(
   private val remoteFingerprint: String
 ) : DefaultTlsServer(certificate.crypto) {
 
+  private val TAG = "DtlsConnection"
+
   interface Callback {
     fun onHandshakeComplete(properties: List<CryptoProperties>)
     fun onHandshakeFailed(reason: String?)
@@ -68,13 +71,23 @@ class DtlsConnection(
 
   private val wantRTP = true
   private var dtlsTransport: DTLSTransport? = null
+  // Captured inside notifyHandshakeComplete() — the only moment exportKeyingMaterial() is valid
+  private var exportedSrtpKeys: ByteArray? = null
 
   fun start(transport: DtlsTransport, callback: Callback) {
     CoroutineScope(Dispatchers.IO).launch {
       try {
+        Log.i(TAG, "starting DTLS accept()")
         dtlsTransport = DTLSServerProtocol().accept(this@DtlsConnection, transport)
-        callback.onHandshakeComplete(extractCryptoProperties())
+        Log.i(TAG, "DTLS accept() returned successfully")
+        val keys = exportedSrtpKeys
+          ?: throw IllegalStateException("SRTP keying material not captured during handshake")
+        Log.i(TAG, "SRTP keys captured (${keys.size} bytes), deriving crypto properties")
+        val props = deriveCryptoPropertiesFromExport(keys)
+        Log.i(TAG, "crypto properties derived, calling onHandshakeComplete")
+        callback.onHandshakeComplete(props)
       } catch (e: Exception) {
+        Log.e(TAG, "DTLS handshake failed: ${e.message}", e)
         callback.onHandshakeFailed(e.message)
       }
     }
@@ -157,6 +170,21 @@ class DtlsConnection(
     super.processClientExtensions(clientExtensions)
   }
 
+  // exportKeyingMaterial() is only valid inside this callback — capture it here.
+  override fun notifyHandshakeComplete() {
+    super.notifyHandshakeComplete()
+    try {
+      val keyLength = 16
+      val saltLength = 14
+      exportedSrtpKeys = context.exportKeyingMaterial(
+        "EXTRACTOR-dtls_srtp", null, 2 * (keyLength + saltLength)
+      )
+      Log.i(TAG, "exportKeyingMaterial OK, ${exportedSrtpKeys?.size} bytes")
+    } catch (e: Exception) {
+      Log.e(TAG, "exportKeyingMaterial FAILED: ${e.message}", e)
+    }
+  }
+
   private fun validateX509(cert: TlsCertificate) {
     val cf = CertificateFactory.getInstance("X.509")
     val bis = ByteArrayInputStream(cert.encoded)
@@ -170,29 +198,54 @@ class DtlsConnection(
     return digest.joinToString(":") { "%02X".format(it) }
   }
 
-  fun extractCryptoProperties(): List<CryptoProperties> {
-    // assume SRTP_AES128_CM_HMAC_SHA1_80
+  private fun deriveCryptoPropertiesFromExport(keys: ByteArray): List<CryptoProperties> {
+    // RFC 5764: exported keying material layout for AES_CM_128_HMAC_SHA1_80
+    // [clientMasterKey(16) | serverMasterKey(16) | clientMasterSalt(14) | serverMasterSalt(14)]
     val keyLength = 16
     val saltLength = 14
-    val ts = 2 * (keyLength + saltLength)
-    val keys: ByteArray = context.exportKeyingMaterial("EXTRACTOR-dtls_srtp", null, ts)
-    val clientKey = ByteArray(keyLength)
-    val serverKey = ByteArray(keyLength)
-    val serverSalt = ByteArray(saltLength)
-    val clientSalt = ByteArray(saltLength)
+    val clientMasterKey = ByteArray(keyLength)
+    val serverMasterKey = ByteArray(keyLength)
+    val clientMasterSalt = ByteArray(saltLength)
+    val serverMasterSalt = ByteArray(saltLength)
     var offs = 0
-    System.arraycopy(keys, offs, clientKey, 0, keyLength)
-    offs += keyLength
-    System.arraycopy(keys, offs, serverKey, 0, keyLength)
-    offs += keyLength
-    System.arraycopy(keys, offs, clientSalt, keyLength, saltLength)
-    offs += saltLength
-    System.arraycopy(keys, offs, serverSalt, keyLength, saltLength)
-    offs += saltLength
+    System.arraycopy(keys, offs, clientMasterKey, 0, keyLength); offs += keyLength
+    System.arraycopy(keys, offs, serverMasterKey, 0, keyLength); offs += keyLength
+    System.arraycopy(keys, offs, clientMasterSalt, 0, saltLength); offs += saltLength
+    System.arraycopy(keys, offs, serverMasterSalt, 0, saltLength)
+    return listOf(
+      deriveCryptoProperties(clientMasterKey, clientMasterSalt),
+      deriveCryptoProperties(serverMasterKey, serverMasterSalt)
+    )
+  }
 
-    val suite = "AES_CM_128_HMAC_SHA1_80"
-    val clientCrypto = CryptoProperties(clientKey, clientKey, clientSalt)
-    val serverCrypto = CryptoProperties(serverKey, serverKey, serverSalt)
-    return listOf(clientCrypto, serverCrypto)
+  // RFC 3711 §4.3.1: derive SRTP session keys from master key + master salt via AES-CM PRF.
+  // label 0x00 → cipher key, 0x01 → auth key, 0x02 → session salt
+  // x = master_salt with byte[7] XOR'd with the label (label * 2^48 in 112-bit representation)
+  private fun deriveCryptoProperties(masterKey: ByteArray, masterSalt: ByteArray): CryptoProperties {
+    val cipherKey = deriveKey(masterKey, masterSalt, 0x00.toByte(), 16)
+    val authKey = deriveKey(masterKey, masterSalt, 0x01.toByte(), 20)
+    val salt = deriveKey(masterKey, masterSalt, 0x02.toByte(), 14)
+    return CryptoProperties(authKey, cipherKey, salt)
+  }
+
+  private fun deriveKey(masterKey: ByteArray, masterSalt: ByteArray, label: Byte, lengthBytes: Int): ByteArray {
+    val x = masterSalt.copyOf(14)
+    x[7] = (x[7].toInt() xor label.toInt()).toByte()
+    val iv = ByteArray(16).also { System.arraycopy(x, 0, it, 0, 14) }
+    val cipher = Cipher.getInstance("AES/ECB/NoPadding")
+    cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(masterKey, "AES"))
+    val result = ByteArray(lengthBytes)
+    var offset = 0
+    var counter = 0
+    while (offset < lengthBytes) {
+      iv[14] = (counter shr 8).toByte()
+      iv[15] = counter.toByte()
+      val block = cipher.doFinal(iv)
+      val toCopy = minOf(16, lengthBytes - offset)
+      System.arraycopy(block, 0, result, offset, toCopy)
+      offset += toCopy
+      counter++
+    }
+    return result
   }
 }

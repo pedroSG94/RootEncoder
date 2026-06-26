@@ -56,8 +56,8 @@ class H265Packet : BasePacket(
       val nalType2 = data.get()
       val nalSize = data.remaining()
       // Small NAL unit => Single NAL unit
-      if (nalSize <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-        val buffer = getBuffer(nalSize + RtpConstants.RTP_HEADER_LENGTH + 2)
+      if (nalSize <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 - encryptSize()) {
+        val buffer = getBuffer(nalSize + RtpConstants.RTP_HEADER_LENGTH + 2 + encryptSize())
         //Set PayloadHdr (exact copy of nal unit header)
         buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = nalType2
@@ -80,12 +80,12 @@ class H265Packet : BasePacket(
 
         var sum = 0
         while (sum < nalSize) {
-          val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
-            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3
+          val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3 - encryptSize()) {
+            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3 - encryptSize()
           } else {
             data.remaining()
           }
-          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3)
+          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3 + encryptSize())
           //Set PayloadHdr (16bit type=49)
           buffer[RtpConstants.RTP_HEADER_LENGTH] = (49 shl 1).toByte()
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = 1

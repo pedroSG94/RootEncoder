@@ -77,8 +77,8 @@ class WhipSender(
     }
 
     override suspend fun onRun() {
-        val ssrcVideo = Random().nextInt().toLong()
-        val ssrcAudio = Random().nextInt().toLong()
+        val ssrcVideo = commandsManager.videoSsrc
+        val ssrcAudio = commandsManager.audioSsrc
         baseSenderReport?.setSSRC(ssrcVideo, ssrcAudio)
         videoPacket.setSSRC(ssrcVideo)
         audioPacket.setSSRC(ssrcAudio)

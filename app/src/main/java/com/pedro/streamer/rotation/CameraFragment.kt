@@ -80,7 +80,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     WhipStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
       getStreamClient().setBitrateExponentialFactor(0.5f)
-
+      getStreamClient().setOnlyAudio(true)
       setAudioCodec(AudioCodec.OPUS)
     }
   }
