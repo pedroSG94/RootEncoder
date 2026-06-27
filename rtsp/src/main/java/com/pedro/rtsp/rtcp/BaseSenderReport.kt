@@ -46,8 +46,7 @@ abstract class BaseSenderReport internal constructor() {
   private var audioOctetCount = 0L
   private var srtcpVideoIndex = 0
   private var srtcpAudioIndex = 0
-  private var videoCryptoUtils: CryptoUtils? = null
-  private var audioCryptoUtils: CryptoUtils? = null
+  private var cryptoUtils: CryptoUtils? = null
 
   private var ssrcVideo = 0L
   private var ssrcAudio = 0L
@@ -113,9 +112,8 @@ abstract class BaseSenderReport internal constructor() {
     audioBuffer.setLong(ssrcAudio, 4, 8)
   }
 
-  fun setCrypto(videoCryptoProperties: CryptoProperties, audioCryptoProperties: CryptoProperties) {
-    videoCryptoUtils = CryptoUtils(videoCryptoProperties)
-    audioCryptoUtils = CryptoUtils(audioCryptoProperties)
+  fun setCrypto(properties: CryptoProperties) {
+    cryptoUtils = CryptoUtils(properties)
   }
 
   @Throws(IOException::class)
@@ -142,7 +140,7 @@ abstract class BaseSenderReport internal constructor() {
     if (TimeUtils.getCurrentTimeMillis() - videoTime >= interval) {
       videoTime = TimeUtils.getCurrentTimeMillis()
       setData(videoBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
-      videoCryptoUtils?.let {
+      cryptoUtils?.let {
         sendReport(encrypt(videoBuffer, srtcpVideoIndex++, ssrcVideo, it), rtpFrame)
       } ?: sendReport(videoBuffer, rtpFrame)
       return true
@@ -159,7 +157,7 @@ abstract class BaseSenderReport internal constructor() {
     if (TimeUtils.getCurrentTimeMillis() - audioTime >= interval) {
       audioTime = TimeUtils.getCurrentTimeMillis()
       setData(audioBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
-      audioCryptoUtils?.let {
+      cryptoUtils?.let {
         sendReport(encrypt(audioBuffer, srtcpAudioIndex++, ssrcAudio, it), rtpFrame)
       } ?: sendReport(audioBuffer, rtpFrame)
       return true
@@ -194,16 +192,13 @@ abstract class BaseSenderReport internal constructor() {
 
   private fun encrypt(
     buffer: ByteArray, index: Int, ssrc: Long, cryptoUtils: CryptoUtils,
-    encryptPayload: Boolean = false
   ): ByteArray {
     var encryptedData = buffer
-    val i = (index or (if (encryptPayload) 1 else 0 shl 31))
+    val i = index or (1 shl 31)
     encryptedData = encryptedData.plus(i.toUInt32())
-    if (encryptPayload) {
-      val payload = encryptedData.copyOfRange(8, encryptedData.size - 4)
-      val encryptPayload = cryptoUtils.encrypt(payload, getIvData(ssrc, i, cryptoUtils))
-      encryptPayload.copyInto(encryptedData, 8, encryptedData.size - 4)
-    }
+    val payload = encryptedData.copyOfRange(8, encryptedData.size - 4)
+    val encryptPayload = cryptoUtils.encrypt(payload, getIvData(ssrc, index, cryptoUtils))
+    encryptPayload.copyInto(encryptedData, 8, encryptedData.size - 4)
     val hmac = cryptoUtils.calculateHmac(encryptedData, index)
     return encryptedData.plus(hmac)
   }

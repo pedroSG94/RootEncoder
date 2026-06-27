@@ -228,6 +228,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
         if (user != null && password != null) setAuthorization(user, password)
 
         val error = runCatching {
+          commandsManager.updateNtpTimestamp()
           commandsManager.setUrl(host, port, "/$path")
           if (!commandsManager.audioDisabled) {
             rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)

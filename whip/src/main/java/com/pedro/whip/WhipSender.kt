@@ -45,6 +45,7 @@ class WhipSender(
     }
 
     fun setCrypto(properties: CryptoProperties) {
+        baseSenderReport?.setCrypto(properties)
         videoPacket.setCryptoProperties(properties)
         audioPacket.setCryptoProperties(properties)
     }

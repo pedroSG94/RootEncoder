@@ -109,8 +109,8 @@ class CommandParser {
           Method.TEARDOWN.name -> Method.TEARDOWN
           Method.PLAY.name -> Method.PLAY
           Method.PAUSE.name -> Method.PAUSE
-          Method.SET_PARAMETERS.name -> Method.SET_PARAMETERS
-          Method.GET_PARAMETERS.name -> Method.GET_PARAMETERS
+          Method.SET_PARAMETER.name -> Method.SET_PARAMETER
+          Method.GET_PARAMETER.name -> Method.GET_PARAMETER
           Method.REDIRECT.name -> Method.REDIRECT
           else -> Method.UNKNOWN
         }
