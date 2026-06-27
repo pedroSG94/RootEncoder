@@ -24,35 +24,21 @@ import java.io.IOException
 /**
  * Created by pedro on 7/11/18.
  */
-class RtpSocketUdp(
-  private val videoSocket: UdpStreamSocket?,
-  private val audioSocket: UdpStreamSocket?,
-) : BaseRtpSocket() {
+class RtpSocketUdpMux(private val udpSocket: UdpStreamSocket) : BaseRtpSocket() {
 
   @Throws(IOException::class)
   override suspend fun setSocket(socket: TcpStreamSocket) {
-    videoSocket?.connect()
-    audioSocket?.connect()
+    udpSocket.connect()
   }
 
   @Throws(IOException::class)
   override suspend fun sendFrame(rtpFrame: RtpFrame) {
-    sendFrameUDP(rtpFrame)
+    udpSocket.write(rtpFrame.buffer)
   }
 
   override suspend fun flush() { }
 
   override suspend fun close() {
-    videoSocket?.close()
-    audioSocket?.close()
-  }
-
-  @Throws(IOException::class)
-  private suspend fun sendFrameUDP(rtpFrame: RtpFrame) {
-    if (rtpFrame.isVideoFrame()) {
-      videoSocket?.write(rtpFrame.buffer)
-    } else {
-      audioSocket?.write(rtpFrame.buffer)
-    }
+    udpSocket.close()
   }
 }

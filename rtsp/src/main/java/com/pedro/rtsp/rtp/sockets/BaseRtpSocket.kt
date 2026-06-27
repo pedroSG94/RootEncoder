@@ -52,7 +52,7 @@ abstract class BaseRtpSocket {
 
     @JvmStatic
     fun getInstance(socket: UdpStreamSocket): BaseRtpSocket {
-      return RtpSocketUdp2(socket)
+      return RtpSocketUdpMux(socket)
     }
   }
 

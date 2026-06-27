@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtsp.rtp.sockets
+package com.pedro.rtsp.rtcp
 
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
@@ -22,37 +22,23 @@ import com.pedro.rtsp.rtsp.RtpFrame
 import java.io.IOException
 
 /**
- * Created by pedro on 7/11/18.
+ * Created by pedro on 8/11/18.
  */
-class RtpSocketUdp(
-  private val videoSocket: UdpStreamSocket?,
-  private val audioSocket: UdpStreamSocket?,
-) : BaseRtpSocket() {
+class SenderReportUdpMux(
+  private val udpSocket: UdpStreamSocket
+) : BaseSenderReport() {
 
   @Throws(IOException::class)
   override suspend fun setSocket(socket: TcpStreamSocket) {
-    videoSocket?.connect()
-    audioSocket?.connect()
+    udpSocket.connect()
   }
 
   @Throws(IOException::class)
-  override suspend fun sendFrame(rtpFrame: RtpFrame) {
-    sendFrameUDP(rtpFrame)
+  override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame) {
+    udpSocket.write(buffer)
   }
-
-  override suspend fun flush() { }
 
   override suspend fun close() {
-    videoSocket?.close()
-    audioSocket?.close()
-  }
-
-  @Throws(IOException::class)
-  private suspend fun sendFrameUDP(rtpFrame: RtpFrame) {
-    if (rtpFrame.isVideoFrame()) {
-      videoSocket?.write(rtpFrame.buffer)
-    } else {
-      audioSocket?.write(rtpFrame.buffer)
-    }
+    udpSocket.close()
   }
 }

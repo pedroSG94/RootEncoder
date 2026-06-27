@@ -7,7 +7,6 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.base.BaseSender
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtcp.BaseSenderReport
@@ -20,7 +19,6 @@ import com.pedro.rtsp.rtp.packets.H265Packet
 import com.pedro.rtsp.rtp.packets.OpusPacket
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
-import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.CryptoProperties
 import com.pedro.rtsp.utils.RtpConstants
@@ -29,7 +27,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.Random
 
 class WhipSender(
     connectChecker: ConnectChecker,
@@ -42,9 +39,7 @@ class WhipSender(
     private var baseSenderReport: BaseSenderReport? = null
 
     @Throws(IOException::class)
-    fun setSocketsInfo(
-        socket: UdpStreamSocket,
-    ) {
+    fun setSocketsInfo(socket: UdpStreamSocket) {
         rtpSocket = BaseRtpSocket.getInstance(socket)
         baseSenderReport = BaseSenderReport.getInstance(socket)
     }

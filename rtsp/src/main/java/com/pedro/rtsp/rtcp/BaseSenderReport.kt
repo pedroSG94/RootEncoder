@@ -75,10 +75,8 @@ abstract class BaseSenderReport internal constructor() {
     }
 
     @JvmStatic
-    fun getInstance(
-      socket: UdpStreamSocket
-    ): BaseSenderReport {
-      return SenderReportUdp2(socket)
+    fun getInstance(socket: UdpStreamSocket): BaseSenderReport {
+      return SenderReportUdpMux(socket)
     }
   }
 

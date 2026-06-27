@@ -54,27 +54,3 @@ class SenderReportUdp(
     }
   }
 }
-
-class SenderReportUdp2(
-  private val videoSocket: UdpStreamSocket?,
-) : BaseSenderReport() {
-
-  @Throws(IOException::class)
-  override suspend fun setSocket(socket: TcpStreamSocket) {
-    videoSocket?.connect()
-  }
-
-  @Throws(IOException::class)
-  override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame) {
-    sendReportUDP(buffer, rtpFrame.isVideoFrame())
-  }
-
-  override suspend fun close() {
-    videoSocket?.close()
-  }
-
-  @Throws(IOException::class)
-  private suspend fun sendReportUDP(buffer: ByteArray, isVideo: Boolean) {
-    videoSocket?.write(buffer)
-  }
-}

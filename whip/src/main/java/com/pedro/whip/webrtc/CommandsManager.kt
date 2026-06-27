@@ -8,7 +8,6 @@ import com.pedro.common.nextBytes
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
-import com.pedro.common.toUInt32
 import com.pedro.rtsp.rtsp.commands.SdpBody
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.encodeToString
@@ -20,20 +19,17 @@ import com.pedro.whip.utils.Network
 import com.pedro.whip.utils.RequestResponse
 import com.pedro.whip.utils.Requests
 import com.pedro.whip.webrtc.stun.AttributeType
-import com.pedro.whip.webrtc.stun.CandidatePair
 import com.pedro.whip.webrtc.stun.GatheringMode
+import com.pedro.whip.webrtc.stun.HeaderType
 import com.pedro.whip.webrtc.stun.StunAttribute
 import com.pedro.whip.webrtc.stun.StunAttributeValueParser
 import com.pedro.whip.webrtc.stun.StunCommand
 import com.pedro.whip.webrtc.stun.StunCommandReader
 import com.pedro.whip.webrtc.stun.StunHeader
-import com.pedro.whip.webrtc.stun.HeaderType
-import kotlinx.coroutines.delay
 import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.SecureRandom
-import java.util.zip.CRC32
 import kotlin.random.Random
 
 class CommandsManager {
@@ -80,7 +76,6 @@ class CommandsManager {
         get() = pps?.getData()?.encodeToString() ?: ""
     val vpsString: String
         get() = vps?.getData()?.encodeToString() ?: ""
-    val lock = Any()
 
     companion object {
         private const val TAG = "CommandsManager"
@@ -125,19 +120,6 @@ class CommandsManager {
         remoteSdpInfo = null
     }
 
-    fun writeOptions() {
-        val uri = "http://$host:$port/$app"
-        val path: String? = streamName
-        val headers = mutableMapOf<String, String>().apply {
-            put("Content-Type", "application/sdp")
-            if (path != null) put("Authorization", "Bearer $path")
-        }
-
-        Requests.makeRequest(
-            uri, "OPTIONS", headers, null, timeout, false
-        )
-    }
-
     suspend fun gatheringCandidates(socketType: SocketType, timeout: Long, gatheringMode: GatheringMode): List<Candidate> {
         val googleStunHost = "stun.l.google.com"
         val googleStunPort = 19302
@@ -148,7 +130,7 @@ class CommandsManager {
           GatheringMode.ALL -> {
               val localCandidates = getLocalCandidates(hosts, startPort)
               val publicCandidates = getStunCandidates(socketType, googleStunHost, googleStunPort, timeout, hosts, startPort + localCandidates.size)
-              return localCandidates + publicCandidates
+              localCandidates + publicCandidates
           }
         }
     }
