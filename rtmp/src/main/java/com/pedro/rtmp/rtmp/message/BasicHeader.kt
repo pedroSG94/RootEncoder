@@ -64,14 +64,13 @@ class BasicHeader(val chunkType: ChunkType, val chunkStreamId: Int) {
       val chunkTypeValue = 0xff and byte.toInt() ushr 6
       val chunkType = ChunkType.entries.find { it.mark.toInt() == chunkTypeValue } ?: throw IOException("Unknown chunk type value: $chunkTypeValue")
       var chunkStreamIdValue = (byte and 0x3F).toInt()
-      if (chunkStreamIdValue > 63) throw IOException("Unknown chunk stream id value: $chunkStreamIdValue")
       if (chunkStreamIdValue == 0) { //Basic header 2 bytes
-        chunkStreamIdValue = socket.read() - 64
+        chunkStreamIdValue = socket.read() + 64
       } else if (chunkStreamIdValue == 1) { //Basic header 3 bytes
         val a = socket.read()
         val b = socket.read()
-        val value = b and 0xff shl 8 and a
-        chunkStreamIdValue = value - 64
+        val value = ((b and 0xff) shl 8) or (a and 0xff)
+        chunkStreamIdValue = value + 64
       }
       return BasicHeader(chunkType, chunkStreamIdValue)
     }

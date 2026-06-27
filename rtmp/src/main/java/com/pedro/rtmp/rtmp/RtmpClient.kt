@@ -455,9 +455,9 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                     onMainThread {
                       connectChecker.onAuthError()
                     }
-                  } else if (commandsManager.user != null && commandsManager.password != null &&
-                      description.contains("challenge=") && description.contains("salt=") //adobe response
-                      || description.contains("nonce=")) { //llnw response
+                  } else if ((commandsManager.user != null && commandsManager.password != null) &&
+                    ((description.contains("challenge=") && description.contains("salt=")) //adobe response
+                      || description.contains("nonce="))) { //llnw response
                     closeConnection()
                     establishConnection()
                     socket = this.socket ?: throw IOException("Invalid socket, Connection failed")

@@ -63,7 +63,7 @@ abstract class CommandsManager {
   var videoDisabled = false
   var customAmfObject: Map<String, Any> = emptyMap()
   private var bytesRead = 0
-  private var acknowledgementSequence = 0
+  private var lastAcknowledgementSequence = 0
 
   protected var width = 640
   protected var height = 480
@@ -192,10 +192,9 @@ abstract class CommandsManager {
 
   suspend fun checkAndSendAcknowledgement(socket: RtmpSocket) {
     writeSync.withLock {
-      if (bytesRead >= RtmpConfig.acknowledgementWindowSize) {
-        acknowledgementSequence += bytesRead
-        bytesRead -= RtmpConfig.acknowledgementWindowSize
-        val acknowledgement = Acknowledgement(acknowledgementSequence)
+      if (bytesRead - lastAcknowledgementSequence >= RtmpConfig.acknowledgementWindowSize) {
+        lastAcknowledgementSequence = bytesRead
+        val acknowledgement = Acknowledgement(bytesRead)
         acknowledgement.writeHeader(socket)
         acknowledgement.writeBody(socket)
         socket.flush()
@@ -239,7 +238,7 @@ abstract class CommandsManager {
     commandId = 0
     readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
     sessionHistory.reset()
-    acknowledgementSequence = 0
+    lastAcknowledgementSequence = 0
     bytesRead = 0
   }
 }
