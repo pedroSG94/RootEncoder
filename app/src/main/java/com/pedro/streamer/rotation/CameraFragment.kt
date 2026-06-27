@@ -78,7 +78,6 @@ class CameraFragment: Fragment(), ConnectChecker {
   val genericStream: GenericStream by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
-      getStreamClient().setBitrateExponentialFactor(0.5f)
     }
   }
   private lateinit var surfaceView: SurfaceView
@@ -131,7 +130,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
     bStartStop.setOnClickListener {
       if (!genericStream.isStreaming) {
-        genericStream.startStream("http://192.168.68.65:8889/mystream/whip/whip")
+        genericStream.startStream(etUrl.text.toString())
         bStartStop.setImageResource(R.drawable.stream_stop_icon)
       } else {
         genericStream.stopStream()
