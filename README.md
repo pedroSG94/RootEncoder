@@ -124,7 +124,7 @@ dependencies {
 - [x] TCP/UDP.
 - [x] RTSPS.
 
-### SRT (beta):
+### SRT:
 
 - [X] Get upload bandwidth used.
 - [X] H264, H265, AAC and OPUS support.
@@ -134,13 +134,17 @@ dependencies {
 
 https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 
-### UDP (beta):
+### UDP:
 
 - [X] Get upload bandwidth used.
 - [X] H264, H265, AAC and OPUS support.
 - [X] Unicast, Multicast and Broadcast support.
 - [X] MPEG2-TS support.
 
+### WHIP (beta):
+
+- [X] Get upload bandwidth used.
+- [X] H264, H265, AV1, G711, AAC and OPUS support.
 
 ## Other related projects:
 
