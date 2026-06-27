@@ -22,6 +22,4 @@ data class RequestResponse(
   val statusCode: Int,
   val headers: Map<String, String>,
   val body: String
-) {
-  fun isSuccess() = statusCode in 200..<300
-}
+)

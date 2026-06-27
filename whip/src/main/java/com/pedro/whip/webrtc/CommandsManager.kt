@@ -303,10 +303,8 @@ class CommandsManager {
                     SdpBody.createAV1Body(RtpConstants.trackVideo, true)
                 }
             }
-            //rtcp-mux and ssrc must stay inside their own m= section so a disabled track
-            //doesn't leak an extra ssrc into the other section (that is read as Plan B).
             videoBody = media +
-                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
+                "a=rtcp-mux\r\n" +
                 "a=ssrc:$videoSsrc cname:$cName\r\n"
         }
         var audioBody = ""
@@ -317,7 +315,7 @@ class CommandsManager {
                 else  -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
             }
             audioBody = media +
-                "a=rtcp-mux\r\n" + //Using same socket for all (SRTP, SRTCP and both tracks)
+                "a=rtcp-mux\r\n" +
                 "a=ssrc:$audioSsrc cname:$cName\r\n"
         }
         val bundleMids = listOfNotNull(

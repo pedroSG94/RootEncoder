@@ -62,7 +62,6 @@ class DtlsConnection(
   private val remoteFingerprint: String
 ) : DefaultTlsServer(certificate.crypto) {
 
-  private val TAG = "DtlsConnection"
 
   interface Callback {
     fun onHandshakeComplete(properties: List<CryptoProperties>)
@@ -71,23 +70,17 @@ class DtlsConnection(
 
   private val wantRTP = true
   private var dtlsTransport: DTLSTransport? = null
-  // Captured inside notifyHandshakeComplete() — the only moment exportKeyingMaterial() is valid
   private var exportedSrtpKeys: ByteArray? = null
 
   fun start(transport: DtlsTransport, callback: Callback) {
     CoroutineScope(Dispatchers.IO).launch {
       try {
-        Log.i(TAG, "starting DTLS accept()")
         dtlsTransport = DTLSServerProtocol().accept(this@DtlsConnection, transport)
-        Log.i(TAG, "DTLS accept() returned successfully")
         val keys = exportedSrtpKeys
           ?: throw IllegalStateException("SRTP keying material not captured during handshake")
-        Log.i(TAG, "SRTP keys captured (${keys.size} bytes), deriving crypto properties")
         val props = deriveCryptoPropertiesFromExport(keys)
-        Log.i(TAG, "crypto properties derived, calling onHandshakeComplete")
         callback.onHandshakeComplete(props)
       } catch (e: Exception) {
-        Log.e(TAG, "DTLS handshake failed: ${e.message}", e)
         callback.onHandshakeFailed(e.message)
       }
     }
@@ -179,10 +172,7 @@ class DtlsConnection(
       exportedSrtpKeys = context.exportKeyingMaterial(
         "EXTRACTOR-dtls_srtp", null, 2 * (keyLength + saltLength)
       )
-      Log.i(TAG, "exportKeyingMaterial OK, ${exportedSrtpKeys?.size} bytes")
-    } catch (e: Exception) {
-      Log.e(TAG, "exportKeyingMaterial FAILED: ${e.message}", e)
-    }
+    } catch (_: Exception) { }
   }
 
   private fun validateX509(cert: TlsCertificate) {
@@ -218,7 +208,7 @@ class DtlsConnection(
     )
   }
 
-  // RFC 3711 §4.3.1: derive SRTP session keys from master key + master salt via AES-CM PRF.
+  // RFC 3711 4.3.1: derive SRTP session keys from master key + master salt via AES-CM PRF.
   // label 0x00 → cipher key, 0x01 → auth key, 0x02 → session salt
   // x = master_salt with byte[7] XOR'd with the label (label * 2^48 in 112-bit representation)
   private fun deriveCryptoProperties(masterKey: ByteArray, masterSalt: ByteArray): CryptoProperties {

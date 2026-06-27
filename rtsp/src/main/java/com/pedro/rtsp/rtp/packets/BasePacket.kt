@@ -87,11 +87,11 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
 
   protected fun encryptSize() = if (cryptoUtils != null) RtpConstants.HMAC_SIZE else 0
 
-  protected fun encryptPacket(buffer: ByteArray, payloadStartOffset: Int) {
+  protected fun encryptPacket(buffer: ByteArray) {
     cryptoUtils?.let {
       val payloadEndOffset = buffer.size - encryptSize()
-      val payload = buffer.copyOfRange(payloadStartOffset, payloadEndOffset)
-      it.encrypt(payload, getIvData(it)).copyInto(buffer, payloadStartOffset)
+      val payload = buffer.copyOfRange(RtpConstants.RTP_HEADER_LENGTH, payloadEndOffset)
+      it.encrypt(payload, getIvData(it)).copyInto(buffer, RtpConstants.RTP_HEADER_LENGTH)
       val hmac = it.calculateHmac(buffer.copyOfRange(0, payloadEndOffset), roc)
       hmac.copyInto(buffer, payloadEndOffset)
     }

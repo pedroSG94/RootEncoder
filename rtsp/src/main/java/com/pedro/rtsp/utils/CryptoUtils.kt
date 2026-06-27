@@ -50,7 +50,7 @@ class CryptoUtils(
   }
 
   fun encrypt(buffer: ByteArray, ivData: ByteArray): ByteArray {
-    // RFC 3711 §4.1.1 AES Counter Mode: keystream_j = E(k, (IV + j) mod 2^128)
+    // RFC 3711 4.1.1 AES Counter Mode: keystream_j = E(k, (IV + j) mod 2^128)
     // The SRTP IV has its low 16 bits set to zero, so the block counter j occupies
     // bits 15..0 → bytes 14..15 in a 16-byte big-endian block
     val result = ByteArray(buffer.size)

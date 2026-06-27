@@ -37,7 +37,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
-import java.net.SocketTimeoutException
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import kotlin.time.Duration.Companion.milliseconds
@@ -290,60 +289,26 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         }
                     }
 
-                    Log.i(TAG, "stun connected!!")
-
                     val certificate = commandsManager.certificate ?: return@launch
                     val fingerprint = commandsManager.remoteSdpInfo?.fingerprint ?: return@launch
 
-                    Log.i(TAG, "connecting dtls...")
                     val dtlsResult = CompletableDeferred<Result<List<CryptoProperties>>>()
                     val dtlsTransport = DtlsTransport(socket)
                     dtlsConnection = DtlsConnection(certificate, fingerprint)
 
                     val dispatchJob = launch {
-                        Log.i(TAG, "dispatchJob started")
                         while (isActive) {
                             try {
-                                val bytes = socket.read()
-                                if (bytes.isEmpty()) continue
-                                val first = bytes[0].toInt() and 0xFF
-                                when {
-                                    first in 20..63 -> {
-                                        Log.d(TAG, "dispatchJob: DTLS packet, enqueuing (first=$first len=${bytes.size})")
-                                        dtlsTransport.enqueue(bytes)
-                                    }
-                                    first in 128..191 -> { /* RTP/RTCP – ignore after DTLS */ }
-                                    else -> {
-                                        Log.i(TAG, "dispatchJob: STUN packet (first=$first len=${bytes.size}), processing")
-                                        try {
-                                            val command = commandsManager.readStun(bytes)
-                                            if (command.header.type == HeaderType.REQUEST) {
-                                                val xorAddress = StunAttributeValueParser.createXorMappedAddress(
-                                                    command.header.id, host, port, true
-                                                )
-                                                commandsManager.writeStun(
-                                                    HeaderType.SUCCESS, command.header.id,
-                                                    listOf(StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)),
-                                                    socket
-                                                )
-                                                Log.i(TAG, "dispatchJob: STUN SUCCESS sent")
-                                            }
-                                        } catch (e: Exception) {
-                                            Log.w(TAG, "dispatchJob: STUN handling error (non-fatal): ${e.message}")
-                                        }
-                                    }
-                                }
-                            } catch (e: Exception) {
-                                Log.e(TAG, "dispatchJob: socket read error, exiting loop: ${e.message}", e)
+                                handleMessages(socket, host, port, dtlsTransport)
+                            } catch (_: Exception) {
                                 break
                             }
                         }
-                        Log.i(TAG, "dispatchJob exited (isActive=$isActive)")
                     }
 
                     dtlsConnection?.start(dtlsTransport, object : DtlsConnection.Callback {
-                        override fun onHandshakeComplete(cryptoProperties: List<CryptoProperties>) {
-                            dtlsResult.complete(Result.success(cryptoProperties))
+                        override fun onHandshakeComplete(properties: List<CryptoProperties>) {
+                            dtlsResult.complete(Result.success(properties))
                         }
                         override fun onHandshakeFailed(reason: String?) {
                             dtlsResult.complete(Result.failure(Exception(reason ?: "DTLS handshake failed")))
@@ -362,8 +327,6 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         }
                         return@launch
                     }
-                    // On success: keep dispatchJob running — it continues answering STUN keep-alives.
-                    // dtlsConnection is kept open; close_notify is sent in disconnect().
                     Log.i(TAG, "dtls connected!!")
                     onMainThread { connectChecker.onConnectionSuccess() }
                     whipSender.setCrypto(cryptoProperties[1])
@@ -383,27 +346,31 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
     suspend fun handleMessages(
       socket: UdpStreamSocket,
-      onStunConnectedReceived: suspend (ByteArray, String, Int) -> Unit = { b, s, i -> },
-      onDtlsDataReceived: suspend (ByteArray) -> Unit = {},
-      onRtcpDataReceived: suspend (ByteArray) -> Unit = {}
+      host: String, port: Int,
+      dtlsTransport: DtlsTransport
     ) {
-        try {
-            val packet = socket.readPacket()
-            val host = packet.host ?: return
-            val port = packet.port ?: return
-            val type = packet.data[0]
-            when (type) {
-                in 20..63 -> {
-                    onDtlsDataReceived(packet.data)
-                    return
-                }
-                in 128..191 -> {
-                    onRtcpDataReceived(packet.data)
-                    return
-                }
+        val bytes = socket.read()
+        if (bytes.isEmpty()) return
+        val first = bytes[0].toInt() and 0xFF
+        when (first) {
+            in 20..63 -> dtlsTransport.enqueue(bytes)
+            in 128..191 -> { /* RTP/RTCP – ignore after DTLS */ }
+            else -> {
+                try {
+                    val command = commandsManager.readStun(bytes)
+                    if (command.header.type == HeaderType.REQUEST) {
+                        val xorAddress = StunAttributeValueParser.createXorMappedAddress(
+                            command.header.id, host, port, true
+                        )
+                        commandsManager.writeStun(
+                            HeaderType.SUCCESS, command.header.id,
+                            listOf(StunAttribute(AttributeType.XOR_MAPPED_ADDRESS, xorAddress)),
+                            socket
+                        )
+                    }
+                } catch (_: Exception) { }
             }
-            onStunConnectedReceived(packet.data, host, port)
-        } catch (_: SocketTimeoutException) {}
+        }
     }
 
     fun disconnect() {
@@ -468,7 +435,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         jobRetry = scopeRetry.launch {
             reTries--
             disconnect(false)
-            delay(delay)
+            delay(delay.milliseconds)
             val reconnectUrl = backupUrl ?: url
             connect(reconnectUrl, true)
         }

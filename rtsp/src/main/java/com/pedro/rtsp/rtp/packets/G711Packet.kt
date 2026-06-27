@@ -54,7 +54,7 @@ class G711Packet: BasePacket(
       markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)
       updateSeq(buffer)
-      encryptPacket(buffer, RtpConstants.RTP_HEADER_LENGTH)
+      encryptPacket(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size , channelIdentifier)
       sum += size
       frames.add(rtpFrame)
