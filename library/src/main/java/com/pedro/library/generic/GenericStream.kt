@@ -35,10 +35,12 @@ import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.library.util.streamclient.UdpStreamClient
+import com.pedro.library.util.streamclient.WhipStreamClient
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import com.pedro.udp.UdpClient
+import com.pedro.whip.WhipClient
 import java.nio.ByteBuffer
 
 /**
@@ -64,11 +66,13 @@ class GenericStream(
   private val rtspClient = RtspClient(connectChecker)
   private val srtClient = SrtClient(connectChecker)
   private val udpClient = UdpClient(connectChecker)
+  private val whipClient = WhipClient(connectChecker)
   private val streamClient = GenericStreamClient(
     RtmpStreamClient(rtmpClient, streamClientListener),
     RtspStreamClient(rtspClient, streamClientListener),
     SrtStreamClient(srtClient, streamClientListener),
-    UdpStreamClient(udpClient, streamClientListener)
+    UdpStreamClient(udpClient, streamClientListener),
+    WhipStreamClient(whipClient, streamClientListener)
   )
   private var connectedType = ClientType.NONE
 

@@ -25,10 +25,12 @@ import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.UdpStreamClient
+import com.pedro.library.util.streamclient.WhipStreamClient
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import com.pedro.udp.UdpClient
+import com.pedro.whip.WhipClient
 import java.nio.ByteBuffer
 
 class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBase() {
@@ -37,11 +39,13 @@ class GenericOnlyAudio(private val connectChecker: ConnectChecker): OnlyAudioBas
   private val rtspClient = RtspClient(connectChecker)
   private val srtClient = SrtClient(connectChecker)
   private val udpClient = UdpClient(connectChecker)
+  private val whipClient = WhipClient(connectChecker)
   private val streamClient = GenericStreamClient(
     RtmpStreamClient(rtmpClient, null),
     RtspStreamClient(rtspClient, null),
     SrtStreamClient(srtClient, null),
-    UdpStreamClient(udpClient, null)
+    UdpStreamClient(udpClient, null),
+    WhipStreamClient(whipClient, null)
   ).apply {
     setOnlyAudio(true)
   }

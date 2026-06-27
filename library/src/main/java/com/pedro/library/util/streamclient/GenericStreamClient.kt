@@ -29,6 +29,7 @@ class GenericStreamClient(
   private val rtspClient: RtspStreamClient,
   private val srtClient: SrtStreamClient,
   private val udpClient: UdpStreamClient,
+  private val whipClient: WhipStreamClient,
 ): StreamBaseClient() {
 
   private var connectedStreamClient : StreamBaseClient? = null
@@ -126,7 +127,6 @@ class GenericStreamClient(
   override fun setAuthorization(user: String?, password: String?) {
     rtmpClient.setAuthorization(user, password)
     rtspClient.setAuthorization(user, password)
-    srtClient.setAuthorization(user, password)
   }
 
   override fun setReTries(reTries: Int) {
@@ -134,6 +134,7 @@ class GenericStreamClient(
     rtspClient.setReTries(reTries)
     srtClient.setReTries(reTries)
     udpClient.setReTries(reTries)
+    whipClient.setReTries(reTries)
   }
 
   override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
@@ -147,12 +148,14 @@ class GenericStreamClient(
     rtspClient.setLogs(enabled)
     srtClient.setLogs(enabled)
     udpClient.setLogs(enabled)
+    whipClient.setLogs(enabled)
   }
 
   override fun setCheckServerAlive(enabled: Boolean) {
     rtmpClient.setCheckServerAlive(enabled)
     rtspClient.setCheckServerAlive(enabled)
     srtClient.setCheckServerAlive(enabled)
+    whipClient.setCheckServerAlive(enabled)
   }
 
   override fun resizeCache(newSize: Int) {
@@ -160,6 +163,7 @@ class GenericStreamClient(
     rtspClient.resizeCache(newSize)
     srtClient.resizeCache(newSize)
     udpClient.resizeCache(newSize)
+    whipClient.resizeCache(newSize)
   }
 
   override fun clearCache() {
@@ -167,6 +171,7 @@ class GenericStreamClient(
     rtspClient.clearCache()
     srtClient.clearCache()
     udpClient.clearCache()
+    whipClient.clearCache()
   }
 
   override fun getCacheSize(): Int = connectedStreamClient?.getCacheSize() ?: 0
@@ -188,6 +193,7 @@ class GenericStreamClient(
     rtspClient.resetSentAudioFrames()
     srtClient.resetSentAudioFrames()
     udpClient.resetSentAudioFrames()
+    whipClient.resetSentAudioFrames()
   }
 
   override fun resetSentVideoFrames() {
@@ -195,6 +201,7 @@ class GenericStreamClient(
     rtspClient.resetSentVideoFrames()
     srtClient.resetSentVideoFrames()
     udpClient.resetSentVideoFrames()
+    whipClient.resetSentVideoFrames()
   }
 
   override fun resetDroppedAudioFrames() {
@@ -202,6 +209,7 @@ class GenericStreamClient(
     rtspClient.resetDroppedAudioFrames()
     srtClient.resetDroppedAudioFrames()
     udpClient.resetDroppedAudioFrames()
+    whipClient.resetDroppedAudioFrames()
   }
 
   override fun resetDroppedVideoFrames() {
@@ -209,6 +217,7 @@ class GenericStreamClient(
     rtspClient.resetDroppedVideoFrames()
     srtClient.resetDroppedVideoFrames()
     udpClient.resetDroppedVideoFrames()
+    whipClient.resetDroppedVideoFrames()
   }
 
   override fun resetBytesSend() {
@@ -223,6 +232,7 @@ class GenericStreamClient(
     rtspClient.setOnlyAudio(onlyAudio)
     srtClient.setOnlyAudio(onlyAudio)
     udpClient.setOnlyAudio(onlyAudio)
+    whipClient.setOnlyAudio(onlyAudio)
   }
 
   override fun setOnlyVideo(onlyVideo: Boolean) {
@@ -230,6 +240,7 @@ class GenericStreamClient(
     rtspClient.setOnlyVideo(onlyVideo)
     srtClient.setOnlyVideo(onlyVideo)
     udpClient.setOnlyVideo(onlyVideo)
+    whipClient.setOnlyVideo(onlyVideo)
   }
 
   fun connecting(url: String) {
@@ -238,10 +249,12 @@ class GenericStreamClient(
         rtmpClient
       } else if (url.startsWith("rtsp", ignoreCase = true)) {
         rtspClient
-      } else if (url.startsWith("srt", ignoreCase = true)){
+      } else if (url.startsWith("srt", ignoreCase = true)) {
         srtClient
-      } else if (url.startsWith("udp", ignoreCase = true)){
+      } else if (url.startsWith("udp", ignoreCase = true)) {
         udpClient
+      } else if (url.startsWith("http", ignoreCase = true)) {
+        whipClient
       } else null
   }
 
@@ -254,6 +267,7 @@ class GenericStreamClient(
     rtspClient.setBitrateExponentialFactor(factor)
     srtClient.setBitrateExponentialFactor(factor)
     udpClient.setBitrateExponentialFactor(factor)
+    whipClient.setBitrateExponentialFactor(factor)
   }
 
   /**

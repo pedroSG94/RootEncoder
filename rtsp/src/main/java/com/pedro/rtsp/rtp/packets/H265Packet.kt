@@ -22,6 +22,8 @@ import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.getData
+import java.nio.ByteBuffer
 import kotlin.experimental.or
 
 /**
@@ -34,8 +36,18 @@ class H265Packet : BasePacket(
   RtpConstants.payloadType + RtpConstants.trackVideo
 ) {
 
+  private var sps: ByteBuffer? = null
+  private var pps: ByteBuffer? = null
+  private var vps: ByteBuffer? = null
+
   init {
     channelIdentifier = RtpConstants.trackVideo
+  }
+
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
+    this.sps = ByteBuffer.wrap(sps.getData())
+    this.pps = ByteBuffer.wrap(pps.getData())
+    this.vps = ByteBuffer.wrap(vps.getData())
   }
 
   override suspend fun createAndSendPacket(
@@ -50,14 +62,23 @@ class H265Packet : BasePacket(
 
     val ts = mediaFrame.info.timestamp * 1000L
     val frames = mutableListOf<RtpFrame>()
-
+    if (mediaFrame.info.isKeyFrame) {
+      val sps = this.sps
+      val pps = this.pps
+      val vps = this.vps
+      if (sps != null && pps != null && vps != null) {
+        if (!nals.contains(pps)) nals.add(0, pps.duplicate())
+        if (!nals.contains(sps)) nals.add(0, sps.duplicate())
+        if (!nals.contains(vps)) nals.add(0, vps.duplicate())
+      }
+    }
     nals.forEachIndexed { index, data ->
       val nalType = data.get()
       val nalType2 = data.get()
       val nalSize = data.remaining()
       // Small NAL unit => Single NAL unit
-      if (nalSize <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-        val buffer = getBuffer(nalSize + RtpConstants.RTP_HEADER_LENGTH + 2)
+      if (nalSize <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 - encryptSize()) {
+        val buffer = getBuffer(nalSize + RtpConstants.RTP_HEADER_LENGTH + 2 + encryptSize())
         //Set PayloadHdr (exact copy of nal unit header)
         buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
         buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = nalType2
@@ -65,6 +86,7 @@ class H265Packet : BasePacket(
         val rtpTs = updateTimeStamp(buffer, ts)
         if (index == nals.size - 1) markPacket(buffer) //mark end frame
         updateSeq(buffer)
+        encryptPacket(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
       } else {
@@ -79,12 +101,12 @@ class H265Packet : BasePacket(
 
         var sum = 0
         while (sum < nalSize) {
-          val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3) {
-            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3
+          val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3 - encryptSize()) {
+            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 3 - encryptSize()
           } else {
             data.remaining()
           }
-          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3)
+          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 3 + encryptSize())
           //Set PayloadHdr (16bit type=49)
           buffer[RtpConstants.RTP_HEADER_LENGTH] = (49 shl 1).toByte()
           buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = 1
@@ -100,15 +122,12 @@ class H265Packet : BasePacket(
             if (index == nals.size - 1) markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
+          encryptPacket(buffer)
           val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
           frames.add(rtpFrame)
         }
       }
     }
     if (frames.isNotEmpty()) callback(frames)
-  }
-
-  override fun reset() {
-    super.reset()
   }
 }

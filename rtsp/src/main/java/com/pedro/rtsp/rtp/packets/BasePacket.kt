@@ -18,6 +18,8 @@ package com.pedro.rtsp.rtp.packets
 
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.CryptoProperties
+import com.pedro.rtsp.utils.CryptoUtils
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.setLong
 import kotlin.experimental.and
@@ -32,7 +34,13 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   private var seq = 0L
   private var ssrc = 0L
   protected val maxPacketSize = RtpConstants.MTU - 28
+  protected var cryptoUtils: CryptoUtils? = null
+  private var roc = 0
   protected val TAG = "BasePacket"
+
+  fun setCryptoProperties(cryptoProperties: CryptoProperties) {
+    cryptoUtils = CryptoUtils(cryptoProperties)
+  }
 
   abstract suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
@@ -68,11 +76,25 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   }
 
   protected fun updateSeq(buffer: ByteArray) {
-    buffer.setLong(++seq, 2, 4)
+    val currentSeq = ++seq
+    if (currentSeq - RtpConstants.MAX_SEQ_NUMBER * roc > RtpConstants.MAX_SEQ_NUMBER) roc++
+    buffer.setLong(currentSeq, 2, 4)
   }
 
   protected fun markPacket(buffer: ByteArray) {
     buffer[1] = buffer[1] or 0x80.toByte()
+  }
+
+  protected fun encryptSize() = if (cryptoUtils != null) RtpConstants.HMAC_SIZE else 0
+
+  protected fun encryptPacket(buffer: ByteArray) {
+    cryptoUtils?.let {
+      val payloadEndOffset = buffer.size - encryptSize()
+      val payload = buffer.copyOfRange(RtpConstants.RTP_HEADER_LENGTH, payloadEndOffset)
+      it.encrypt(payload, getIvData(it)).copyInto(buffer, RtpConstants.RTP_HEADER_LENGTH)
+      val hmac = it.calculateHmac(buffer.copyOfRange(0, payloadEndOffset), roc)
+      hmac.copyInto(buffer, payloadEndOffset)
+    }
   }
 
   private fun setLongSSRC(buffer: ByteArray, ssrc: Long) {
@@ -81,5 +103,10 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
 
   private fun requestBuffer(buffer: ByteArray) {
     buffer[1] = buffer[1] and 0x7F
+  }
+
+  private fun getIvData(cryptoUtils: CryptoUtils): ByteArray {
+    val index = ((roc shl 16) or (seq.toInt() and 0xFFFF))
+    return cryptoUtils.generateIv(ssrc, index.toLong())
   }
 }

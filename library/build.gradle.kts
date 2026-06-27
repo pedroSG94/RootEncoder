@@ -54,5 +54,6 @@ dependencies {
   api(project(":rtsp"))
   api(project(":srt"))
   api(project(":udp"))
+  api(project(":whip"))
   api(project(":common"))
 }

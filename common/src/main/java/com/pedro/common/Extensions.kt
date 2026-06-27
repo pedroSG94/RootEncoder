@@ -34,9 +34,11 @@ import kotlinx.coroutines.withContext
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.UnsupportedEncodingException
+import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
 import java.util.concurrent.BlockingQueue
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.LinkedBlockingQueue
@@ -197,6 +199,10 @@ fun Int.toUInt32(): ByteArray {
   return byteArrayOf((this ushr 24).toByte(), (this ushr 16).toByte(), (this ushr 8).toByte(), this.toByte())
 }
 
+fun Long.toUInt64(): ByteArray {
+  return byteArrayOf((this ushr 56).toByte(), (this ushr 48).toByte(), (this ushr 48).toByte(), (this ushr 32).toByte(), (this ushr 24).toByte(), (this ushr 16).toByte(), (this ushr 8).toByte(), this.toByte())
+}
+
 fun Int.toUInt32LittleEndian(): ByteArray = Integer.reverseBytes(this).toUInt32()
 
 fun ByteArray.toUInt16(): Int {
@@ -213,6 +219,21 @@ fun ByteArray.toUInt32(): Int {
 
 fun ByteArray.toUInt32LittleEndian(): Int {
   return Integer.reverseBytes(toUInt32())
+}
+
+fun ByteArray.xorBytes(bytes: ByteArray): ByteArray {
+  val xorBytes = ByteArray(this.size)
+  for (i in this.indices) xorBytes[i] = (this[i].toInt() xor bytes[i].toInt()).toByte()
+  return xorBytes
+}
+
+fun BigInteger.toByteArray(length: Int): ByteArray {
+  val raw = this.toByteArray()
+  return when {
+    raw.size == length -> raw
+    raw.size > length -> raw.copyOfRange(raw.size - length, raw.size)
+    else -> ByteArray(length - raw.size) + raw
+  }
 }
 
 fun InputStream.readUntil(byteArray: ByteArray) {
@@ -274,4 +295,19 @@ fun SurfaceTexture.tryClear() {
   } catch (_: Exception) {} finally {
     surface.release()
   }
+}
+
+fun List<ByteArray>.combine(): ByteArray {
+  val totalSize = this.sumOf { it.size }
+  val combined = ByteArray(totalSize)
+  var offset = 0
+  for (arr in this) {
+    arr.copyInto(combined, offset)
+    offset += arr.size
+  }
+  return combined
+}
+
+fun SecureRandom.nextBytes(size: Int): ByteArray {
+  return ByteArray(size).apply { nextBytes(this) }
 }

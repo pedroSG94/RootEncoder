@@ -54,13 +54,16 @@ abstract class StreamSocket {
 
     fun createUdpSocket(
       type: SocketType,
-      host: String, port: Int, timeout: Long,
-      sourcePort: Int? = null, receiveSize: Int? = null,
+      host: String, port: Int,
+      timeout: Long,
+      sourceHost: String? = null,
+      sourcePort: Int? = null,
+      receiveSize: Int? = null,
       udpType: UdpType = UdpType.UNICAST
     ): UdpStreamSocket {
       return when (type) {
-        SocketType.KTOR -> UdpStreamSocketKtor(host, port, sourcePort, receiveSize, udpType)
-        SocketType.JAVA -> UdpStreamSocketJava(host, port, sourcePort, receiveSize, udpType)
+        SocketType.KTOR -> UdpStreamSocketKtor(host, port, sourceHost, sourcePort, receiveSize, udpType)
+        SocketType.JAVA -> UdpStreamSocketJava(host, port, sourceHost, sourcePort, receiveSize, udpType)
       }.apply {
         this.timeout = timeout
       }

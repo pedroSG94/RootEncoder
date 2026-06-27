@@ -30,11 +30,13 @@ import com.pedro.library.util.streamclient.RtspStreamClient
 import com.pedro.library.util.streamclient.SrtStreamClient
 import com.pedro.library.util.streamclient.StreamClientListener
 import com.pedro.library.util.streamclient.UdpStreamClient
+import com.pedro.library.util.streamclient.WhipStreamClient
 import com.pedro.library.view.OpenGlView
 import com.pedro.rtmp.rtmp.RtmpClient
 import com.pedro.rtsp.rtsp.RtspClient
 import com.pedro.srt.srt.SrtClient
 import com.pedro.udp.UdpClient
+import com.pedro.whip.WhipClient
 import java.nio.ByteBuffer
 import java.util.Locale
 
@@ -54,6 +56,7 @@ class GenericCamera2: Camera2Base {
   private lateinit var rtspClient: RtspClient
   private lateinit var srtClient: SrtClient
   private lateinit var udpClient: UdpClient
+  private lateinit var whipClient: WhipClient
   private lateinit var streamClient: GenericStreamClient
   private lateinit var connectChecker: ConnectChecker
   private var connectedType = ClientType.NONE
@@ -72,11 +75,13 @@ class GenericCamera2: Camera2Base {
     rtspClient = RtspClient(connectChecker)
     srtClient = SrtClient(connectChecker)
     udpClient = UdpClient(connectChecker)
+    whipClient = WhipClient(connectChecker)
     streamClient = GenericStreamClient(
       RtmpStreamClient(rtmpClient, streamClientListener),
       RtspStreamClient(rtspClient, streamClientListener),
       SrtStreamClient(srtClient, streamClientListener),
       UdpStreamClient(udpClient, streamClientListener),
+      WhipStreamClient(whipClient, streamClientListener)
     )
   }
 
