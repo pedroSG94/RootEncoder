@@ -25,15 +25,9 @@ import com.pedro.common.AudioUtils
  */
 class AacAudioSpecificConfig(private val type: Int, private val sampleRate: Int, private val channels: Int) {
 
-  val size = 9
+  val size = 2
 
   fun write(buffer: ByteArray, offset: Int) {
-    writeConfig(buffer, offset)
-    val adts = AudioUtils.createAdtsHeader(type, buffer.size, sampleRate, channels)
-    adts.get(buffer, offset + 2, adts.capacity())
-  }
-
-  private fun writeConfig(buffer: ByteArray, offset: Int) {
     val frequency = AudioUtils.getFrequency(sampleRate)
     buffer[offset] = ((type shl 3) or (frequency shr 1)).toByte()
     buffer[offset + 1] = (frequency shl 7 and 0x80).plus(channels shl 3 and 0x78).toByte()
