@@ -76,19 +76,13 @@ class Nak: ControlPacket(ControlType.NAK) {
     }
   }
 
-  /**
-   * Convert packets ranges to list of packets lost
-   */
-  fun getNakPacketsLostList(): List<Int> {
-    val chunks = cifLostList.chunked(2)
-    val values = mutableListOf<Int>()
-    chunks.forEach { ranges ->
-      val validMinValue = ranges[0] and 0x7FFFFFFF
-      val validMaxValue = ranges[1] and 0x7FFFFFFF
-      values.addAll((validMinValue..validMaxValue).toList())
+  fun getNakRanges(): List<Pair<Int, Int>> {
+    return cifLostList.chunked(2).map { ranges ->
+      (ranges[0] and 0x7FFFFFFF) to (ranges[1] and 0x7FFFFFFF)
     }
-    return values
   }
+
+  fun getLostCount(): Int = getNakRanges().sumOf { (min, max) -> ((max - min) and 0x7FFFFFFF) + 1 }
 
   override fun toString(): String {
     return "Nak(cifLostList=$cifLostList)"

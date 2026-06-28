@@ -389,9 +389,9 @@ class SrtClient(private val connectChecker: ConnectChecker) {
           }
           is Nak -> {
             //packet lost reported, we should resend it
-            val packetsLost = srtPacket.getNakPacketsLostList()
-            this.packetsLost += packetsLost.size
-            commandsManager.reSendPackets(packetsLost, socket)
+            val lostRanges = srtPacket.getNakRanges()
+            this.packetsLost += srtPacket.getLostCount()
+            commandsManager.reSendPackets(lostRanges, socket)
           }
           is CongestionWarning -> {
 
