@@ -33,7 +33,5 @@ abstract class SharedObject: RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStre
     TODO("Not yet implemented")
   }
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
+  override fun getSize(): Int = 0
 }

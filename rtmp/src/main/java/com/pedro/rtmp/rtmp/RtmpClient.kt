@@ -187,7 +187,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun setWriteChunkSize(chunkSize: Int) {
     if (!isStreaming) {
-      RtmpConfig.writeChunkSize = chunkSize
+      commandsManager.config.writeChunkSize = chunkSize
     }
   }
 
@@ -378,7 +378,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     when (message.getType()) {
       MessageType.SET_CHUNK_SIZE -> {
         val setChunkSize = message as SetChunkSize
-        commandsManager.readChunkSize = setChunkSize.chunkSize
+        commandsManager.config.readChunkSize = setChunkSize.chunkSize
         Log.i(TAG, "chunk size configured to ${setChunkSize.chunkSize}")
       }
       MessageType.ACKNOWLEDGEMENT -> {
@@ -386,7 +386,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       }
       MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE -> {
         val windowAcknowledgementSize = message as WindowAcknowledgementSize
-        RtmpConfig.acknowledgementWindowSize = windowAcknowledgementSize.acknowledgementWindowSize
+        commandsManager.config.acknowledgementWindowSize = windowAcknowledgementSize.acknowledgementWindowSize
       }
       MessageType.SET_PEER_BANDWIDTH -> {
         val setPeerBandwidth = message as SetPeerBandwidth

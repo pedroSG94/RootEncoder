@@ -122,8 +122,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
     header.writeHeader(socket)
   }
 
-  suspend fun writeBody(socket: RtmpSocket) {
-    val chunkSize = RtmpConfig.writeChunkSize
+  suspend fun writeBody(socket: RtmpSocket, chunkSize: Int) {
     val bytes = storeBody()
     var pos = 0
     var length = getSize()

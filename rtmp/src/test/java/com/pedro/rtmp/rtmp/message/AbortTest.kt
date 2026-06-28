@@ -57,7 +57,7 @@ class AbortTest {
 
     val abort = Abort()
     abort.writeHeader(socket)
-    abort.writeBody(socket)
+    abort.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

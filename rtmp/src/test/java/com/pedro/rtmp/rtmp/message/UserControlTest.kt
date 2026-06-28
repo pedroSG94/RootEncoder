@@ -58,7 +58,7 @@ class UserControlTest {
 
     val userControl = UserControl()
     userControl.writeHeader(socket)
-    userControl.writeBody(socket)
+    userControl.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

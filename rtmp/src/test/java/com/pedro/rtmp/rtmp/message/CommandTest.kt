@@ -65,7 +65,7 @@ class CommandTest {
     commandAmf0.addData(AmfNumber(20.0))
 
     commandAmf0.writeHeader(socket)
-    commandAmf0.writeBody(socket)
+    commandAmf0.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

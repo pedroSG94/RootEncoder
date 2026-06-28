@@ -57,7 +57,7 @@ class SetChunkSizeTest {
 
     val setChunkSize = SetChunkSize(256)
     setChunkSize.writeHeader(socket)
-    setChunkSize.writeBody(socket)
+    setChunkSize.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }
