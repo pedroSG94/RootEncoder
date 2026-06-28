@@ -25,13 +25,13 @@ import com.pedro.rtsp.utils.RtpConstants
  * RFC 7655.
  * Valid for G711A and G711U
  */
-class G711Packet: BasePacket(
+class G711Packet(track: Int): BasePacket(
   0,
   RtpConstants.payloadTypeG711
 ) {
 
   init {
-    channelIdentifier = RtpConstants.trackAudio
+    channelIdentifier = track
   }
 
   fun setAudioInfo(sampleRate: Int) {

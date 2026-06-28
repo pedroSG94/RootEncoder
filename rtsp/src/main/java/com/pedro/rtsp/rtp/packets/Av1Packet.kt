@@ -37,15 +37,15 @@ import java.nio.ByteBuffer
  * |Z|Y| W |N|-|-|-|
  * +-+-+-+-+-+-+-+-+
  */
-class Av1Packet: BasePacket(
+class Av1Packet(track: Int): BasePacket(
   RtpConstants.clockVideoFrequency,
-  RtpConstants.payloadType + RtpConstants.trackVideo
+  RtpConstants.payloadType + track
 ) {
 
   private val parser = Av1Parser()
 
   init {
-    channelIdentifier = RtpConstants.trackVideo
+    channelIdentifier = track
   }
 
   override suspend fun createAndSendPacket(
@@ -64,11 +64,7 @@ class Av1Packet: BasePacket(
     var data = byteArrayOf()
     obuList.forEachIndexed { index, obu ->
       val obuData = obu.getFullData()
-      data = if (index == obuList.size - 1) {
-        data.plus(obuData)
-      } else {
-        data.plus(parser.writeLeb128(obuData.size.toLong()).plus(obuData))
-      }
+      data = data.plus(parser.writeLeb128(obuData.size.toLong()).plus(obuData))
     }
     fixedBuffer = ByteBuffer.wrap(data)
     val size = fixedBuffer.remaining()
@@ -91,8 +87,7 @@ class Av1Packet: BasePacket(
         isLastPacket = true
         markPacket(buffer) //mark end frame
       }
-      val oSize = if (isFirstPacket) obuList.size else 1
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(mediaFrame.info.isKeyFrame, isFirstPacket, isLastPacket, oSize)
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(mediaFrame.info.isKeyFrame, isFirstPacket, isLastPacket)
       updateSeq(buffer)
       encryptPacket(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
@@ -105,10 +100,10 @@ class Av1Packet: BasePacket(
     super.reset()
   }
 
-  private fun generateAv1AggregationHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean, numObu: Int): Byte {
+  private fun generateAv1AggregationHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean): Byte {
     val z = if (isFirstPacket) 0 else 1
     val y = if (isLastPacket) 0 else 1
-    val w = numObu
+    val w = 0
     val n = if (isKeyFrame && isFirstPacket) 1 else 0
     return ((z shl 7) or (y shl 6) or (w shl 4) or (n shl 3) or 0).toByte()
   }

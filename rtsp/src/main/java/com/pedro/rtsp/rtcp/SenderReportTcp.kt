@@ -19,12 +19,13 @@ package com.pedro.rtsp.rtcp
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import java.io.IOException
 
 /**
  * Created by pedro on 8/11/18.
  */
-class SenderReportTcp : BaseSenderReport() {
+class SenderReportTcp(rtpTracks: RtpTracks): BaseSenderReport(rtpTracks) {
 
   private var socket: TcpStreamSocket? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, RtpConstants.REPORT_PACKET_LENGTH.toByte())

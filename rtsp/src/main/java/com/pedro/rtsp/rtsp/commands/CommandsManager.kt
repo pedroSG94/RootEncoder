@@ -30,6 +30,7 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import java.io.IOException
@@ -64,6 +65,7 @@ open class CommandsManager {
   var videoDisabled = false
   var audioDisabled = false
   private val commandParser = CommandParser()
+  val rtpTracks = RtpTracks()
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
   //For udp
@@ -152,22 +154,22 @@ open class CommandsManager {
     if (!videoDisabled) {
       videoBody = when (videoCodec) {
         VideoCodec.H264 -> {
-          createH264Body(RtpConstants.trackVideo, spsString, ppsString)
+          createH264Body(rtpTracks.trackVideo, spsString, ppsString)
         }
         VideoCodec.H265 -> {
-          createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
+          createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
         }
         VideoCodec.AV1 -> {
-          createAV1Body(RtpConstants.trackVideo)
+          createAV1Body(rtpTracks.trackVideo)
         }
       }
     }
     var audioBody = ""
     if (!audioDisabled) {
       audioBody = when (audioCodec) {
-        AudioCodec.G711 -> createG711Body(RtpConstants.trackAudio, sampleRate, isStereo)
-        AudioCodec.AAC -> createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
-        AudioCodec.OPUS -> createOpusBody(RtpConstants.trackAudio)
+        AudioCodec.G711 -> createG711Body(rtpTracks.trackAudio, sampleRate, isStereo)
+        AudioCodec.AAC -> createAacBody(rtpTracks.trackAudio, sampleRate, isStereo)
+        AudioCodec.OPUS -> createOpusBody(rtpTracks.trackAudio)
       }
     }
     return "v=0\r\n" +
@@ -206,7 +208,7 @@ open class CommandsManager {
   }
 
   open fun createSetup(track: Int): String {
-    val udpPorts = if (track == RtpConstants.trackVideo) videoClientPorts else audioClientPorts
+    val udpPorts = if (track == rtpTracks.trackVideo) videoClientPorts else audioClientPorts
     val params = if (protocol === Protocol.UDP) {
       "UDP;unicast;client_port=${udpPorts[0]}-${udpPorts[1]};mode=record"
     } else {

@@ -25,13 +25,10 @@ import com.pedro.rtsp.utils.RtpConstants
  *
  * RFC 7587.
  */
-class OpusPacket: BasePacket(
-  0,
-  RtpConstants.payloadType + RtpConstants.trackAudio
-) {
+class OpusPacket(track: Int): BasePacket(0, RtpConstants.payloadType + track) {
 
   init {
-    channelIdentifier = RtpConstants.trackAudio
+    channelIdentifier = track
   }
 
   fun setAudioInfo(sampleRate: Int) {

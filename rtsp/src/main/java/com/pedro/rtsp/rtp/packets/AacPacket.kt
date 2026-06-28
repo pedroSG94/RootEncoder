@@ -28,13 +28,10 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-class AacPacket: BasePacket(
-  0,
-  RtpConstants.payloadType + RtpConstants.trackAudio
-) {
+class AacPacket(track: Int): BasePacket(0, RtpConstants.payloadType + track) {
 
   init {
-    channelIdentifier = RtpConstants.trackAudio
+    channelIdentifier = track
   }
 
   fun setAudioInfo(sampleRate: Int) {

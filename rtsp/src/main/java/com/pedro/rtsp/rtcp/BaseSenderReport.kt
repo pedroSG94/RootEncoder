@@ -27,13 +27,14 @@ import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.CryptoProperties
 import com.pedro.rtsp.utils.CryptoUtils
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.setLong
 import java.io.IOException
 
 /**
  * Created by pedro on 7/11/18.
  */
-abstract class BaseSenderReport internal constructor() {
+abstract class BaseSenderReport internal constructor(private val rtpTracks: RtpTracks) {
 
   private val interval: Long = 3000
   private val videoBuffer = ByteArray(RtpConstants.REPORT_PACKET_LENGTH)
@@ -54,6 +55,7 @@ abstract class BaseSenderReport internal constructor() {
   companion object {
     @JvmStatic
     fun getInstance(
+      rtpTracks: RtpTracks,
       socketType: SocketType,
       protocol: Protocol, host: String,
       timeout: Long,
@@ -61,7 +63,7 @@ abstract class BaseSenderReport internal constructor() {
       videoServerPort: Int?, audioServerPort: Int?,
     ): BaseSenderReport {
       return if (protocol === Protocol.TCP) {
-        SenderReportTcp()
+        SenderReportTcp(rtpTracks)
       } else {
         val videoSocket = if (videoServerPort != null) {
           StreamSocket.createUdpSocket(socketType, host, videoServerPort, timeout, sourcePort = videoSourcePort)
@@ -69,13 +71,13 @@ abstract class BaseSenderReport internal constructor() {
         val audioSocket = if (audioServerPort != null) {
           StreamSocket.createUdpSocket(socketType, host, audioServerPort, timeout, sourcePort = audioSourcePort)
         } else null
-        SenderReportUdp(videoSocket, audioSocket)
+        SenderReportUdp(rtpTracks, videoSocket, audioSocket)
       }
     }
 
     @JvmStatic
-    fun getInstance(socket: UdpStreamSocket): BaseSenderReport {
-      return SenderReportUdpMux(socket)
+    fun getInstance(rtpTracks: RtpTracks, socket: UdpStreamSocket): BaseSenderReport {
+      return SenderReportUdpMux(rtpTracks, socket)
     }
   }
 
@@ -121,7 +123,7 @@ abstract class BaseSenderReport internal constructor() {
 
   @Throws(IOException::class)
   suspend fun update(rtpFrame: RtpFrame): Boolean {
-    return if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
+    return if (rtpFrame.channelIdentifier == rtpTracks.trackVideo) {
       updateVideo(rtpFrame)
     } else {
       updateAudio(rtpFrame)

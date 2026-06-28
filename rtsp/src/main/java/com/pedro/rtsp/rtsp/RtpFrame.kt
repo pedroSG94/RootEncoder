@@ -23,7 +23,7 @@ import com.pedro.rtsp.utils.RtpConstants
  */
 data class RtpFrame(val buffer: ByteArray, val timeStamp: Long, val length: Int, val channelIdentifier: Int) {
 
-  fun isVideoFrame(): Boolean = channelIdentifier == RtpConstants.trackVideo
+  fun isVideoFrame(videoTrack: Int): Boolean = channelIdentifier == videoTrack
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true

@@ -22,6 +22,7 @@ import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpTracks
 import java.io.IOException
 
 /**
@@ -32,6 +33,7 @@ abstract class BaseRtpSocket {
   companion object {
     @JvmStatic
     fun getInstance(
+      rtpTracks: RtpTracks,
       socketType: SocketType,
       protocol: Protocol, host: String, timeout: Long,
       videoSourcePort: Int?, audioSourcePort: Int?,
@@ -46,7 +48,7 @@ abstract class BaseRtpSocket {
         val audioSocket = if (audioServerPort != null) {
           StreamSocket.createUdpSocket(socketType, host, audioServerPort, timeout, sourcePort = audioSourcePort)
         } else null
-        RtpSocketUdp(videoSocket, audioSocket)
+        RtpSocketUdp(rtpTracks, videoSocket, audioSocket)
       }
     }
 
