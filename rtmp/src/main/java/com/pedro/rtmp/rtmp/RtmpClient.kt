@@ -439,7 +439,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                 try {
                   commandsManager.streamId = command.getStreamId()
                   commandsManager.sendPublish(socket)
-                } catch (e: ClassCastException) {
+                } catch (e: Exception) {
                   Log.e(TAG, "error parsing _result createStream", e)
                 }
               }
@@ -502,7 +502,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   }
                 }
               }
-            } catch (e: ClassCastException) {
+            } catch (e: Exception) {
               Log.e(TAG, "error parsing _error command", e)
             }
           }
@@ -529,7 +529,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   ignoredCommandReceived?.let { onMainThread { it.invoke(message) } }
                 }
               }
-            } catch (e: ClassCastException) {
+            } catch (e: Exception) {
               Log.e(TAG, "error parsing onStatus command", e)
             }
           }

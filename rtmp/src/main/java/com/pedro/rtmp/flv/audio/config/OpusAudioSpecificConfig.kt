@@ -37,15 +37,15 @@ class OpusAudioSpecificConfig(private val sampleRate: Int, private val channels:
     buffer[offset + 8] = 0x01 //version 1
     buffer[offset + 9] = channels.toByte()
     val preSkip = 3840 //this is the recommended value by the RFC
-    buffer[offset + 10] = (preSkip shr 8).toByte()
-    buffer[offset + 11] = preSkip.toByte()
-    buffer[offset + 12] = (sampleRate shr 24).toByte()
-    buffer[offset + 13] = (sampleRate shr 16).toByte()
-    buffer[offset + 14] = (sampleRate shr 8).toByte()
-    buffer[offset + 15] = sampleRate.toByte()
+    buffer[offset + 10] = preSkip.toByte()
+    buffer[offset + 11] = (preSkip shr 8).toByte()
+    buffer[offset + 12] = sampleRate.toByte()
+    buffer[offset + 13] = (sampleRate shr 8).toByte()
+    buffer[offset + 14] = (sampleRate shr 16).toByte()
+    buffer[offset + 15] = (sampleRate shr 24).toByte()
     val outputGain = 0
-    buffer[offset + 16] = (outputGain shr 8).toByte()
-    buffer[offset + 17] = outputGain.toByte()
+    buffer[offset + 16] = outputGain.toByte()
+    buffer[offset + 17] = (outputGain shr 8).toByte()
     val mappingFamily = 0
     buffer[offset + 18] = mappingFamily.toByte()
   }
