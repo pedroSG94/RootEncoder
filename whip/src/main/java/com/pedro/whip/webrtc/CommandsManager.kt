@@ -10,6 +10,7 @@ import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtsp.commands.SdpBody
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import com.pedro.whip.dtls.CryptoUtils
@@ -57,6 +58,7 @@ class CommandsManager {
     private val timeout = 5000
     private val timeStamp: Long
     private val secureRandom = SecureRandom()
+    val rtpTracks = RtpTracks()
     val crypto = BcTlsCrypto(secureRandom)
     var remoteSdpInfo: SdpInfo? = null
         private set
@@ -276,13 +278,13 @@ class CommandsManager {
         if (!videoDisabled) {
             val media = when (videoCodec) {
                 VideoCodec.H264 -> {
-                    SdpBody.createH264Body(RtpConstants.trackVideo, spsString, ppsString, true)
+                    SdpBody.createH264Body(rtpTracks.trackVideo, spsString, ppsString, true)
                 }
                 VideoCodec.H265 -> {
-                    SdpBody.createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString, true)
+                    SdpBody.createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString, true)
                 }
                 VideoCodec.AV1 -> {
-                    SdpBody.createAV1Body(RtpConstants.trackVideo, true)
+                    SdpBody.createAV1Body(rtpTracks.trackVideo, true)
                 }
             }
             videoBody = media +
@@ -292,8 +294,8 @@ class CommandsManager {
         var audioBody = ""
         if (!audioDisabled) {
             val media = when (audioCodec) {
-                AudioCodec.G711 -> SdpBody.createG711Body(RtpConstants.trackAudio, sampleRate, isStereo, true)
-                AudioCodec.OPUS -> SdpBody.createOpusBody(RtpConstants.trackAudio, true)
+                AudioCodec.G711 -> SdpBody.createG711Body(rtpTracks.trackAudio, sampleRate, isStereo, true)
+                AudioCodec.OPUS -> SdpBody.createOpusBody(rtpTracks.trackAudio, true)
                 else  -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
             }
             audioBody = media +
@@ -301,8 +303,8 @@ class CommandsManager {
                 "a=ssrc:$audioSsrc cname:$cName\r\n"
         }
         val bundleMids = listOfNotNull(
-            if (!videoDisabled) RtpConstants.trackVideo else null,
-            if (!audioDisabled) RtpConstants.trackAudio else null
+            if (!videoDisabled) rtpTracks.trackVideo else null,
+            if (!audioDisabled) rtpTracks.trackAudio else null
         ).joinToString(" ")
         val sdpSha256 = fingerprint.chunked(2)
             .joinToString(":") { it.uppercase() }

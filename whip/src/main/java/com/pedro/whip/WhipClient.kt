@@ -104,11 +104,11 @@ class WhipClient(private val connectChecker: ConnectChecker) {
      */
     fun setOnlyAudio(onlyAudio: Boolean) {
         if (onlyAudio) {
-            RtpConstants.trackAudio = 0
-            RtpConstants.trackVideo = 1
+            commandsManager.rtpTracks.trackAudio = 0
+            commandsManager.rtpTracks.trackVideo = 1
         } else {
-            RtpConstants.trackVideo = 0
-            RtpConstants.trackAudio = 1
+            commandsManager.rtpTracks.trackVideo = 0
+            commandsManager.rtpTracks.trackAudio = 1
         }
         commandsManager.audioDisabled = false
         commandsManager.videoDisabled = onlyAudio
@@ -118,8 +118,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
      * Must be called before connect
      */
     fun setOnlyVideo(onlyVideo: Boolean) {
-        RtpConstants.trackVideo = 0
-        RtpConstants.trackAudio = 1
+        commandsManager.rtpTracks.trackVideo = 0
+        commandsManager.rtpTracks.trackAudio = 1
         commandsManager.videoDisabled = false
         commandsManager.audioDisabled = onlyVideo
     }
