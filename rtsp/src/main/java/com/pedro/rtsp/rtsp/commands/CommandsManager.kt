@@ -243,11 +243,11 @@ open class CommandsManager {
   }
 
   fun createAnnounceWithAuth(authResponse: String): String {
-    val authPattern = Pattern.compile("realm=\"(.+)\",\\s+nonce=\"(\\w+)\"", Pattern.CASE_INSENSITIVE)
-    val matcher = authPattern.matcher(authResponse)
-    if (matcher.find()) {
-      this.realm = matcher.group(1)
-      this.nonce = matcher.group(2)
+    val realmMatcher = Pattern.compile("realm=\"([^\"]+)\"", Pattern.CASE_INSENSITIVE).matcher(authResponse)
+    val nonceMatcher = Pattern.compile("nonce=\"([^\"]+)\"", Pattern.CASE_INSENSITIVE).matcher(authResponse)
+    if (realmMatcher.find() && nonceMatcher.find()) {
+      this.realm = realmMatcher.group(1)
+      this.nonce = nonceMatcher.group(1)
     }
     shouldSendAuth = true
     return createAnnounce()
