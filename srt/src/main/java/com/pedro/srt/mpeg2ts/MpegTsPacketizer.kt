@@ -76,28 +76,34 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
 
           val isAudio = psiManager.getAudioPid().toInt() == mpegTsPayload.pid
           val pcr = if (isAudio && !mpegTsPayload.isKeyFrame) null else TimeUtils.getCurrentTimeMicro()
-          val adaptationField = AdaptationField(
+          val baseAdaptationField = AdaptationField(
             discontinuityIndicator = false,
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true
             pcr = pcr
           )
-          val adaptationData = adaptationField.getData()
-          val isSmall = data.remaining() < buffer.remaining() - headerSize - adaptationData.size - mpegTsPayload.headerLength
-          var adaptationFieldControl = if (isSmall) AdaptationFieldControl.PAYLOAD else AdaptationFieldControl.ADAPTATION_PAYLOAD
-          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
-          buffer.put(adaptationData)
-          mpegTsPayload.writeHeader(buffer)
+          val baseAdaptationSize = baseAdaptationField.getSize()
+          val isSmall = data.remaining() < packetSize - headerSize - baseAdaptationSize - mpegTsPayload.headerLength
+          writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.ADAPTATION_PAYLOAD, pesContinuity)
 
           if (isSmall) {
+            val stuffingSize = packetSize - headerSize - baseAdaptationSize - mpegTsPayload.headerLength - data.remaining()
+            val adaptationField = AdaptationField(
+              discontinuityIndicator = false,
+              randomAccessIndicator = mpegTsPayload.isKeyFrame,
+              pcr = pcr,
+              stuffingBytes = ByteArray(stuffingSize) { 0xFF.toByte() }
+            )
+            buffer.put(adaptationField.getData())
+            mpegTsPayload.writeHeader(buffer)
             buffer.put(data)
-            val stuffingSize = buffer.remaining()
-            writeStuffingBytes(buffer, stuffingSize, true)
             packets.add(buffer.toByteArray())
             pesContinuity = (pesContinuity + 1) and 0xF
             return@forEach
           }
+          buffer.put(baseAdaptationField.getData())
+          mpegTsPayload.writeHeader(buffer)
           var isFirstPacket = true
-          adaptationFieldControl = AdaptationFieldControl.PAYLOAD
+          var adaptationFieldControl = AdaptationFieldControl.PAYLOAD
           while (data.hasRemaining()) {
             val lastPacket = data.remaining() < buffer.remaining() - headerSize
             if (!isFirstPacket) {
