@@ -31,7 +31,7 @@ class BitBuffer(val buffer: ByteBuffer) {
     get() = bitRemaining > 0
 
   val bitRemaining: Int
-    get() = bufferEnd - bufferPosition + 1
+    get() = bufferEnd - bufferPosition
 
   val remaining: Int
     get() = ceil(bitRemaining.toDouble() / Byte.SIZE_BITS).toInt()

@@ -93,7 +93,7 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
       var bytesRead = 0
       while (bytesRead < header.messageLength) {
         var chunk: ByteArray
-        if (header.messageLength - bytesRead < chunkSize) {
+        if (header.messageLength - bytesRead <= chunkSize) {
           //last chunk
           chunk = ByteArray(header.messageLength - bytesRead)
           socket.readUntil(chunk)

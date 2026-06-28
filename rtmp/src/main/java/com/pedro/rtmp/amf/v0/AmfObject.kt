@@ -121,20 +121,20 @@ open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> =
     properties.clear()
     bodySize = 0
     val objectEnd = AmfObjectEnd()
-    val markInputStream: InputStream = if (input.markSupported()) input else BufferedInputStream(input)
+    val markInputStream = if (input.markSupported()) input else BufferedInputStream(input)
     while (!objectEnd.found) {
       markInputStream.mark(objectEnd.getSize())
-      objectEnd.readBody(input)
+      objectEnd.readBody(markInputStream)
       if (objectEnd.found) {
         bodySize += objectEnd.getSize()
       } else {
         markInputStream.reset()
 
         val key = AmfString()
-        key.readBody(input)
+        key.readBody(markInputStream)
         bodySize += key.getSize()
 
-        val value = getAmfData(input)
+        val value = getAmfData(markInputStream)
         bodySize += value.getSize() + 1
 
         properties[key] = value
