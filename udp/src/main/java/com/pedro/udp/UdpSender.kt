@@ -63,8 +63,7 @@ class UdpSender(
   var socket: UdpSocket? = null
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
-    Pid.reset()
-    service.clearTracks()
+    service.clear()
     if (audioEnabled) service.addTrack(commandManager.audioCodec.toCodec())
     if (videoEnabled) service.addTrack(commandManager.videoCodec.toCodec())
     service.generatePmt()

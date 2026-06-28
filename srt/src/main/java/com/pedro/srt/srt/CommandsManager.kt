@@ -132,7 +132,6 @@ class CommandsManager {
     writeSync.withLock {
       val dataPackets = packetHandlingQueue.filter { packetsLost.contains(it.sequenceNumber) }
       dataPackets.forEach { packet ->
-        packet.messageNumber = messageNumber++
         packet.retransmitted = true
         packet.write()
         socket?.write(packet)
@@ -142,7 +141,11 @@ class CommandsManager {
 
   suspend fun updateHandlingQueue(lastPacketSequence: Int) {
     writeSync.withLock {
-      packetHandlingQueue.removeAll { it.sequenceNumber < lastPacketSequence }
+      packetHandlingQueue.removeAll {
+        //discard confirmed packets
+        val diff = (lastPacketSequence - it.sequenceNumber) and 0x7FFFFFFF
+        diff in 1 until 0x40000000
+      }
     }
   }
 

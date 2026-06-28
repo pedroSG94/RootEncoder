@@ -53,7 +53,7 @@ class Pes(
     // - 6 because the length count after insert length in the header
     val l = if (length > 0xFFFF) 0 else length - 6
     buffer.putShort(l.toShort())
-    val info = ((markerBits shl 6) or (scramblingControl shl 4) or (priority.toInt() shl 3) or (dataAlignmentIndicator.toInt() shl 3) or (copyright.toInt() shl 3) or originalOrCopy.toInt()).toByte()
+    val info = ((markerBits shl 6) or (scramblingControl shl 4) or (priority.toInt() shl 3) or (dataAlignmentIndicator.toInt() shl 2) or (copyright.toInt() shl 1) or originalOrCopy.toInt()).toByte()
     buffer.put(info)
     val flags = ((ptsdtsIndicator shl 6) or otherFlags).toByte()
     buffer.put(flags)

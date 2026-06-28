@@ -82,8 +82,10 @@ data class AdaptationField(
         pcr?.let { addClockReference(buffer, it) }
         opcr?.let { addClockReference(buffer, it) }
         spliceCountdown?.let { buffer.put(it) }
-        transportPrivateData?.let { buffer.put(it) }
-        transportPrivateData?.let { buffer.put(it) }
+        transportPrivateData?.let {
+            buffer.put(it.size.toByte())
+            buffer.put(it)
+        }
         stuffingBytes?.let { buffer.put(it) }
         return buffer.array()
     }
