@@ -45,7 +45,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
     private val TAG = "WhipClient"
 
-    private val validSchemes = arrayOf("http")
+    private val validSchemes = arrayOf("http", "https")
 
     private var scope = CoroutineScope(Dispatchers.IO)
     private var scopeRetry = CoroutineScope(Dispatchers.IO)
@@ -67,6 +67,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     private var numRetry = 0
     private var reTries = 0
     private var checkServerAlive = false
+    private var auth: String? = null
     var socketType = SocketType.KTOR
 
     val droppedAudioFrames: Long
@@ -89,7 +90,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     }
 
     fun setAuthorization(user: String?, password: String?) {
-        TODO("unimplemented")
+        // WHIP auth is a single Bearer token (no user/realm like RTSP). Take it from
+        // password, falling back to user, to fit the shared setAuthorization(user, password) API.
+        auth = password ?: user
     }
 
     /**
@@ -192,18 +195,19 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 tlsEnabled = urlParser.scheme.endsWith("s")
                 val host = urlParser.host
                 val port = urlParser.port ?: if (tlsEnabled) 443 else 8889
-                val app = urlParser.getAppName()
-                val streamName = urlParser.getStreamName()
-                if (app.isEmpty()) {
+                // Standard WHIP: the endpoint is the full URL. POST to its path; the Bearer token is
+                // supplied via setAuthorization.
+                val path = urlParser.path.removePrefix("/")
+                if (path.isEmpty()) {
                     isStreaming = false
                     onMainThread {
-                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: scheme://host:port/path")
                     }
                     return@launch
                 }
 
                 val error = runCatching {
-                    commandsManager.setUrl(host, port, app, streamName)
+                    commandsManager.setUrl(host, port, path, auth, tlsEnabled)
                     if (!commandsManager.audioDisabled) {
                         whipSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
                     }
