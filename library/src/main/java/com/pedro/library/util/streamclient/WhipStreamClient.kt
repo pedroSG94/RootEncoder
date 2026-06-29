@@ -18,6 +18,7 @@ package com.pedro.library.util.streamclient
 
 import com.pedro.common.socket.base.SocketType
 import com.pedro.whip.WhipClient
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 12/10/23.
@@ -139,5 +140,12 @@ class WhipStreamClient(
 
   override fun setDelay(millis: Long) {
     whipClient.setDelay(millis)
+  }
+
+  /**
+   * Add certificates for TLS connection
+   */
+  fun addCertificates(certificates: TrustManager?) {
+    whipClient.addCertificates(certificates)
   }
 }

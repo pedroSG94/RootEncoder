@@ -39,6 +39,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import javax.net.ssl.TrustManager
 import kotlin.time.Duration.Companion.milliseconds
 
 class WhipClient(private val connectChecker: ConnectChecker) {
@@ -83,6 +84,10 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     val bytesSend: Long
         get() = whipSender.getBytesSend()
     var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
+
+    fun addCertificates(certificates: TrustManager?) {
+        commandsManager.addCertificates(certificates)
+    }
 
     fun setDelay(millis: Long) {
         whipSender.setDelay(millis)

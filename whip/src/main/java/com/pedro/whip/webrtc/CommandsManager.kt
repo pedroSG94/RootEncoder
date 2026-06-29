@@ -30,6 +30,7 @@ import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.SecureRandom
+import javax.net.ssl.TrustManager
 import kotlin.random.Random
 
 class CommandsManager {
@@ -57,6 +58,7 @@ class CommandsManager {
     private val timeout = 5000
     private val timeStamp: Long
     private val secureRandom = SecureRandom()
+    private var certificates: TrustManager? = null
     val crypto = BcTlsCrypto(secureRandom)
     var remoteSdpInfo: SdpInfo? = null
         private set
@@ -85,6 +87,10 @@ class CommandsManager {
         val uptime = TimeUtils.getCurrentTimeMillis()
         timeStamp = uptime / 1000 shl 32 and ((uptime - uptime / 1000 * 1000 shr 32)
                 / 1000) // NTP timestamp
+    }
+
+    fun addCertificates(certificates: TrustManager?) {
+        this.certificates = certificates
     }
 
     fun setAuth(token: String?) {
@@ -177,7 +183,7 @@ class CommandsManager {
             if (!token.isNullOrEmpty()) put("Authorization", "Bearer $token")
         }
         val answer = Requests.makeRequest(
-            uri, "POST", headers, body, timeout, tlsEnabled
+            uri, "POST", headers, body, timeout, tlsEnabled, certificates
         )
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
         tieBreak = secureRandom.nextBytes(8)
