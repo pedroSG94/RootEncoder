@@ -30,6 +30,7 @@ import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.SecureRandom
+import javax.net.ssl.TrustManager
 import kotlin.random.Random
 
 class CommandsManager {
@@ -40,10 +41,8 @@ class CommandsManager {
         private set
     var path: String? = null
         private set
-    var token: String? = null
-        private set
-    var tlsEnabled = false
-        private set
+    private var token: String? = null
+    private var tlsEnabled = false
     var sps: ByteBuffer? = null
         private set
     var pps: ByteBuffer? = null
@@ -59,6 +58,7 @@ class CommandsManager {
     private val timeout = 5000
     private val timeStamp: Long
     private val secureRandom = SecureRandom()
+    private var certificates: TrustManager? = null
     val crypto = BcTlsCrypto(secureRandom)
     var remoteSdpInfo: SdpInfo? = null
         private set
@@ -89,6 +89,14 @@ class CommandsManager {
                 / 1000) // NTP timestamp
     }
 
+    fun addCertificates(certificates: TrustManager?) {
+        this.certificates = certificates
+    }
+
+    fun setAuth(token: String?) {
+        this.token = token
+    }
+
     fun videoInfoReady(): Boolean {
         return when (videoCodec) {
             VideoCodec.H264 -> sps != null && pps != null
@@ -108,11 +116,10 @@ class CommandsManager {
         this.sampleRate = sampleRate
     }
 
-    fun setUrl(host: String, port: Int, path: String, token: String?, tlsEnabled: Boolean) {
+    fun setUrl(host: String, port: Int, path: String, tlsEnabled: Boolean) {
         this.host = host
         this.port = port
         this.path = path
-        this.token = token
         this.tlsEnabled = tlsEnabled
     }
 
@@ -173,10 +180,10 @@ class CommandsManager {
         val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
-            if (token != null) put("Authorization", "Bearer $token")
+            if (!token.isNullOrEmpty()) put("Authorization", "Bearer $token")
         }
         val answer = Requests.makeRequest(
-            uri, "POST", headers, body, timeout, tlsEnabled
+            uri, "POST", headers, body, timeout, tlsEnabled, certificates
         )
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
         tieBreak = secureRandom.nextBytes(8)
