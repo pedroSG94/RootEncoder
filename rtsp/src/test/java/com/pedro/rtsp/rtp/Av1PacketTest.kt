@@ -43,9 +43,9 @@ class Av1PacketTest {
     av1Packet.setSSRC(123456789)
     av1Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
-    val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 15).plus(av1data)
+    val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 24).plus(av1data)
     val expectedTimeStamp = 11111111L
-    val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size + 2
+    val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size + 1
     val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, rtpTracks.trackVideo)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])

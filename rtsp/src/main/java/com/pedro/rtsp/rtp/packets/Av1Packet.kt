@@ -64,7 +64,11 @@ class Av1Packet(track: Int): BasePacket(
     var data = byteArrayOf()
     obuList.forEachIndexed { index, obu ->
       val obuData = obu.getFullData()
-      data = data.plus(parser.writeLeb128(obuData.size.toLong()).plus(obuData))
+      data = if (index == obuList.size - 1) {
+        data.plus(obuData)
+      } else {
+        data.plus(parser.writeLeb128(obuData.size.toLong()).plus(obuData))
+      }
     }
     fixedBuffer = ByteBuffer.wrap(data)
     val size = fixedBuffer.remaining()
@@ -87,7 +91,8 @@ class Av1Packet(track: Int): BasePacket(
         isLastPacket = true
         markPacket(buffer) //mark end frame
       }
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(mediaFrame.info.isKeyFrame, isFirstPacket, isLastPacket)
+      val oSize = if (isFirstPacket) obuList.size else 1
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(mediaFrame.info.isKeyFrame, isFirstPacket, isLastPacket, oSize)
       updateSeq(buffer)
       encryptPacket(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
@@ -100,10 +105,10 @@ class Av1Packet(track: Int): BasePacket(
     super.reset()
   }
 
-  private fun generateAv1AggregationHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean): Byte {
+  private fun generateAv1AggregationHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean, numObu: Int): Byte {
     val z = if (isFirstPacket) 0 else 1
     val y = if (isLastPacket) 0 else 1
-    val w = 0
+    val w = numObu
     val n = if (isKeyFrame && isFirstPacket) 1 else 0
     return ((z shl 7) or (y shl 6) or (w shl 4) or (n shl 3) or 0).toByte()
   }
