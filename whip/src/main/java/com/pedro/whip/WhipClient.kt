@@ -60,14 +60,13 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     //for secure transport
     private var tlsEnabled = false
     private var dtlsConnection: DtlsConnection? = null
-    private val commandsManager: CommandsManager = CommandsManager()
+    private val commandsManager = CommandsManager()
     private val whipSender: WhipSender = WhipSender(connectChecker, commandsManager)
     private var url: String? = null
     private var doingRetry = false
     private var numRetry = 0
     private var reTries = 0
     private var checkServerAlive = false
-    private var auth: String? = null
     var socketType = SocketType.KTOR
 
     val droppedAudioFrames: Long
@@ -90,9 +89,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     }
 
     fun setAuthorization(user: String?, password: String?) {
-        // WHIP auth is a single Bearer token (no user/realm like RTSP). Take it from
-        // password, falling back to user, to fit the shared setAuthorization(user, password) API.
-        auth = password ?: user
+        commandsManager.setAuth(user, password)
     }
 
     /**
@@ -175,7 +172,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 if (url == null) {
                     isStreaming = false
                     onMainThread {
-                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/path")
                     }
                     return@launch
                 }
@@ -187,7 +184,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 } catch (_: URISyntaxException) {
                     isStreaming = false
                     onMainThread {
-                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/path")
                     }
                     return@launch
                 }
@@ -195,19 +192,17 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 tlsEnabled = urlParser.scheme.endsWith("s")
                 val host = urlParser.host
                 val port = urlParser.port ?: if (tlsEnabled) 443 else 8889
-                // Standard WHIP: the endpoint is the full URL. POST to its path; the Bearer token is
-                // supplied via setAuthorization.
-                val path = urlParser.path.removePrefix("/")
+                val path = urlParser.getFullPath().removePrefix("/")
                 if (path.isEmpty()) {
                     isStreaming = false
                     onMainThread {
-                        connectChecker.onConnectionFailed("Endpoint malformed, should be: scheme://host:port/path")
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/path")
                     }
                     return@launch
                 }
 
                 val error = runCatching {
-                    commandsManager.setUrl(host, port, path, auth, tlsEnabled)
+                    commandsManager.setUrl(host, port, path, tlsEnabled)
                     if (!commandsManager.audioDisabled) {
                         whipSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
                     }

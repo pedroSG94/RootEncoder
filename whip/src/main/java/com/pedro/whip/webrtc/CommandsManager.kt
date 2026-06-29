@@ -40,10 +40,8 @@ class CommandsManager {
         private set
     var path: String? = null
         private set
-    var token: String? = null
-        private set
-    var tlsEnabled = false
-        private set
+    private var token: String? = null
+    private var tlsEnabled = false
     var sps: ByteBuffer? = null
         private set
     var pps: ByteBuffer? = null
@@ -89,6 +87,10 @@ class CommandsManager {
                 / 1000) // NTP timestamp
     }
 
+    fun setAuth(user: String?, password: String?) {
+        token = if (user.isNullOrEmpty()) user else if (password.isNullOrEmpty()) password else null
+    }
+
     fun videoInfoReady(): Boolean {
         return when (videoCodec) {
             VideoCodec.H264 -> sps != null && pps != null
@@ -108,11 +110,10 @@ class CommandsManager {
         this.sampleRate = sampleRate
     }
 
-    fun setUrl(host: String, port: Int, path: String, token: String?, tlsEnabled: Boolean) {
+    fun setUrl(host: String, port: Int, path: String, tlsEnabled: Boolean) {
         this.host = host
         this.port = port
         this.path = path
-        this.token = token
         this.tlsEnabled = tlsEnabled
     }
 
