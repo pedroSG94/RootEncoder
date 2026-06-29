@@ -38,9 +38,11 @@ class CommandsManager {
         private set
     var port = 0
         private set
-    var app: String? = null
+    var path: String? = null
         private set
-    var streamName: String? = null
+    var token: String? = null
+        private set
+    var tlsEnabled = false
         private set
     var sps: ByteBuffer? = null
         private set
@@ -106,11 +108,12 @@ class CommandsManager {
         this.sampleRate = sampleRate
     }
 
-    fun setUrl(host: String, port: Int, app: String, streamName: String?) {
+    fun setUrl(host: String, port: Int, path: String, token: String?, tlsEnabled: Boolean) {
         this.host = host
         this.port = port
-        this.app = app
-        this.streamName = streamName
+        this.path = path
+        this.token = token
+        this.tlsEnabled = tlsEnabled
     }
 
     fun clear() {
@@ -167,14 +170,13 @@ class CommandsManager {
         )
         this.certificate = certificate
         localSdpInfo = SdpInfo(uFrag, uPass, certificate.fingerprint, listOf())
-        val uri = "http://$host:$port/$app"
-        val path: String? = streamName
+        val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
-            if (path != null) put("Authorization", "Bearer $path")
+            if (token != null) put("Authorization", "Bearer $token")
         }
         val answer = Requests.makeRequest(
-            uri, "POST", headers, body, timeout, false
+            uri, "POST", headers, body, timeout, tlsEnabled
         )
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
         tieBreak = secureRandom.nextBytes(8)
