@@ -39,13 +39,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withTimeoutOrNull
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import javax.net.ssl.TrustManager
 import kotlin.time.Duration.Companion.milliseconds
 
 class WhipClient(private val connectChecker: ConnectChecker) {
 
     private val TAG = "WhipClient"
 
-    private val validSchemes = arrayOf("http")
+    private val validSchemes = arrayOf("http", "https")
 
     private var scope = CoroutineScope(Dispatchers.IO)
     private var scopeRetry = CoroutineScope(Dispatchers.IO)
@@ -60,7 +61,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     //for secure transport
     private var tlsEnabled = false
     private var dtlsConnection: DtlsConnection? = null
-    private val commandsManager: CommandsManager = CommandsManager()
+    private val commandsManager = CommandsManager()
     private val whipSender: WhipSender = WhipSender(connectChecker, commandsManager)
     private var url: String? = null
     private var doingRetry = false
@@ -84,12 +85,16 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         get() = whipSender.getBytesSend()
     var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
+    fun addCertificates(certificates: TrustManager?) {
+        commandsManager.addCertificates(certificates)
+    }
+
     fun setDelay(millis: Long) {
         whipSender.setDelay(millis)
     }
 
-    fun setAuthorization(user: String?, password: String?) {
-        TODO("unimplemented")
+    fun setAuthorization(token: String?) {
+        commandsManager.setAuth(token)
     }
 
     /**
@@ -172,7 +177,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 if (url == null) {
                     isStreaming = false
                     onMainThread {
-                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/path")
                     }
                     return@launch
                 }
@@ -184,7 +189,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 } catch (_: URISyntaxException) {
                     isStreaming = false
                     onMainThread {
-                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/path")
                     }
                     return@launch
                 }
@@ -192,18 +197,17 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 tlsEnabled = urlParser.scheme.endsWith("s")
                 val host = urlParser.host
                 val port = urlParser.port ?: if (tlsEnabled) 443 else 8889
-                val app = urlParser.getAppName()
-                val streamName = urlParser.getStreamName()
-                if (app.isEmpty()) {
+                val path = urlParser.getFullPath().removePrefix("/")
+                if (path.isEmpty()) {
                     isStreaming = false
                     onMainThread {
-                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/appname/streamname")
+                        connectChecker.onConnectionFailed("Endpoint malformed, should be: http://ip:port/path")
                     }
                     return@launch
                 }
 
                 val error = runCatching {
-                    commandsManager.setUrl(host, port, app, streamName)
+                    commandsManager.setUrl(host, port, path, tlsEnabled)
                     if (!commandsManager.audioDisabled) {
                         whipSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
                     }

@@ -18,6 +18,7 @@ package com.pedro.library.util.streamclient
 
 import com.pedro.common.socket.base.SocketType
 import com.pedro.whip.WhipClient
+import javax.net.ssl.TrustManager
 
 /**
  * Created by pedro on 12/10/23.
@@ -27,9 +28,20 @@ class WhipStreamClient(
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
 
-
+  /**
+   * Set Bearer authentication token.
+   * Use user or password as token
+   */
   override fun setAuthorization(user: String?, password: String?) {
-    whipClient.setAuthorization(user, password)
+    val token = if (!user.isNullOrEmpty()) user else if (!password.isNullOrEmpty()) password else null
+    setAuthorization(token)
+  }
+
+  /**
+   * Set Bearer authentication token
+   */
+  fun setAuthorization(token: String?) {
+    whipClient.setAuthorization(token)
   }
 
   override fun setReTries(reTries: Int) {
@@ -128,5 +140,12 @@ class WhipStreamClient(
 
   override fun setDelay(millis: Long) {
     whipClient.setDelay(millis)
+  }
+
+  /**
+   * Add certificates for TLS connection
+   */
+  fun addCertificates(certificates: TrustManager?) {
+    whipClient.addCertificates(certificates)
   }
 }
