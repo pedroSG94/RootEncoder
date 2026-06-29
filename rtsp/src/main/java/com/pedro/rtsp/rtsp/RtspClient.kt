@@ -116,11 +116,11 @@ class RtspClient(private val connectChecker: ConnectChecker) {
    */
   fun setOnlyAudio(onlyAudio: Boolean) {
     if (onlyAudio) {
-      RtpConstants.trackAudio = 0
-      RtpConstants.trackVideo = 1
+      commandsManager.rtpTracks.trackAudio = 0
+      commandsManager.rtpTracks.trackVideo = 1
     } else {
-      RtpConstants.trackVideo = 0
-      RtpConstants.trackAudio = 1
+      commandsManager.rtpTracks.trackVideo = 0
+      commandsManager.rtpTracks.trackAudio = 1
     }
     commandsManager.audioDisabled = false
     commandsManager.videoDisabled = onlyAudio
@@ -130,8 +130,8 @@ class RtspClient(private val connectChecker: ConnectChecker) {
    * Must be called before connect
    */
   fun setOnlyVideo(onlyVideo: Boolean) {
-    RtpConstants.trackVideo = 0
-    RtpConstants.trackAudio = 1
+    commandsManager.rtpTracks.trackVideo = 0
+    commandsManager.rtpTracks.trackAudio = 1
     commandsManager.videoDisabled = false
     commandsManager.audioDisabled = onlyVideo
   }
@@ -228,6 +228,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
         if (user != null && password != null) setAuthorization(user, password)
 
         val error = runCatching {
+          commandsManager.updateNtpTimestamp()
           commandsManager.setUrl(host, port, "/$path")
           if (!commandsManager.audioDisabled) {
             rtspSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
@@ -306,7 +307,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
           }
           if (!commandsManager.videoDisabled) {
-            socket.write(commandsManager.createSetup(RtpConstants.trackVideo))
+            socket.write(commandsManager.createSetup(commandsManager.rtpTracks.trackVideo))
             socket.flush()
             val setupVideoStatus = commandsManager.getResponse(socket, Method.SETUP).status
             if (setupVideoStatus != 200) {
@@ -317,7 +318,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
           }
           if (!commandsManager.audioDisabled) {
-            socket.write(commandsManager.createSetup(RtpConstants.trackAudio))
+            socket.write(commandsManager.createSetup(commandsManager.rtpTracks.trackAudio))
             socket.flush()
             val setupAudioStatus = commandsManager.getResponse(socket, Method.SETUP).status
             if (setupAudioStatus != 200) {

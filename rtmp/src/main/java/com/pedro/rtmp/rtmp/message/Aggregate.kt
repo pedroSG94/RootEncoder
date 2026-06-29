@@ -26,7 +26,6 @@ import java.io.InputStream
 class Aggregate: RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL.mark)) {
 
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
   }
 
   override fun storeBody(): ByteArray {
@@ -35,7 +34,5 @@ class Aggregate: RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCO
 
   override fun getType(): MessageType = MessageType.AGGREGATE
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
+  override fun getSize(): Int = 0
 }

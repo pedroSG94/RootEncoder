@@ -46,6 +46,7 @@ class UserControl(var type: Type = Type.PING_REQUEST, var event: Event = Event(-
     bodySize += 4
     event = if (type == Type.SET_BUFFER_LENGTH) {
       val bufferLength = input.readUInt32()
+      bodySize += 4
       Event(data, bufferLength)
     } else {
       Event(data)

@@ -77,8 +77,8 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
 
   protected fun updateSeq(buffer: ByteArray) {
     val currentSeq = ++seq
-    if (currentSeq - RtpConstants.MAX_SEQ_NUMBER * roc > RtpConstants.MAX_SEQ_NUMBER) roc++
     buffer.setLong(currentSeq, 2, 4)
+    roc = (currentSeq / (RtpConstants.MAX_SEQ_NUMBER + 1)).toInt()
   }
 
   protected fun markPacket(buffer: ByteArray) {

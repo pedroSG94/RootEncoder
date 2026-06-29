@@ -39,6 +39,7 @@ class DataAmf0(private var name: String = "", timeStamp: Int = 0, streamId: Int 
     data.forEach {
       bodySize += it.getSize() + 1
     }
+    header.messageLength = bodySize
   }
 
   fun addData(amfData: AmfData) {

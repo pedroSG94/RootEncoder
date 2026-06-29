@@ -63,7 +63,7 @@ class CommandsManagerAmf0: CommandsManager() {
     connect.addData(connectInfo)
 
     connect.writeHeader(socket)
-    connect.writeBody(socket)
+    connect.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "connect")
     Log.i(TAG, "send $connect")
   }
@@ -75,7 +75,7 @@ class CommandsManagerAmf0: CommandsManager() {
     releaseStream.addData(AmfString(streamName))
 
     releaseStream.writeHeader(socket)
-    releaseStream.writeBody(socket)
+    releaseStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "releaseStream")
     Log.i(TAG, "send $releaseStream")
 
@@ -85,7 +85,7 @@ class CommandsManagerAmf0: CommandsManager() {
     fcPublish.addData(AmfString(streamName))
 
     fcPublish.writeHeader(socket)
-    fcPublish.writeBody(socket)
+    fcPublish.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "FCPublish")
     Log.i(TAG, "send $fcPublish")
 
@@ -94,7 +94,7 @@ class CommandsManagerAmf0: CommandsManager() {
     createStream.addData(AmfNull())
 
     createStream.writeHeader(socket)
-    createStream.writeBody(socket)
+    createStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "createStream")
     Log.i(TAG, "send $createStream")
   }
@@ -134,7 +134,7 @@ class CommandsManagerAmf0: CommandsManager() {
     metadata.addData(amfEcmaArray)
 
     metadata.writeHeader(socket)
-    metadata.writeBody(socket)
+    metadata.writeBody(socket, config.writeChunkSize)
     Log.i(TAG, "send $metadata")
   }
 
@@ -147,7 +147,7 @@ class CommandsManagerAmf0: CommandsManager() {
     publish.addData(AmfString("live"))
 
     publish.writeHeader(socket)
-    publish.writeBody(socket)
+    publish.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, name)
     Log.i(TAG, "send $publish")
   }
@@ -158,7 +158,7 @@ class CommandsManagerAmf0: CommandsManager() {
     closeStream.addData(AmfNull())
 
     closeStream.writeHeader(socket)
-    closeStream.writeBody(socket)
+    closeStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, name)
     Log.i(TAG, "send $closeStream")
   }

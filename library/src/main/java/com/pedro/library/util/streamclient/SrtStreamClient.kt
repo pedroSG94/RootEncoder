@@ -30,7 +30,7 @@ class SrtStreamClient(
 ): StreamBaseClient() {
 
   /**
-   * Set latency in micro. By default 120_000.
+   * Set latency in millis. By default 120.
    */
   fun setLatency(latency: Int) {
     srtClient.setLatency(latency)

@@ -55,9 +55,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           messageType = RtmpMessage.getMarkType(socket.read())
           messageStreamId = socket.readUInt32LittleEndian()
           //extended timestamp
-          if (timeStamp >= 0xffffff) {
-            timeStamp = socket.readUInt32()
-          }
+          if (timeStamp >= 0xffffff) timeStamp = socket.readUInt32()
         }
         ChunkType.TYPE_1 -> {
           if (lastHeader != null) {
@@ -67,9 +65,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           messageLength = socket.readUInt24()
           messageType = RtmpMessage.getMarkType(socket.read())
           //extended timestamp
-          if (timeStamp >= 0xffffff) {
-            timeStamp = socket.readUInt32()
-          }
+          if (timeStamp >= 0xffffff) timeStamp = socket.readUInt32()
         }
         ChunkType.TYPE_2 -> {
           if (lastHeader != null) {
@@ -79,9 +75,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           }
           timeStamp = socket.readUInt24()
           //extended timestamp
-          if (timeStamp >= 0xffffff) {
-            timeStamp = socket.readUInt32()
-          }
+          if (timeStamp >= 0xffffff) timeStamp = socket.readUInt32()
         }
         ChunkType.TYPE_3 -> {
           if (lastHeader != null) {
@@ -91,9 +85,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
             messageStreamId = lastHeader.messageStreamId
           }
           //extended timestamp
-          if (timeStamp >= 0xffffff) {
-            timeStamp = socket.readUInt32()
-          }
+          if (timeStamp >= 0xffffff) timeStamp = socket.readUInt32()
           //No header to read
         }
       }
@@ -126,9 +118,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
         }
         socket.writeUInt32LittleEndian(messageStreamId)
         //extended timestamp
-        if (timeStamp > 0xffffff) {
-          socket.writeUInt32(timeStamp)
-        }
+        if (timeStamp >= 0xffffff) socket.writeUInt32(timeStamp)
       }
       ChunkType.TYPE_1 -> {
         socket.writeUInt24(min(timeStamp, 0xffffff))
@@ -137,22 +127,16 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           socket.write(messageType.mark.toInt())
         }
         //extended timestamp
-        if (timeStamp > 0xffffff) {
-          socket.writeUInt32(timeStamp)
-        }
+        if (timeStamp >= 0xffffff) socket.writeUInt32(timeStamp)
       }
       ChunkType.TYPE_2 -> {
         socket.writeUInt24(min(timeStamp, 0xffffff))
         //extended timestamp
-        if (timeStamp > 0xffffff) {
-          socket.writeUInt32(timeStamp)
-        }
+        if (timeStamp >= 0xffffff) socket.writeUInt32(timeStamp)
       }
       ChunkType.TYPE_3 -> {
         //extended timestamp
-        if (timeStamp > 0xffffff) {
-          socket.writeUInt32(timeStamp)
-        }
+        if (timeStamp >= 0xffffff) socket.writeUInt32(timeStamp)
       }
     }
   }

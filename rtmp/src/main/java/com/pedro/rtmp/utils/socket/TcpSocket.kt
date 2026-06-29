@@ -80,7 +80,7 @@ class TcpSocket(
     socket.write(b.toUInt32LittleEndian())
   }
 
-  override suspend fun read(): Int = socket.read(1)[0].toInt()
+  override suspend fun read(): Int = socket.read(1)[0].toInt() and 0xff
 
   override suspend fun readUInt16(): Int = socket.read(2).toUInt16()
 

@@ -37,15 +37,15 @@ import java.nio.ByteBuffer
  * |Z|Y| W |N|-|-|-|
  * +-+-+-+-+-+-+-+-+
  */
-class Av1Packet: BasePacket(
+class Av1Packet(track: Int): BasePacket(
   RtpConstants.clockVideoFrequency,
-  RtpConstants.payloadType + RtpConstants.trackVideo
+  RtpConstants.payloadType + track
 ) {
 
   private val parser = Av1Parser()
 
   init {
-    channelIdentifier = RtpConstants.trackVideo
+    channelIdentifier = track
   }
 
   override suspend fun createAndSendPacket(

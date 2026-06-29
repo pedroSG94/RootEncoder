@@ -30,6 +30,7 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import java.io.IOException
@@ -57,13 +58,14 @@ open class CommandsManager {
     private set
   private var cSeq = 0
   private var sessionId: String? = null
-  private val timeStamp: Long
+  private var timeStamp: ULong = 0uL
   var sampleRate = 32000
   var isStereo = true
   var protocol: Protocol = Protocol.TCP
   var videoDisabled = false
   var audioDisabled = false
   private val commandParser = CommandParser()
+  val rtpTracks = RtpTracks()
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
   //For udp
@@ -84,16 +86,12 @@ open class CommandsManager {
     private set
   var password: String? = null
     private set
+  private var shouldSendAuth = false
+  private var realm: String? = null
+  private var nonce: String? = null
 
   companion object {
     private const val TAG = "CommandsManager"
-    private var authorization: String? = null
-  }
-
-  init {
-    val uptime = TimeUtils.getCurrentTimeMillis()
-    timeStamp = uptime / 1000 shl 32 and ((uptime - uptime / 1000 * 1000 shr 32)
-        / 1000) // NTP timestamp
   }
 
   fun videoInfoReady(): Boolean {
@@ -136,12 +134,19 @@ open class CommandsManager {
   fun retryClear() {
     cSeq = 0
     sessionId = null
+    shouldSendAuth = false
+    realm = null
+    nonce = null
   }
 
-  private fun addHeaders(): String {
+  private fun addHeaders(method: Method, uri: String): String {
+    val user = this.user
+    val password = this.password
     return "CSeq: ${++cSeq}\r\n" +
         (if (sessionId.isNullOrEmpty()) "" else "Session: $sessionId\r\n") +
-        (if (authorization.isNullOrEmpty()) "" else "Authorization: $authorization\r\n")
+        (if (shouldSendAuth && !user.isNullOrEmpty() && !password.isNullOrEmpty()) {
+          "Authorization: ${createAuth(user, password, method, uri, realm, nonce)}\r\n"
+        } else "")
   }
 
   private fun createBody(): String {
@@ -149,22 +154,22 @@ open class CommandsManager {
     if (!videoDisabled) {
       videoBody = when (videoCodec) {
         VideoCodec.H264 -> {
-          createH264Body(RtpConstants.trackVideo, spsString, ppsString)
+          createH264Body(rtpTracks.trackVideo, spsString, ppsString)
         }
         VideoCodec.H265 -> {
-          createH265Body(RtpConstants.trackVideo, spsString, ppsString, vpsString)
+          createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
         }
         VideoCodec.AV1 -> {
-          createAV1Body(RtpConstants.trackVideo)
+          createAV1Body(rtpTracks.trackVideo)
         }
       }
     }
     var audioBody = ""
     if (!audioDisabled) {
       audioBody = when (audioCodec) {
-        AudioCodec.G711 -> createG711Body(RtpConstants.trackAudio, sampleRate, isStereo)
-        AudioCodec.AAC -> createAacBody(RtpConstants.trackAudio, sampleRate, isStereo)
-        AudioCodec.OPUS -> createOpusBody(RtpConstants.trackAudio)
+        AudioCodec.G711 -> createG711Body(rtpTracks.trackAudio, sampleRate, isStereo)
+        AudioCodec.AAC -> createAacBody(rtpTracks.trackAudio, sampleRate, isStereo)
+        AudioCodec.OPUS -> createOpusBody(rtpTracks.trackAudio)
       }
     }
     return "v=0\r\n" +
@@ -177,18 +182,14 @@ open class CommandsManager {
         videoBody + audioBody
   }
 
-  private fun createAuth(authResponse: String): String {
-    val authPattern = Pattern.compile("realm=\"(.+)\",\\s+nonce=\"(\\w+)\"", Pattern.CASE_INSENSITIVE)
-    val matcher = authPattern.matcher(authResponse)
+  private fun createAuth(user: String, password: String, method: Method, uri: String, realm: String?, nonce: String?): String {
     //digest auth
-    return if (matcher.find()) {
+    return if (realm != null && nonce != null) {
       Log.i(TAG, "using digest auth")
-      val realm = matcher.group(1)
-      val nonce = matcher.group(2)
       val hash1 = "$user:$realm:$password".getMd5Hash()
-      val hash2 = "ANNOUNCE:rtsp://$host:$port$path".getMd5Hash()
+      val hash2 = "${method.name}:$uri".getMd5Hash()
       val hash3 = "$hash1:$nonce:$hash2".getMd5Hash()
-      "Digest username=\"$user\", realm=\"$realm\", nonce=\"$nonce\", uri=\"rtsp://$host:$port$path\", response=\"$hash3\""
+      "Digest username=\"$user\", realm=\"$realm\", nonce=\"$nonce\", uri=\"$uri\", response=\"$hash3\""
       //basic auth
     } else {
       Log.i(TAG, "using basic auth")
@@ -200,37 +201,41 @@ open class CommandsManager {
 
   //Commands
   fun createOptions(): String {
-    val options = "OPTIONS rtsp://$host:$port$path RTSP/1.0\r\n" + addHeaders() + "\r\n"
+    val uri = "rtsp://$host:$port$path"
+    val options = "OPTIONS $uri RTSP/1.0\r\n" + addHeaders(Method.OPTIONS, uri) + "\r\n"
     Log.i(TAG, options)
     return options
   }
 
   open fun createSetup(track: Int): String {
-    val udpPorts = if (track == RtpConstants.trackVideo) videoClientPorts else audioClientPorts
+    val udpPorts = if (track == rtpTracks.trackVideo) videoClientPorts else audioClientPorts
     val params = if (protocol === Protocol.UDP) {
       "UDP;unicast;client_port=${udpPorts[0]}-${udpPorts[1]};mode=record"
     } else {
       "TCP;unicast;interleaved=${2 * track}-${2 * track + 1};mode=record"
     }
-    val setup = "SETUP rtsp://$host:$port$path/streamid=$track RTSP/1.0\r\n" +
+    val uri = "rtsp://$host:$port$path/streamid=$track"
+    val setup = "SETUP $uri RTSP/1.0\r\n" +
         "Transport: RTP/AVP/$params\r\n" +
-        addHeaders() + "\r\n"
+        addHeaders(Method.SETUP, uri) + "\r\n"
     Log.i(TAG, setup)
     return setup
   }
 
   fun createRecord(): String {
-    val record = "RECORD rtsp://$host:$port$path RTSP/1.0\r\n" +
-        "Range: npt=0.000-\r\n" + addHeaders() + "\r\n"
+    val uri = "rtsp://$host:$port$path"
+    val record = "RECORD $uri RTSP/1.0\r\n" +
+        "Range: npt=0.000-\r\n" + addHeaders(Method.RECORD, uri) + "\r\n"
     Log.i(TAG, record)
     return record
   }
 
   fun createAnnounce(): String {
     val body = createBody()
-    val announce = "ANNOUNCE rtsp://$host:$port$path RTSP/1.0\r\n" +
+    val uri = "rtsp://$host:$port$path"
+    val announce = "ANNOUNCE $uri RTSP/1.0\r\n" +
         "Content-Type: application/sdp\r\n" +
-        addHeaders() +
+        addHeaders(Method.ANNOUNCE, uri) +
         "Content-Length: ${body.length}\r\n\r\n" +
         body
     Log.i(TAG, announce)
@@ -238,13 +243,19 @@ open class CommandsManager {
   }
 
   fun createAnnounceWithAuth(authResponse: String): String {
-    authorization = createAuth(authResponse)
-    Log.i("Auth", "$authorization")
+    val realmMatcher = Pattern.compile("realm=\"([^\"]+)\"", Pattern.CASE_INSENSITIVE).matcher(authResponse)
+    val nonceMatcher = Pattern.compile("nonce=\"([^\"]+)\"", Pattern.CASE_INSENSITIVE).matcher(authResponse)
+    if (realmMatcher.find() && nonceMatcher.find()) {
+      this.realm = realmMatcher.group(1)
+      this.nonce = nonceMatcher.group(1)
+    }
+    shouldSendAuth = true
     return createAnnounce()
   }
 
   fun createTeardown(): String {
-    val teardown = "TEARDOWN rtsp://$host:$port$path RTSP/1.0\r\n" + addHeaders() + "\r\n"
+    val uri = "rtsp://$host:$port$path"
+    val teardown = "TEARDOWN $uri RTSP/1.0\r\n" + addHeaders(Method.TEARDOWN, uri) + "\r\n"
     Log.i(TAG, teardown)
     return teardown
   }
@@ -291,5 +302,12 @@ open class CommandsManager {
 
   fun createRedirect(): String {
     return ""
+  }
+
+  fun updateNtpTimestamp() {
+    val uptime = TimeUtils.getCurrentTimeMillis()
+    val seconds = (uptime / 1000).toULong()
+    val fraction = ((uptime % 1000) * (1L shl 32) / 1000).toULong()
+    timeStamp = (seconds shl 32) or fraction
   }
 }

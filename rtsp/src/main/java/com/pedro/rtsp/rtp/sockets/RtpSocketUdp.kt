@@ -19,12 +19,14 @@ package com.pedro.rtsp.rtp.sockets
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpTracks
 import java.io.IOException
 
 /**
  * Created by pedro on 7/11/18.
  */
 class RtpSocketUdp(
+  private val rtpTracks: RtpTracks,
   private val videoSocket: UdpStreamSocket?,
   private val audioSocket: UdpStreamSocket?,
 ) : BaseRtpSocket() {
@@ -49,7 +51,7 @@ class RtpSocketUdp(
 
   @Throws(IOException::class)
   private suspend fun sendFrameUDP(rtpFrame: RtpFrame) {
-    if (rtpFrame.isVideoFrame()) {
+    if (rtpFrame.isVideoFrame(rtpTracks.trackVideo)) {
       videoSocket?.write(rtpFrame.buffer)
     } else {
       audioSocket?.write(rtpFrame.buffer)

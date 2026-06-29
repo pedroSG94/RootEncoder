@@ -33,18 +33,19 @@ class WhipSender(
     private val commandsManager: CommandsManager
 ): BaseSender(connectChecker, "WhipSender") {
 
-    private var videoPacket: BasePacket = H264Packet()
-    private var audioPacket: BasePacket = AacPacket()
+    private var videoPacket: BasePacket = H264Packet(commandsManager.rtpTracks.trackVideo)
+    private var audioPacket: BasePacket = AacPacket(commandsManager.rtpTracks.trackAudio)
     private var rtpSocket: BaseRtpSocket? = null
     private var baseSenderReport: BaseSenderReport? = null
 
     @Throws(IOException::class)
     fun setSocketsInfo(socket: UdpStreamSocket) {
         rtpSocket = BaseRtpSocket.getInstance(socket)
-        baseSenderReport = BaseSenderReport.getInstance(socket)
+        baseSenderReport = BaseSenderReport.getInstance(commandsManager.rtpTracks, socket)
     }
 
     fun setCrypto(properties: CryptoProperties) {
+        baseSenderReport?.setCrypto(properties)
         videoPacket.setCryptoProperties(properties)
         audioPacket.setCryptoProperties(properties)
     }
@@ -53,21 +54,21 @@ class WhipSender(
         videoPacket = when (commandsManager.videoCodec) {
             VideoCodec.H264 -> {
                 if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
-                H264Packet().apply { sendVideoInfo(sps, pps) }
+                H264Packet(commandsManager.rtpTracks.trackVideo).apply { sendVideoInfo(sps, pps) }
             }
             VideoCodec.H265 -> {
                 if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
-                H265Packet().apply { sendVideoInfo(sps, pps, vps) }
+                H265Packet(commandsManager.rtpTracks.trackVideo).apply { sendVideoInfo(sps, pps, vps) }
             }
-            VideoCodec.AV1 -> Av1Packet()
+            VideoCodec.AV1 -> Av1Packet(commandsManager.rtpTracks.trackVideo)
         }
     }
 
     override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
         audioPacket = when (commandsManager.audioCodec) {
-            AudioCodec.G711 -> G711Packet().apply { setAudioInfo(sampleRate) }
-            AudioCodec.AAC -> AacPacket().apply { setAudioInfo(sampleRate) }
-            AudioCodec.OPUS -> OpusPacket().apply { setAudioInfo(sampleRate) }
+            AudioCodec.G711 -> G711Packet(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
+            AudioCodec.AAC -> AacPacket(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
+            AudioCodec.OPUS -> OpusPacket(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
         }
     }
 
@@ -91,7 +92,7 @@ class WhipSender(
                         bytesSend.addAndGet(packetSize)
                         bytesSendPerSecond.addAndGet(packetSize)
                         size += packetSize
-                        isVideo = rtpFrame.isVideoFrame()
+                        isVideo = rtpFrame.isVideoFrame(commandsManager.rtpTracks.trackVideo)
                         if (isVideo) videoFramesSent.incrementAndGet()
                         else audioFramesSent.incrementAndGet()
                         if (baseSenderReport?.update(rtpFrame) == true) {

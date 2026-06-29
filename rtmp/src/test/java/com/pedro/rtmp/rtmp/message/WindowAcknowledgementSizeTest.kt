@@ -57,7 +57,7 @@ class WindowAcknowledgementSizeTest {
 
     val windowAcknowledgementSize = WindowAcknowledgementSize(256, 1234567)
     windowAcknowledgementSize.writeHeader(socket)
-    windowAcknowledgementSize.writeBody(socket)
+    windowAcknowledgementSize.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

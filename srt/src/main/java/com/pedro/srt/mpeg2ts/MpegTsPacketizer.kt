@@ -35,7 +35,7 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
   }
 
   private var pesContinuity = 0
-  private var psiContinuity = 0
+  private var psiContinuity = mutableMapOf<Int, Int>()
 
   //4 bytes header
   private fun writeHeader(buffer: ByteBuffer, startIndicator: Boolean, pid: Int, adaptationFieldControl: AdaptationFieldControl, continuity: Int) {
@@ -56,48 +56,54 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
   /**
    * return a list of mpeg2ts packets
    */
-  fun write(payload: List<MpegTsPayload>, increasePsiContinuity: Boolean = false): List<ByteArray> {
+  fun write(payload: List<MpegTsPayload>): List<ByteArray> {
     val packets = mutableListOf<ByteArray>()
-    if (increasePsiContinuity) psiContinuity = (psiContinuity + 1) and 0xF
-
     payload.forEach { mpegTsPayload ->
       var buffer = ByteBuffer.allocate(packetSize)
 
       when (mpegTsPayload) {
         is Psi -> {
-          writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.PAYLOAD, psiContinuity)
+          val continuity = psiContinuity[mpegTsPayload.pid] ?: 0
+          writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.PAYLOAD, continuity)
           mpegTsPayload.write(buffer)
           val stuffingSize = buffer.remaining()
           writeStuffingBytes(buffer, stuffingSize, false)
           packets.add(buffer.toByteArray())
+          psiContinuity[mpegTsPayload.pid] = (continuity + 1) and 0xF
         }
         is Pes -> {
           val data = mpegTsPayload.bufferData
 
           val isAudio = psiManager.getAudioPid().toInt() == mpegTsPayload.pid
           val pcr = if (isAudio && !mpegTsPayload.isKeyFrame) null else TimeUtils.getCurrentTimeMicro()
-          val adaptationField = AdaptationField(
+          val baseAdaptationField = AdaptationField(
             discontinuityIndicator = false,
             randomAccessIndicator = mpegTsPayload.isKeyFrame, //only video can be true
             pcr = pcr
           )
-          val adaptationData = adaptationField.getData()
-          val isSmall = data.remaining() < buffer.remaining() - headerSize - adaptationData.size - mpegTsPayload.headerLength
-          var adaptationFieldControl = if (isSmall) AdaptationFieldControl.PAYLOAD else AdaptationFieldControl.ADAPTATION_PAYLOAD
-          writeHeader(buffer, true, mpegTsPayload.pid, adaptationFieldControl, pesContinuity)
-          buffer.put(adaptationData)
-          mpegTsPayload.writeHeader(buffer)
+          val baseAdaptationSize = baseAdaptationField.getSize()
+          val isSmall = data.remaining() < packetSize - headerSize - baseAdaptationSize - mpegTsPayload.headerLength
+          writeHeader(buffer, true, mpegTsPayload.pid, AdaptationFieldControl.ADAPTATION_PAYLOAD, pesContinuity)
 
           if (isSmall) {
+            val stuffingSize = packetSize - headerSize - baseAdaptationSize - mpegTsPayload.headerLength - data.remaining()
+            val adaptationField = AdaptationField(
+              discontinuityIndicator = false,
+              randomAccessIndicator = mpegTsPayload.isKeyFrame,
+              pcr = pcr,
+              stuffingBytes = ByteArray(stuffingSize) { 0xFF.toByte() }
+            )
+            buffer.put(adaptationField.getData())
+            mpegTsPayload.writeHeader(buffer)
             buffer.put(data)
-            val stuffingSize = buffer.remaining()
-            writeStuffingBytes(buffer, stuffingSize, true)
             packets.add(buffer.toByteArray())
             pesContinuity = (pesContinuity + 1) and 0xF
             return@forEach
           }
+          buffer.put(baseAdaptationField.getData())
+          mpegTsPayload.writeHeader(buffer)
           var isFirstPacket = true
-          adaptationFieldControl = AdaptationFieldControl.PAYLOAD
+          var adaptationFieldControl = AdaptationFieldControl.PAYLOAD
           while (data.hasRemaining()) {
             val lastPacket = data.remaining() < buffer.remaining() - headerSize
             if (!isFirstPacket) {
@@ -140,6 +146,6 @@ class MpegTsPacketizer(private val psiManager: PsiManager) {
 
   fun reset() {
     pesContinuity = 0
-    psiContinuity = 0
+    psiContinuity.clear()
   }
 }

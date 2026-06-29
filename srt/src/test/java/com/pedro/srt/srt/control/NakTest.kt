@@ -19,6 +19,7 @@ package com.pedro.srt.srt.control
 import com.pedro.srt.Utils
 import com.pedro.srt.srt.packets.control.Nak
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.ByteArrayInputStream
 
@@ -35,7 +36,7 @@ class NakTest {
 
   @Test
   fun `GIVEN a nak packet WHEN write packet in a buffer THEN get expected buffer and expected lost list`() {
-    val expectedPacketLostList = arrayOf(1, 7, 8, 9)
+    val expectedRanges = listOf(1 to 1, 7 to 9)
     val expectedData = byteArrayOf(-128, 3, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64, 0, 0, 0, 1, -128, 0, 0, 7, 0, 0, 0, 9)
     val nak = Nak()
     nak.addLostPacket(1)
@@ -44,13 +45,13 @@ class NakTest {
     val packetNak = nak.getData()
 
     assertArrayEquals(expectedData, packetNak)
-    assertArrayEquals(expectedPacketLostList, nak.getNakPacketsLostList().toTypedArray())
+    assertEquals(expectedRanges, nak.getNakRanges())
   }
 
   @Test
   fun `GIVEN a buffer WHEN read buffer as nak packet THEN get expected nak packet and expected lost list`() {
     val buffer = byteArrayOf(-128, 3, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64, 0, 0, 0, 1, -128, 0, 0, 7, 0, 0, 0, 9)
-    val expectedPacketLostList = arrayOf(1, 7, 8, 9)
+    val expectedRanges = listOf(1 to 1, 7 to 9)
     val expectedPacket = Nak()
     expectedPacket.addLostPacket(1)
     expectedPacket.addLostPacketsRange(7, 9)
@@ -58,14 +59,22 @@ class NakTest {
     packet.read(ByteArrayInputStream(buffer))
 
     Utils.assertObjectEquals(expectedPacket, packet)
-    assertArrayEquals(expectedPacketLostList, packet.getNakPacketsLostList().toTypedArray())
+    assertEquals(expectedRanges, packet.getNakRanges())
   }
 
   @Test
   fun `GIVEN a nak packet with a list of only pair of same numbers WHEN get packets lost list THEN get the same number passed to list only one time`() {
-    val expectedPacketLostList = arrayOf(1)
+    val expectedRanges = listOf(1 to 1)
     val packet = Nak()
     packet.addLostPacket(1)
-    assertArrayEquals(expectedPacketLostList, packet.getNakPacketsLostList().toTypedArray())
+    assertEquals(expectedRanges, packet.getNakRanges())
+  }
+
+  @Test
+  fun `GIVEN a nak with a range that wraps the sequence space WHEN get ranges and count THEN handle it modularly`() {
+    val packet = Nak()
+    packet.addLostPacketsRange(0x7FFFFFFE, 1) //wraps: 0x7FFFFFFE, 0x7FFFFFFF, 0, 1
+    assertEquals(listOf(0x7FFFFFFE to 1), packet.getNakRanges())
+    assertEquals(4, packet.getLostCount())
   }
 }

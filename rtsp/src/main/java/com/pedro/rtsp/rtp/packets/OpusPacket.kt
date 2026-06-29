@@ -25,13 +25,10 @@ import com.pedro.rtsp.utils.RtpConstants
  *
  * RFC 7587.
  */
-class OpusPacket: BasePacket(
-  0,
-  RtpConstants.payloadType + RtpConstants.trackAudio
-) {
+class OpusPacket(track: Int): BasePacket(0, RtpConstants.payloadType + track) {
 
   init {
-    channelIdentifier = RtpConstants.trackAudio
+    channelIdentifier = track
   }
 
   fun setAudioInfo(sampleRate: Int) {
@@ -51,12 +48,12 @@ class OpusPacket: BasePacket(
       val size = if (length - sum < maxPayload) length - sum else maxPayload
       val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH + encryptSize())
       mediaFrame.data.get(buffer, RtpConstants.RTP_HEADER_LENGTH, size)
-      markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)
+      sum += size
+      if (sum >= length) markPacket(buffer)
       updateSeq(buffer)
       encryptPacket(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size , channelIdentifier)
-      sum += size
+      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)
     }
     if (frames.isNotEmpty()) callback(frames)

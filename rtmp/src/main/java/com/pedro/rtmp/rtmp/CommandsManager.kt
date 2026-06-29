@@ -58,12 +58,12 @@ abstract class CommandsManager {
   var password: String? = null
   var onAuth = false
   var startTs = 0L
-  var readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
+  val config = RtmpConfig()
   var audioDisabled = false
   var videoDisabled = false
   var customAmfObject: Map<String, Any> = emptyMap()
   private var bytesRead = 0
-  private var acknowledgementSequence = 0
+  private var lastAcknowledgementSequence = 0
 
   protected var width = 640
   protected var height = 480
@@ -97,12 +97,12 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendChunkSize(socket: RtmpSocket) {
     writeSync.withLock {
-      if (RtmpConfig.writeChunkSize != RtmpConfig.DEFAULT_CHUNK_SIZE) {
-        val chunkSize = SetChunkSize(RtmpConfig.writeChunkSize)
+      if (config.writeChunkSize != RtmpConfig.DEFAULT_CHUNK_SIZE) {
+        val chunkSize = SetChunkSize(config.writeChunkSize)
         chunkSize.header.timeStamp = getCurrentTimestamp()
         chunkSize.header.messageStreamId = streamId
         chunkSize.writeHeader(socket)
-        chunkSize.writeBody(socket)
+        chunkSize.writeBody(socket, config.writeChunkSize)
         socket.flush()
         Log.i(TAG, "send $chunkSize")
       } else {
@@ -129,7 +129,7 @@ abstract class CommandsManager {
 
   @Throws(IOException::class)
   suspend fun readMessageResponse(socket: RtmpSocket): RtmpMessage {
-    val message = RtmpMessage.getRtmpMessage(socket, readChunkSize, sessionHistory)
+    val message = RtmpMessage.getRtmpMessage(socket, config.readChunkSize, sessionHistory)
     sessionHistory.setReadHeader(message.header)
     Log.i(TAG, "read $message")
     bytesRead += message.header.getPacketLength()
@@ -155,9 +155,9 @@ abstract class CommandsManager {
   @Throws(IOException::class)
   suspend fun sendWindowAcknowledgementSize(socket: RtmpSocket) {
     writeSync.withLock {
-      val windowAcknowledgementSize = WindowAcknowledgementSize(RtmpConfig.acknowledgementWindowSize, getCurrentTimestamp())
+      val windowAcknowledgementSize = WindowAcknowledgementSize(config.acknowledgementWindowSize, getCurrentTimestamp())
       windowAcknowledgementSize.writeHeader(socket)
-      windowAcknowledgementSize.writeBody(socket)
+      windowAcknowledgementSize.writeBody(socket, config.writeChunkSize)
       socket.flush()
     }
   }
@@ -166,7 +166,7 @@ abstract class CommandsManager {
     writeSync.withLock {
       val pong = UserControl(Type.PONG_REPLY, event)
       pong.writeHeader(socket)
-      pong.writeBody(socket)
+      pong.writeBody(socket, config.writeChunkSize)
       socket.flush()
       Log.i(TAG, "send pong")
     }
@@ -176,7 +176,7 @@ abstract class CommandsManager {
     writeSync.withLock {
       val ping = UserControl(Type.PING_REQUEST, Event(TimeUtils.getCurrentTimeSeconds()))
       ping.writeHeader(socket)
-      ping.writeBody(socket)
+      ping.writeBody(socket, config.writeChunkSize)
       socket.flush()
       Log.i(TAG, "send ping")
     }
@@ -192,12 +192,11 @@ abstract class CommandsManager {
 
   suspend fun checkAndSendAcknowledgement(socket: RtmpSocket) {
     writeSync.withLock {
-      if (bytesRead >= RtmpConfig.acknowledgementWindowSize) {
-        acknowledgementSequence += bytesRead
-        bytesRead -= RtmpConfig.acknowledgementWindowSize
-        val acknowledgement = Acknowledgement(acknowledgementSequence)
+      if (bytesRead - lastAcknowledgementSequence >= config.acknowledgementWindowSize) {
+        lastAcknowledgementSequence = bytesRead
+        val acknowledgement = Acknowledgement(bytesRead)
         acknowledgement.writeHeader(socket)
-        acknowledgement.writeBody(socket)
+        acknowledgement.writeBody(socket, config.writeChunkSize)
         socket.flush()
         Log.i(TAG, "send $acknowledgement")
       }
@@ -209,7 +208,7 @@ abstract class CommandsManager {
     writeSync.withLock {
       val video = Video(flvPacket, streamId)
       video.writeHeader(socket)
-      video.writeBody(socket)
+      video.writeBody(socket, config.writeChunkSize)
       socket.flush(true)
       return video.header.getPacketLength() //get packet size with header included to calculate bps
     }
@@ -220,7 +219,7 @@ abstract class CommandsManager {
     writeSync.withLock {
       val audio = Audio(flvPacket, streamId)
       audio.writeHeader(socket)
-      audio.writeBody(socket)
+      audio.writeBody(socket, config.writeChunkSize)
       socket.flush(true)
       return audio.header.getPacketLength() //get packet size with header included to calculate bps
     }
@@ -237,9 +236,9 @@ abstract class CommandsManager {
     timestamp = 0
     streamId = 0
     commandId = 0
-    readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
+    config.readChunkSize = RtmpConfig.DEFAULT_CHUNK_SIZE
     sessionHistory.reset()
-    acknowledgementSequence = 0
+    lastAcknowledgementSequence = 0
     bytesRead = 0
   }
 }

@@ -128,11 +128,14 @@ class CommandsManager {
   }
 
   @Throws(IOException::class)
-  suspend fun reSendPackets(packetsLost: List<Int>, socket: SrtSocket?) {
+  suspend fun reSendPackets(lostRanges: List<Pair<Int, Int>>, socket: SrtSocket?) {
     writeSync.withLock {
-      val dataPackets = packetHandlingQueue.filter { packetsLost.contains(it.sequenceNumber) }
+      val dataPackets = packetHandlingQueue.filter { packet ->
+        lostRanges.any { (min, max) ->
+          ((packet.sequenceNumber - min) and 0x7FFFFFFF) <= ((max - min) and 0x7FFFFFFF)
+        }
+      }
       dataPackets.forEach { packet ->
-        packet.messageNumber = messageNumber++
         packet.retransmitted = true
         packet.write()
         socket?.write(packet)
@@ -142,7 +145,11 @@ class CommandsManager {
 
   suspend fun updateHandlingQueue(lastPacketSequence: Int) {
     writeSync.withLock {
-      packetHandlingQueue.removeAll { it.sequenceNumber < lastPacketSequence }
+      packetHandlingQueue.removeAll {
+        //discard confirmed packets
+        val diff = (lastPacketSequence - it.sequenceNumber) and 0x7FFFFFFF
+        diff in 1 until 0x40000000
+      }
     }
   }
 

@@ -57,7 +57,7 @@ class SetPeerBandwidthTest {
 
     val setPeerBandwidth = SetPeerBandwidth()
     setPeerBandwidth.writeHeader(socket)
-    setPeerBandwidth.writeBody(socket)
+    setPeerBandwidth.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

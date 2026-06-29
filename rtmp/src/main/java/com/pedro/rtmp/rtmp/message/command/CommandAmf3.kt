@@ -42,6 +42,7 @@ class CommandAmf3(name: String = "", commandId: Int = 0, private val timestamp: 
     val amf3Double = Amf3Double(commandId.toDouble())
     bodySize += amf3Double.getSize() + 1
     data.add(amf3Double)
+    header.messageLength = bodySize
   }
 
   fun addData(amf3Data: Amf3Data) {

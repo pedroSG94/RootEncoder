@@ -57,7 +57,7 @@ class AcknowledgementTest {
 
     val acknowledgement = Acknowledgement(5)
     acknowledgement.writeHeader(socket)
-    acknowledgement.writeBody(socket)
+    acknowledgement.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

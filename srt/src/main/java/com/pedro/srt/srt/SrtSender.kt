@@ -67,8 +67,7 @@ class SrtSender(
   var socket: SrtSocket? = null
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
-    Pid.reset()
-    service.clearTracks()
+    service.clear()
     if (audioEnabled) service.addTrack(commandsManager.audioCodec.toCodec())
     if (videoEnabled) service.addTrack(commandsManager.videoCodec.toCodec())
     service.generatePmt()

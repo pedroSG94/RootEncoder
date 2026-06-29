@@ -19,6 +19,7 @@ package com.pedro.rtmp.rtmp.message
 import com.pedro.rtmp.FakeRtmpSocket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.utils.RtmpConfig
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before
@@ -48,7 +49,7 @@ class AudioVideoTest {
     )
     val audio = Audio(fakePacket)
     audio.writeHeader(socket)
-    audio.writeBody(socket)
+    audio.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }
@@ -65,7 +66,7 @@ class AudioVideoTest {
     )
     val video = Video(fakePacket)
     video.writeHeader(socket)
-    video.writeBody(socket)
+    video.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

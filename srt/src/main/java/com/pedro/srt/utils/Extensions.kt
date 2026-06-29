@@ -45,7 +45,7 @@ fun Int.toByteArray(): ByteArray {
     bytes.add(0xFF.toByte())
     remainingValue -= 255
   }
-  if (remainingValue > 0) bytes.add(remainingValue.toByte())
+  bytes.add(remainingValue.toByte())
   return bytes.toByteArray()
 }
 

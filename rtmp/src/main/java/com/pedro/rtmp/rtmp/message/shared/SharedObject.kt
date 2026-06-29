@@ -27,14 +27,11 @@ import java.io.InputStream
  */
 abstract class SharedObject: RtmpMessage(BasicHeader(ChunkType.TYPE_0, ChunkStreamId.PROTOCOL_CONTROL.mark)) {
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
   }
 
   override fun storeBody(): ByteArray {
     TODO("Not yet implemented")
   }
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
+  override fun getSize(): Int = 0
 }

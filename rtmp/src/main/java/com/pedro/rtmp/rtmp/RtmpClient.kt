@@ -187,7 +187,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun setWriteChunkSize(chunkSize: Int) {
     if (!isStreaming) {
-      RtmpConfig.writeChunkSize = chunkSize
+      commandsManager.config.writeChunkSize = chunkSize
     }
   }
 
@@ -378,7 +378,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     when (message.getType()) {
       MessageType.SET_CHUNK_SIZE -> {
         val setChunkSize = message as SetChunkSize
-        commandsManager.readChunkSize = setChunkSize.chunkSize
+        commandsManager.config.readChunkSize = setChunkSize.chunkSize
         Log.i(TAG, "chunk size configured to ${setChunkSize.chunkSize}")
       }
       MessageType.ACKNOWLEDGEMENT -> {
@@ -386,7 +386,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
       }
       MessageType.WINDOW_ACKNOWLEDGEMENT_SIZE -> {
         val windowAcknowledgementSize = message as WindowAcknowledgementSize
-        RtmpConfig.acknowledgementWindowSize = windowAcknowledgementSize.acknowledgementWindowSize
+        commandsManager.config.acknowledgementWindowSize = windowAcknowledgementSize.acknowledgementWindowSize
       }
       MessageType.SET_PEER_BANDWIDTH -> {
         val setPeerBandwidth = message as SetPeerBandwidth
@@ -439,7 +439,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                 try {
                   commandsManager.streamId = command.getStreamId()
                   commandsManager.sendPublish(socket)
-                } catch (e: ClassCastException) {
+                } catch (e: Exception) {
                   Log.e(TAG, "error parsing _result createStream", e)
                 }
               }
@@ -455,9 +455,9 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                     onMainThread {
                       connectChecker.onAuthError()
                     }
-                  } else if (commandsManager.user != null && commandsManager.password != null &&
-                      description.contains("challenge=") && description.contains("salt=") //adobe response
-                      || description.contains("nonce=")) { //llnw response
+                  } else if ((commandsManager.user != null && commandsManager.password != null) &&
+                    ((description.contains("challenge=") && description.contains("salt=")) //adobe response
+                      || description.contains("nonce="))) { //llnw response
                     closeConnection()
                     establishConnection()
                     socket = this.socket ?: throw IOException("Invalid socket, Connection failed")
@@ -502,7 +502,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   }
                 }
               }
-            } catch (e: ClassCastException) {
+            } catch (e: Exception) {
               Log.e(TAG, "error parsing _error command", e)
             }
           }
@@ -529,7 +529,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
                   ignoredCommandReceived?.let { onMainThread { it.invoke(message) } }
                 }
               }
-            } catch (e: ClassCastException) {
+            } catch (e: Exception) {
               Log.e(TAG, "error parsing onStatus command", e)
             }
           }

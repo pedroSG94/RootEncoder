@@ -42,6 +42,7 @@ class CommandAmf0(name: String = "", commandId: Int = 0, private val timestamp: 
     val amfNumber = AmfNumber(commandId.toDouble())
     bodySize += amfNumber.getSize() + 1
     data.add(amfNumber)
+    header.messageLength = bodySize
   }
 
   fun addData(amfData: AmfData) {

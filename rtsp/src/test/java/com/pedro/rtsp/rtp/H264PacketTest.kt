@@ -20,6 +20,7 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.H264Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -37,10 +38,10 @@ class H264PacketTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05)
     val fakeH264 = header.plus(ByteArray(300) { 0x00 })
-
+    val rtpTracks = RtpTracks()
     val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH264), info, MediaFrame.Type.VIDEO)
-    val h264Packet = H264Packet()
+    val h264Packet = H264Packet(rtpTracks.trackVideo)
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h264Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
@@ -48,7 +49,7 @@ class H264PacketTest {
     val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 5).plus(fakeH264.copyOfRange(header.size, fakeH264.size))
     val expectedTimeStamp = 11111111L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + 1 + info.size - header.size
-    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackVideo)
+    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, rtpTracks.trackVideo)
 
     assertNotEquals(0, frames.size)
     assertTrue(frames.size == 1)
@@ -60,10 +61,10 @@ class H264PacketTest {
     val timestamp = 123456789L
     val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05)
     val fakeH264 = header.plus(ByteArray(2500) { 0x00 })
-
+    val rtpTracks = RtpTracks()
     val info = MediaFrame.Info(0, fakeH264.size, timestamp, true)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeH264), info, MediaFrame.Type.VIDEO)
-    val h264Packet = H264Packet()
+    val h264Packet = H264Packet(rtpTracks.trackVideo)
     h264Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     h264Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
@@ -78,8 +79,8 @@ class H264PacketTest {
     val expectedSize = chunk1.size + RtpConstants.RTP_HEADER_LENGTH + 2
     val expectedSize2 = chunk2.size + RtpConstants.RTP_HEADER_LENGTH + 2
 
-    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackVideo)
-    val expectedPacketResult2 = RtpFrame(expectedRtp2, expectedTimeStamp, expectedSize2, RtpConstants.trackVideo)
+    val expectedPacketResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, rtpTracks.trackVideo)
+    val expectedPacketResult2 = RtpFrame(expectedRtp2, expectedTimeStamp, expectedSize2, rtpTracks.trackVideo)
 
     assertNotEquals(0, frames.size)
     assertTrue(frames.size == 2)

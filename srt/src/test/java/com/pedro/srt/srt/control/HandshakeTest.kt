@@ -34,9 +34,13 @@ class HandshakeTest {
 
   @Test
   fun `test extension field calculation`() {
-    assertEquals(131079, ExtensionField.calculateValue(150039, false))
-    assertEquals(5, ExtensionField.calculateValue(18967, false))
-    assertEquals(7, ExtensionField.calculateValue(18967, true))
+    assertEquals(131079, ExtensionField.calculateValue(150039, encrypted = false, true))
+    assertEquals(5, ExtensionField.calculateValue(18967, encrypted = false, true))
+    assertEquals(7, ExtensionField.calculateValue(18967, encrypted = true, true))
+
+    assertEquals(131075, ExtensionField.calculateValue(150039, encrypted = false, false))
+    assertEquals(1, ExtensionField.calculateValue(18967, encrypted = false, false))
+    assertEquals(3, ExtensionField.calculateValue(18967, encrypted = true, false))
   }
 
   @Test

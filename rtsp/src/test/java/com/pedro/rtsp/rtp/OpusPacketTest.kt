@@ -20,6 +20,7 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.rtsp.rtp.packets.OpusPacket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -34,10 +35,10 @@ class OpusPacketTest {
   fun `GIVEN opus data WHEN create rtp packet THEN get expected packet`() = runTest {
     val timestamp = 123456789L
     val fakeOpus = ByteArray(30) { 0x05 }
-
+    val rtpTracks = RtpTracks()
     val info = MediaFrame.Info(0, fakeOpus.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeOpus), info, MediaFrame.Type.AUDIO)
-    val opusPacket = OpusPacket().apply { setAudioInfo(8000) }
+    val opusPacket = OpusPacket(rtpTracks.trackAudio).apply { setAudioInfo(8000) }
     opusPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     opusPacket.createAndSendPacket(mediaFrame) { frames.addAll(it) }
@@ -45,7 +46,7 @@ class OpusPacketTest {
     val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeOpus)
     val expectedTimeStamp = 987654L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size
-    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackAudio)
+    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, rtpTracks.trackAudio)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])
   }

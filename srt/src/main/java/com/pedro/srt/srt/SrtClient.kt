@@ -105,7 +105,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     private set
   var packetsLost = 0
     private set
-  private var latency = 120_000 //in micro
+  private var latency = 120 //in millis
   var socketType = SocketType.JAVA
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
@@ -241,14 +241,14 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
           commandsManager.writeHandshake(socket, response.copy(
             encryption = commandsManager.getEncryptType(),
-            extensionField = ExtensionField.calculateValue(response.extensionField, commandsManager.encryptionEnabled()),
+            extensionField = ExtensionField.calculateValue(response.extensionField, commandsManager.encryptionEnabled(), path.isNotEmpty()),
             handshakeType = HandshakeType.CONCLUSION,
             handshakeExtension = HandshakeExtension(
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
                   ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
-              receiverDelay = latency / 1000,
-              senderDelay = latency / 1000,
+              receiverDelay = latency,
+              senderDelay = latency,
               path = path,
               encryptInfo = commandsManager.getEncryptInfo()
             )))
@@ -379,17 +379,19 @@ class SrtClient(private val connectChecker: ConnectChecker) {
             commandsManager.writeKeepAlive(socket)
           }
           is Ack -> {
-            rtt = srtPacket.rtt
             val ackSequence = srtPacket.typeSpecificInformation
             val lastPacketSequence = srtPacket.lastAcknowledgedPacketSequenceNumber
             commandsManager.updateHandlingQueue(lastPacketSequence)
-            commandsManager.writeAck2(ackSequence, socket)
+            if (ackSequence != 0) {
+              rtt = srtPacket.rtt
+              commandsManager.writeAck2(ackSequence, socket)
+            }
           }
           is Nak -> {
             //packet lost reported, we should resend it
-            val packetsLost = srtPacket.getNakPacketsLostList()
-            this.packetsLost += packetsLost.size
-            commandsManager.reSendPackets(packetsLost, socket)
+            val lostRanges = srtPacket.getNakRanges()
+            this.packetsLost += srtPacket.getLostCount()
+            commandsManager.reSendPackets(lostRanges, socket)
           }
           is CongestionWarning -> {
 

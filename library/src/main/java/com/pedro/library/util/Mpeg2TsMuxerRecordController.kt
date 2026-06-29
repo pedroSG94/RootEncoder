@@ -113,8 +113,7 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
   }
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
-    Pid.reset()
-    service.clearTracks()
+    service.clear()
     if (audioEnabled) service.addTrack(getAudioCodec().toCodec())
     if (videoEnabled) service.addTrack(getVideoCodec().toCodec())
     service.generatePmt()

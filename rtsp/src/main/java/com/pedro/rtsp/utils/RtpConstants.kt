@@ -21,8 +21,6 @@ package com.pedro.rtsp.utils
  */
 object RtpConstants {
 
-  var trackAudio = 1
-  var trackVideo = 0
   const val MAX_SEQ_NUMBER = 65535
   const val HMAC_SIZE = 10
   const val clockVideoFrequency = 90000L

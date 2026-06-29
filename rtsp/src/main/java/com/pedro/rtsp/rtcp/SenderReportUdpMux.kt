@@ -19,14 +19,16 @@ package com.pedro.rtsp.rtcp
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpTracks
 import java.io.IOException
 
 /**
  * Created by pedro on 8/11/18.
  */
 class SenderReportUdpMux(
+  rtpTracks: RtpTracks,
   private val udpSocket: UdpStreamSocket
-) : BaseSenderReport() {
+) : BaseSenderReport(rtpTracks) {
 
   @Throws(IOException::class)
   override suspend fun setSocket(socket: TcpStreamSocket) {

@@ -21,6 +21,7 @@ import com.pedro.rtsp.rtp.packets.G711Packet
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.CryptoProperties
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import junit.framework.TestCase.assertEquals
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
@@ -39,10 +40,10 @@ class G711PacketTest {
   fun `GIVEN g711 data WHEN create rtp packet THEN get expected packet`() = runTest {
     val timestamp = 123456789L
     val fakeG711 = ByteArray(30) { 0x05 }
-
+    val rtpTracks = RtpTracks()
     val info = MediaFrame.Info(0, fakeG711.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeG711), info, MediaFrame.Type.AUDIO)
-    val g711Packet = G711Packet().apply { setAudioInfo(8000) }
+    val g711Packet = G711Packet(rtpTracks.trackAudio).apply { setAudioInfo(8000) }
     g711Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     g711Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
@@ -50,7 +51,7 @@ class G711PacketTest {
     val expectedRtp = byteArrayOf(-128, -120, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeG711)
     val expectedTimeStamp = 987654L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size
-    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, RtpConstants.trackAudio)
+    val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, rtpTracks.trackAudio)
     assertEquals(1, frames.size)
     assertEquals(packetResult, frames[0])
   }
@@ -78,10 +79,10 @@ class G711PacketTest {
     val sessionKey = ByteArray(16) { (it + 1).toByte() }
     val authKey = ByteArray(20) { (it + 100).toByte() }
     val salt = ByteArray(14) { (it + 50).toByte() }
-
+    val rtpTracks = RtpTracks()
     val info = MediaFrame.Info(0, fakeG711.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeG711), info, MediaFrame.Type.AUDIO)
-    val g711Packet = G711Packet().apply {
+    val g711Packet = G711Packet(rtpTracks.trackAudio).apply {
       setAudioInfo(8000)
       setSSRC(ssrc)
       setCryptoProperties(CryptoProperties(authKey, sessionKey, salt))
@@ -119,7 +120,7 @@ class G711PacketTest {
 
     assertEquals(expectedBuffer.toList(), frames[0].buffer.toList())
     assertEquals(rtpTimeStamp, frames[0].timeStamp)
-    assertEquals(RtpConstants.trackAudio, frames[0].channelIdentifier)
+    assertEquals(rtpTracks.trackAudio, frames[0].channelIdentifier)
   }
 
   // RFC 3711 §4.1.1 SRTP IV: (salt * 2^16) XOR (ssrc * 2^64) XOR (index * 2^16), low 16 bits = 0.

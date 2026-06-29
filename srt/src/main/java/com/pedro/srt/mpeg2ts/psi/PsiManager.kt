@@ -66,7 +66,7 @@ class PsiManager(
     }
     sdtCount++
     patCount++
-    return mpegTsPacketizer.write(psiPackets, increasePsiContinuity = true).chunkPackets(chunkSize).map { b ->
+    return mpegTsPacketizer.write(psiPackets).chunkPackets(chunkSize).map { b ->
       MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
     }
   }
