@@ -16,7 +16,8 @@
 
 package com.pedro.rtsp.rtsp.commands
 
-import com.pedro.common.AudioUtils
+import com.pedro.common.config.AacAudioSpecificConfig
+import com.pedro.common.config.AudioObjectType
 import com.pedro.rtsp.utils.RtpConstants
 
 /**
@@ -54,9 +55,9 @@ object SdpBody {
   }
 
   fun createAacBody(trackAudio: Int, sampleRate: Int, isStereo: Boolean, secured: Boolean = false): String {
-    val frequency = AudioUtils.getFrequency(sampleRate)
-    val channel = if (isStereo) 2 else 1
-    val config = 2 and 0x1F shl 11 or (frequency and 0x0F shl 7) or (channel and 0x0F shl 3)
+    val channels = if (isStereo) 2 else 1
+    val config = AacAudioSpecificConfig(AudioObjectType.AAC_LC, sampleRate, channels)
+    val configHex = config.calculate().toHexString()
     val payload = RtpConstants.payloadType + trackAudio
     val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
     val identifier = if (secured) {
@@ -64,8 +65,8 @@ object SdpBody {
       "a=mid:$trackAudio\r\n"
     } else "a=control:streamid=$trackAudio\r\n"
     return "m=audio 0 $type ${payload}\r\n" +
-        "a=rtpmap:$payload MPEG4-GENERIC/$sampleRate/$channel\r\n" +
-        "a=fmtp:$payload profile-level-id=1; mode=AAC-hbr; config=${Integer.toHexString(config)}; sizelength=13; indexlength=3; indexdeltalength=3\r\n" +
+        "a=rtpmap:$payload MPEG4-GENERIC/$sampleRate/$channels\r\n" +
+        "a=fmtp:$payload profile-level-id=1; mode=AAC-hbr; config=$configHex; sizelength=13; indexlength=3; indexdeltalength=3\r\n" +
         identifier
   }
 

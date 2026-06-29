@@ -16,17 +16,17 @@
 
 package com.pedro.rtmp.flv.audio.packet
 
+import com.pedro.common.config.AacAudioSpecificConfig
+import com.pedro.common.config.AudioObjectType
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AudioFormat
-import com.pedro.rtmp.flv.audio.AudioObjectType
 import com.pedro.rtmp.flv.audio.AudioSize
 import com.pedro.rtmp.flv.audio.AudioSoundRate
 import com.pedro.rtmp.flv.audio.AudioSoundType
-import com.pedro.rtmp.flv.audio.config.AacAudioSpecificConfig
 import kotlin.experimental.or
 
 /**
@@ -74,10 +74,9 @@ class AacPacket: BasePacket() {
     header[0] = type or (audioSize.value shl 1).toByte() or (soundRate.value shl 2).toByte() or (AudioFormat.AAC.value shl 4).toByte()
     val buffer: ByteArray
     if (!configSend) {
-      val config = AacAudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
-      buffer = ByteArray(config.size + header.size)
       header[1] = Type.SEQUENCE.mark
-      config.write(buffer, header.size)
+      val config = AacAudioSpecificConfig(objectType, sampleRate, if (isStereo) 2 else 1)
+      buffer = ByteArray(header.size).plus(config.calculate())
       configSend = true
     } else {
       header[1] = Type.RAW.mark
