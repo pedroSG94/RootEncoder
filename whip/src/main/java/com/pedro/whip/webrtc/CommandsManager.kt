@@ -88,7 +88,7 @@ class CommandsManager {
     }
 
     fun setAuth(user: String?, password: String?) {
-        token = if (user.isNullOrEmpty()) user else if (password.isNullOrEmpty()) password else null
+        token = if (!user.isNullOrEmpty()) user else if (!password.isNullOrEmpty()) password else null
     }
 
     fun videoInfoReady(): Boolean {
