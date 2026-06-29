@@ -27,9 +27,20 @@ class WhipStreamClient(
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
 
-
+  /**
+   * Set Bearer authentication token.
+   * Use user or password as token
+   */
   override fun setAuthorization(user: String?, password: String?) {
-    whipClient.setAuthorization(user, password)
+    val token = if (!user.isNullOrEmpty()) user else if (!password.isNullOrEmpty()) password else null
+    setAuthorization(token)
+  }
+
+  /**
+   * Set Bearer authentication token
+   */
+  fun setAuthorization(token: String?) {
+    whipClient.setAuthorization(token)
   }
 
   override fun setReTries(reTries: Int) {

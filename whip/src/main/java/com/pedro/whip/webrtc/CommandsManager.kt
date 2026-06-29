@@ -87,8 +87,8 @@ class CommandsManager {
                 / 1000) // NTP timestamp
     }
 
-    fun setAuth(user: String?, password: String?) {
-        token = if (!user.isNullOrEmpty()) user else if (!password.isNullOrEmpty()) password else null
+    fun setAuth(token: String?) {
+        this.token = token
     }
 
     fun videoInfoReady(): Boolean {
@@ -174,7 +174,7 @@ class CommandsManager {
         val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
-            if (token != null) put("Authorization", "Bearer $token")
+            if (!token.isNullOrEmpty()) put("Authorization", "Bearer $token")
         }
         val answer = Requests.makeRequest(
             uri, "POST", headers, body, timeout, tlsEnabled

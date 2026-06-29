@@ -88,8 +88,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         whipSender.setDelay(millis)
     }
 
-    fun setAuthorization(user: String?, password: String?) {
-        commandsManager.setAuth(user, password)
+    fun setAuthorization(token: String?) {
+        commandsManager.setAuth(token)
     }
 
     /**
