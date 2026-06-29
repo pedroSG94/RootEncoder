@@ -30,6 +30,7 @@ import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.SecureRandom
+import javax.net.ssl.TrustManager
 import kotlin.random.Random
 
 class CommandsManager {
@@ -38,10 +39,10 @@ class CommandsManager {
         private set
     var port = 0
         private set
-    var app: String? = null
+    var path: String? = null
         private set
-    var streamName: String? = null
-        private set
+    private var token: String? = null
+    private var tlsEnabled = false
     var sps: ByteBuffer? = null
         private set
     var pps: ByteBuffer? = null
@@ -57,6 +58,7 @@ class CommandsManager {
     private val timeout = 5000
     private val timeStamp: Long
     private val secureRandom = SecureRandom()
+    private var certificates: TrustManager? = null
     val crypto = BcTlsCrypto(secureRandom)
     var remoteSdpInfo: SdpInfo? = null
         private set
@@ -87,6 +89,14 @@ class CommandsManager {
                 / 1000) // NTP timestamp
     }
 
+    fun addCertificates(certificates: TrustManager?) {
+        this.certificates = certificates
+    }
+
+    fun setAuth(token: String?) {
+        this.token = token
+    }
+
     fun videoInfoReady(): Boolean {
         return when (videoCodec) {
             VideoCodec.H264 -> sps != null && pps != null
@@ -106,11 +116,11 @@ class CommandsManager {
         this.sampleRate = sampleRate
     }
 
-    fun setUrl(host: String, port: Int, app: String, streamName: String?) {
+    fun setUrl(host: String, port: Int, path: String, tlsEnabled: Boolean) {
         this.host = host
         this.port = port
-        this.app = app
-        this.streamName = streamName
+        this.path = path
+        this.tlsEnabled = tlsEnabled
     }
 
     fun clear() {
@@ -167,14 +177,13 @@ class CommandsManager {
         )
         this.certificate = certificate
         localSdpInfo = SdpInfo(uFrag, uPass, certificate.fingerprint, listOf())
-        val uri = "http://$host:$port/$app"
-        val path: String? = streamName
+        val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
-            if (path != null) put("Authorization", "Bearer $path")
+            if (!token.isNullOrEmpty()) put("Authorization", "Bearer $token")
         }
         val answer = Requests.makeRequest(
-            uri, "POST", headers, body, timeout, false
+            uri, "POST", headers, body, timeout, tlsEnabled, certificates
         )
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
         tieBreak = secureRandom.nextBytes(8)
