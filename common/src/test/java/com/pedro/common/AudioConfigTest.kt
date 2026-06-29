@@ -14,23 +14,23 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.flv.audio
+package com.pedro.common
 
-import com.pedro.rtmp.flv.audio.config.OpusAudioSpecificConfig
+import com.pedro.common.config.AacAudioSpecificConfig
+import com.pedro.common.config.AudioObjectType
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 
 class AudioConfigTest {
 
   @Test
-  fun `GIVEN sampleRate and channels WHEN create an Opus audio config for sequence packet THEN return a bytearray with the config`() {
-    val sampleRate = 48000
+  fun `GIVEN objectType, sampleRate and channels WHEN create an AAC audio config for sequence packet THEN return a bytearray with the config`() {
+    val sampleRate = 44100
     val isStereo = true
-    val expectedConfig = byteArrayOf(79, 112, 117, 115, 72, 101, 97, 100, 1, 2, 0, 15, -128, -69, 0, 0, 0, 0, 0)
+    val objectType = AudioObjectType.AAC_LC
+    val expectedConfig = byteArrayOf(18, 16)
 
-    val config = OpusAudioSpecificConfig(sampleRate, if (isStereo) 2 else 1)
-    val data = ByteArray(config.size)
-    config.write(data, 0)
-    assertArrayEquals(expectedConfig, data)
+    val config = AacAudioSpecificConfig(objectType, sampleRate, if (isStereo) 2 else 1)
+    assertArrayEquals(expectedConfig, config.calculate())
   }
 }
