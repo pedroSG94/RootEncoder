@@ -16,7 +16,7 @@
 
 package com.pedro.rtmp.flv.video.config
 
-import com.pedro.rtmp.utils.toByteArray
+import com.pedro.common.toUInt64
 import java.nio.ByteBuffer
 
 /**
@@ -89,7 +89,7 @@ class VideoSpecificConfigHEVC(
     data.putInt(generalProfileCompatibilityFlags)
 
     val generalConstraintIndicatorFlags = spsParsed.generalConstraintIndicatorFlags
-    data.put(generalConstraintIndicatorFlags.toByteArray().sliceArray(2 until Long.SIZE_BYTES))
+    data.put(generalConstraintIndicatorFlags.toUInt64().sliceArray(2 until Long.SIZE_BYTES))
 
     val generalLevelIdc = spsParsed.generalLevelIdc
     data.put(generalLevelIdc.toByte())

@@ -16,7 +16,8 @@
 
 package com.pedro.rtmp.flv.video.config
 
-import com.pedro.rtmp.utils.BitBuffer
+import com.pedro.common.BitBuffer
+import com.pedro.common.toInt
 import java.nio.ByteBuffer
 
 /**
@@ -44,44 +45,44 @@ class SPSH265Parser {
     val rbsp = BitBuffer.extractRbsp(sps, 2)
     val bitBuffer = BitBuffer(rbsp)
     //Dropping nal_unit_header
-    bitBuffer.getLong(16)
+    bitBuffer.skip(16)
     //sps_video_parameter_set_id
-    bitBuffer.get(4)
+    bitBuffer.skip(4)
     //sps_max_sub_layers_minus1
-    val maxSubLayersMinus1 = bitBuffer.get(3)
+    val maxSubLayersMinus1 = bitBuffer.getInt(3)
     //sps_temporal_id_nesting_flag
-    bitBuffer.get(1)
+    bitBuffer.skipBool()
     //start profile_tier_level
-    generalProfileSpace = bitBuffer.get(2).toInt()
-    generalTierFlag = if (bitBuffer.getBool()) 1 else 0
-    generalProfileIdc = bitBuffer.getShort(5).toInt()
+    generalProfileSpace = bitBuffer.getInt(2)
+    generalTierFlag = bitBuffer.getBool().toInt()
+    generalProfileIdc = bitBuffer.getInt(5)
 
     generalProfileCompatibilityFlags = bitBuffer.getInt(32)
     generalConstraintIndicatorFlags = bitBuffer.getLong(48)
-    generalLevelIdc = bitBuffer.get(8).toInt()
+    generalLevelIdc = bitBuffer.getInt(8)
 
     val subLayerProfilePresentFlag = mutableListOf<Boolean>()
     val subLayerLevelPresentFlag = mutableListOf<Boolean>()
-    for (i in 0 until maxSubLayersMinus1) {
+    repeat((0 until maxSubLayersMinus1).count()) {
       subLayerProfilePresentFlag.add(bitBuffer.getBool())
       subLayerLevelPresentFlag.add(bitBuffer.getBool())
     }
 
     if (maxSubLayersMinus1 > 0) {
-      for (i in maxSubLayersMinus1..8) {
-        bitBuffer.getLong(2) // reserved_zero_2bits
+      repeat((maxSubLayersMinus1..8).count()) {
+        bitBuffer.skip(2) // reserved_zero_2bits
       }
     }
 
     for (i in 0 until maxSubLayersMinus1) {
       if (subLayerProfilePresentFlag[i]) {
-        bitBuffer.getLong(32) // skip
-        bitBuffer.getLong(32) // skip
-        bitBuffer.getLong(24) // skip
+        bitBuffer.skip(32) // skip
+        bitBuffer.skip(32) // skip
+        bitBuffer.skip(24) // skip
       }
 
       if (subLayerLevelPresentFlag[i]) {
-        bitBuffer.getLong(8) // skip
+        bitBuffer.skip(8) // skip
       }
     }
     //end profile_tier_level
@@ -92,7 +93,7 @@ class SPSH265Parser {
     chromaFormat = bitBuffer.readUE()
     if (chromaFormat == 3) {
       //separate_colour_plane_flag
-      bitBuffer.getBool()
+      bitBuffer.skipBool()
     }
     //pic_width_in_luma_samples
     bitBuffer.readUE()
@@ -114,7 +115,6 @@ class SPSH265Parser {
     bitDepthLumaMinus8 = bitBuffer.readUE()
     //bit_depth_chroma_minus8
     bitDepthChromaMinus8 = bitBuffer.readUE()
-
     //The buffer continue but we don't need read more
   }
 }

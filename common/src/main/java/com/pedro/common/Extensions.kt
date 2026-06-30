@@ -200,7 +200,7 @@ fun Int.toUInt32(): ByteArray {
 }
 
 fun Long.toUInt64(): ByteArray {
-  return byteArrayOf((this ushr 56).toByte(), (this ushr 48).toByte(), (this ushr 48).toByte(), (this ushr 32).toByte(), (this ushr 24).toByte(), (this ushr 16).toByte(), (this ushr 8).toByte(), this.toByte())
+  return byteArrayOf((this ushr 56).toByte(), (this ushr 48).toByte(), (this ushr 40).toByte(), (this ushr 32).toByte(), (this ushr 24).toByte(), (this ushr 16).toByte(), (this ushr 8).toByte(), this.toByte())
 }
 
 fun Int.toUInt32LittleEndian(): ByteArray = Integer.reverseBytes(this).toUInt32()
@@ -310,4 +310,29 @@ fun List<ByteArray>.combine(): ByteArray {
 
 fun SecureRandom.nextBytes(size: Int): ByteArray {
   return ByteArray(size).apply { nextBytes(this) }
+}
+
+fun Boolean.toInt() = if (this) 1 else 0
+
+fun ByteBuffer.indicesOf(prefix: ByteArray): List<Int> {
+  if (prefix.isEmpty()) return emptyList()
+  val indices = mutableListOf<Int>()
+
+  outer@ for (i in 0 until this.limit() - prefix.size + 1) {
+    for (j in prefix.indices) {
+      if (this.get(i + j) != prefix[j]) {
+        continue@outer
+      }
+    }
+    indices.add(i)
+  }
+  return indices
+}
+
+fun ByteBuffer.put(buffer: ByteBuffer, offset: Int, length: Int) {
+  val limit = buffer.limit()
+  buffer.position(offset)
+  buffer.limit(offset + length)
+  this.put(buffer)
+  buffer.limit(limit)
 }
