@@ -59,4 +59,15 @@ class VideoConfigTest {
     config.write(data, 0)
     assertArrayEquals(expectedConfig, data)
   }
+
+  @Test
+  fun `GIVEN obu sequence with seq_choose_screen_content_tools set WHEN create a video config THEN keep bitstream aligned`() {
+    val obuSequence = byteArrayOf(0x0a, 0x08, 0x40, 0x00, 0x00, 0x08, 0x00, 0x00, 0xc6.toByte(), 0x20)
+    val expectedConfig = byteArrayOf(0x81.toByte(), 0x41, 0x68, 0x00, 0x0a, 0x08, 0x40, 0x00, 0x00, 0x08, 0x00, 0x00, 0xc6.toByte(), 0x20)
+
+    val config = VideoSpecificConfigAV1(obuSequence)
+    val data = ByteArray(config.size)
+    config.write(data, 0)
+    assertArrayEquals(expectedConfig, data)
+  }
 }

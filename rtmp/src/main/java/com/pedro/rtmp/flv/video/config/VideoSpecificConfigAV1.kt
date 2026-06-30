@@ -124,10 +124,7 @@ class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
       val enableOrderHint = bitBuffer.getBool()
       if (enableOrderHint) bitBuffer.skip(2)
       val seqChooseScreenContentTools = bitBuffer.getBool()
-      var seqForceScreenContentTools = false
-      if (!seqChooseScreenContentTools) {
-        seqForceScreenContentTools = bitBuffer.getBool()
-      }
+      val seqForceScreenContentTools = seqChooseScreenContentTools || bitBuffer.getBool()
       if (seqForceScreenContentTools) {
         val seqChooseIntegerMv = bitBuffer.getBool()
         if (!seqChooseIntegerMv) bitBuffer.skipBool()

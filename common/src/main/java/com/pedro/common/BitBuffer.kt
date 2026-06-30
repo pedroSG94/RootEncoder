@@ -97,7 +97,7 @@ class BitBuffer(val buffer: ByteBuffer) {
 
       value = (value shl 1) or ((buffer[currentIndex].toInt() ushr currentBit) and 1)
     }
-    bufferPosition += leadingZeros + 1
+    bufferPosition += 2 * leadingZeros + 1
     return value
   }
 
