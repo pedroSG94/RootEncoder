@@ -18,6 +18,7 @@ package com.pedro.common
 
 import junit.framework.TestCase.assertEquals
 import org.junit.Test
+import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 10/12/23.
@@ -26,11 +27,12 @@ class BitBufferTest {
 
   @Test
   fun checkGetBits() {
-    val buffer = byteArrayOf(0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68.toByte(), 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
+    val buffer = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68.toByte(), 0x83.toByte(), 0x00, 0x83.toByte(), 0x02))
     val bitBuffer = BitBuffer(buffer)
-    val result = bitBuffer.getBits(24, 5)
-    val result2 = bitBuffer.getBits(29, 4)
-    val result3 = bitBuffer.getBits(29 + 4, 4)
+    bitBuffer.skip(24)
+    val result = bitBuffer.getInt(5)
+    val result2 = bitBuffer.getInt(4)
+    val result3 = bitBuffer.getLong(4)
     assertEquals(0x04, result)
     assertEquals(8, result2)
     assertEquals(9, result3)

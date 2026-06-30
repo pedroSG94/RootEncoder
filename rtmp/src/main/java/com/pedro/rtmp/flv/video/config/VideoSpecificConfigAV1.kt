@@ -18,6 +18,7 @@ package com.pedro.rtmp.flv.video.config
 
 import com.pedro.common.BitBuffer
 import com.pedro.common.av1.Av1Parser
+import com.pedro.common.toInt
 import java.nio.ByteBuffer
 
 /**
@@ -55,220 +56,155 @@ class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
 
   fun write(buffer: ByteArray, offset: Int) {
     val obuData = av1Parser.getObus(sequenceObu)[0].data
-    val bitBuffer = BitBuffer(obuData)
-    var index = 0
+    val bitBuffer = BitBuffer(ByteBuffer.wrap(obuData))
 
-    val seqProfile = bitBuffer.getBits(index, 3)
-    index += 3
-    index += 1
-    val reducedStillPictureHeader = bitBuffer.getBits(index, 1)
-    index += 1
+    val seqProfile = bitBuffer.getInt(3)
+    bitBuffer.skipBool()
+    val reducedStillPictureHeader = bitBuffer.getBool()
     var seqLevelIdx = 0
-    var seqTier = 0
-    var initialDisplayDelayPresentFlag = 0
+    var seqTier = false
+    var initialDisplayDelayPresentFlag = false
     var initialPresentationDelay = 0
-    if (reducedStillPictureHeader == 1) {
-      seqLevelIdx = bitBuffer.getBits(index, 5)
-      index += 5
+    if (reducedStillPictureHeader) {
+      seqLevelIdx = bitBuffer.getInt(5)
     } else {
-      val timingInfoPresentFlag = bitBuffer.getBits(index, 1)
-      index += 1
-      var decoderModelInfoPresentFlag = 0
+      val timingInfoPresentFlag = bitBuffer.getBool()
+      var decoderModelInfoPresentFlag = false
       var bufferDelayLengthMinus1 = 0
-      if (timingInfoPresentFlag == 1) {
-        index += 64
-        val equalPictureInterval = bitBuffer.getBits(index, 1)
-        index += 1
-        if (equalPictureInterval == 1) {
-          val uvlc = readUVLC(obuData, index)
-          index += uvlc.second
+      if (timingInfoPresentFlag) {
+        bitBuffer.skip(64)
+        val equalPictureInterval = bitBuffer.getBool()
+        if (equalPictureInterval) {
+          bitBuffer.readUVLC()
         }
-        decoderModelInfoPresentFlag = bitBuffer.getBits(index, 1)
-        index += 1
-        if (decoderModelInfoPresentFlag == 1) {
-          bufferDelayLengthMinus1 = bitBuffer.getBits(index, 5)
-          index += 5
-          index += 42 //skip this
+        decoderModelInfoPresentFlag = bitBuffer.getBool()
+        if (decoderModelInfoPresentFlag) {
+          bufferDelayLengthMinus1 = bitBuffer.getInt(5)
+          bitBuffer.skip(42) //skip this
         }
       }
-      initialDisplayDelayPresentFlag = bitBuffer.getBits(index, 1)
-      index += 1
-      val operatingPointsCntMinus1 = bitBuffer.getBits(index, 5)
-      index += 5
+      initialDisplayDelayPresentFlag = bitBuffer.getBool()
+      val operatingPointsCntMinus1 = bitBuffer.getInt(5)
       for (i in 0..operatingPointsCntMinus1) {
-        index += 12 //skip
-        val levelIdx = bitBuffer.getBits(index, 5)
-        index += 5
+        bitBuffer.skip(12) //skip
+        val levelIdx = bitBuffer.getInt(5)
         if (i == 0) seqLevelIdx = levelIdx
         if (levelIdx > 7) {
-          val sTier = bitBuffer.getBits(index, 1)
-          index += 1
+          val sTier = bitBuffer.getBool()
           if (i == 0) seqTier = sTier
         }
-        if (decoderModelInfoPresentFlag == 1) {
-          val decoderModelPresentForThisOp = bitBuffer.getBits(index, 1)
-          index += 1
-          if (decoderModelPresentForThisOp == 1) {
+        if (decoderModelInfoPresentFlag) {
+          val decoderModelPresentForThisOp = bitBuffer.getBool()
+          if (decoderModelPresentForThisOp) {
             val n = bufferDelayLengthMinus1 + 1
-            index += n * 2 + 1 //skip this
+            bitBuffer.skip(n * 2 + 1) //skip this
           }
         }
-        if (initialDisplayDelayPresentFlag == 1) {
-          val initialDisplayDelayPresentForThisOp = bitBuffer.getBits(index, 1)
-          index += 1
-          if (initialDisplayDelayPresentForThisOp == 1) {
-            val initialDisplayDelayMinus1 = bitBuffer.getBits(index, 4)
-            index += 4
+        if (initialDisplayDelayPresentFlag) {
+          val initialDisplayDelayPresentForThisOp = bitBuffer.getBool()
+          if (initialDisplayDelayPresentForThisOp) {
+            val initialDisplayDelayMinus1 = bitBuffer.getInt(4)
             if (i == 0) initialPresentationDelay = initialDisplayDelayMinus1
           }
         }
       }
     }
 
-    val frameWidthBitsMinus1 = bitBuffer.getBits(index, 4)
-    index += 4
-    val frameHeightBitsMinus1 = bitBuffer.getBits(index, 4)
-    index += 4
-    index += frameWidthBitsMinus1 + 1 + frameHeightBitsMinus1 + 1
-    var frameIdNumbersPresentFlag = 0
-    if (reducedStillPictureHeader != 1) {
-      frameIdNumbersPresentFlag = bitBuffer.getBits(index, 1)
-      index += 1
+    val frameWidthBitsMinus1 = bitBuffer.getInt(4)
+    val frameHeightBitsMinus1 = bitBuffer.getInt(4)
+    bitBuffer.skip(frameWidthBitsMinus1 + 1 + frameHeightBitsMinus1 + 1)
+    var frameIdNumbersPresentFlag = false
+    if (!reducedStillPictureHeader) {
+      frameIdNumbersPresentFlag = bitBuffer.getBool()
     }
-    if (frameIdNumbersPresentFlag == 1) index += 7
-    index += 3
-    if (reducedStillPictureHeader != 1) {
-      index += 4
-      val enableOrderHint = bitBuffer.getBits(index, 1)
-      index += 1
-      if (enableOrderHint == 1) index += 2
-      val seqChooseScreenContentTools = bitBuffer.getBits(index, 1)
-      index += 1
-      var seqForceScreenContentTools = 2
-      if (seqChooseScreenContentTools != 1) {
-        seqForceScreenContentTools = bitBuffer.getBits(index, 1)
-        index += 1
+    if (frameIdNumbersPresentFlag) bitBuffer.skip(7)
+    bitBuffer.skip(3)
+    if (!reducedStillPictureHeader) {
+      bitBuffer.skip(4)
+      val enableOrderHint = bitBuffer.getBool()
+      if (enableOrderHint) bitBuffer.skip(2)
+      val seqChooseScreenContentTools = bitBuffer.getBool()
+      var seqForceScreenContentTools = false
+      if (!seqChooseScreenContentTools) {
+        seqForceScreenContentTools = bitBuffer.getBool()
       }
-      if (seqForceScreenContentTools > 0) {
-        val seqChooseIntegerMv = bitBuffer.getBits(index, 1)
-        index += 1
-        if (seqChooseIntegerMv != 1) index += 1
+      if (seqForceScreenContentTools) {
+        val seqChooseIntegerMv = bitBuffer.getBool()
+        if (!seqChooseIntegerMv) bitBuffer.skipBool()
       }
-      if (enableOrderHint == 1) index += 3
+      if (enableOrderHint) bitBuffer.skip(3)
     }
-    index += 3
+    bitBuffer.skip(3)
     //config color
-    val highBitDepth = bitBuffer.getBits(index, 1)
-    index += 1
-    var twelveBit = 0
+    val highBitDepth = bitBuffer.getBool()
+    var twelveBit = false
     var bitDepth = 0
-    if (seqProfile == 2 && highBitDepth == 1) {
-      twelveBit = bitBuffer.getBits(index, 1)
-      index += 1
-      bitDepth = if (twelveBit == 1) 12 else 10
+    if (seqProfile == 2 && highBitDepth) {
+      twelveBit = bitBuffer.getBool()
+      bitDepth = if (twelveBit) 12 else 10
     } else if (seqProfile <= 2) {
-      bitDepth = if (highBitDepth == 1) 10 else 8
+      bitDepth = if (highBitDepth) 10 else 8
     }
     val monochrome = if (seqProfile == 1) {
-      0
+      false
     } else {
-      val chrome = bitBuffer.getBits(index, 1)
-      index += 1
+      val chrome = bitBuffer.getBool()
       chrome
     }
-    val colorDescriptionPresentFlag = bitBuffer.getBits(index, 1)
-    index += 1
+    val colorDescriptionPresentFlag = bitBuffer.getBool()
     var colorPrimaries = 0
     var transferCharacteristics = 0
     var matrixCoefficients = 0
-    if (colorDescriptionPresentFlag == 1) {
-      colorPrimaries = bitBuffer.getBits(index, 8)
-      index += 8
-      transferCharacteristics = bitBuffer.getBits(index, 8)
-      index += 8
-      matrixCoefficients = bitBuffer.getBits(index, 8)
-      index += 8
+    if (colorDescriptionPresentFlag) {
+      colorPrimaries = bitBuffer.getInt(8)
+      transferCharacteristics = bitBuffer.getInt(8)
+      matrixCoefficients = bitBuffer.getInt(8)
     }
-    val subsamplingX: Int
-    val subsamplingY: Int
-    var samplePosition = 0
-    if (monochrome == 1) {
-      index += 1
-      subsamplingX = 1
-      subsamplingY = 1
+    val subsamplingX: Boolean
+    val subsamplingY: Boolean
+    var samplePosition = false
+    if (monochrome) {
+      bitBuffer.getBool()
+      subsamplingX = true
+      subsamplingY = true
     } else if (colorPrimaries == 1 && transferCharacteristics == 1 && matrixCoefficients == 1) {
-      subsamplingX = 0
-      subsamplingY = 0
+      subsamplingX = false
+      subsamplingY = false
     } else {
-      index += 1
+      bitBuffer.skipBool()
       if (seqProfile == 0) {
-        subsamplingX = 1
-        subsamplingY = 1
+        subsamplingX = true
+        subsamplingY = true
       } else if (seqProfile == 1) {
-        subsamplingX = 0
-        subsamplingY = 0
+        subsamplingX = false
+        subsamplingY = false
       } else {
         if (bitDepth == 12) {
-          subsamplingX = bitBuffer.getBits(index, 1)
-          index += 1
-          if (subsamplingX == 1) {
-            subsamplingY = bitBuffer.getBits(index, 1)
-            index += 1
+          subsamplingX = bitBuffer.getBool()
+          subsamplingY = if (subsamplingX) {
+            bitBuffer.getBool()
           } else {
-            subsamplingY = 0
+            false
           }
         } else {
-          subsamplingX = 1
-          subsamplingY = 0
+          subsamplingX = true
+          subsamplingY = false
         }
-        if (subsamplingX == 1 && subsamplingY == 1) {
-          samplePosition = bitBuffer.getBits(index, 1)
-          index += 1
+        if (subsamplingX && subsamplingY) {
+          samplePosition = bitBuffer.getBool()
         }
       }
     }
-    index += 1
     //finish config color
-    index += 1
     val data = ByteBuffer.wrap(buffer, offset, size)
     data.put(0x81.toByte()) //marker and version
     data.put(((seqProfile shl 5) or seqLevelIdx).toByte())
     data.put(
-      ((seqTier shl 7) or (highBitDepth shl 6) or (twelveBit shl 5) or (monochrome shl 4) or
-      (subsamplingX shl 3) or (subsamplingY shl 2) or samplePosition).toByte()
+      ((seqTier.toInt() shl 7) or (highBitDepth.toInt() shl 6) or (twelveBit.toInt() shl 5) or (monochrome.toInt() shl 4) or
+      (subsamplingX.toInt() shl 3) or (subsamplingY.toInt() shl 2) or samplePosition.toInt()).toByte()
     )
     val reserved = 0
-    data.put(((reserved shl 5) or (initialDisplayDelayPresentFlag shl 4) or initialPresentationDelay).toByte())
+    data.put(((reserved shl 5) or (initialDisplayDelayPresentFlag.toInt() shl 4) or initialPresentationDelay).toByte())
     data.put(sequenceObu)
-  }
-
-  private fun readUVLC(byteArray: ByteArray, offset: Int): Pair<Int, Int> {
-    var leadingZeros = 0
-    var value = 0
-    var currentIndex = offset / 8
-    var currentBit = 7 - offset % 8
-
-    while (byteArray[currentIndex].toInt() and (1 shl currentBit) == 0) {
-      leadingZeros++
-      if (currentBit == 0) {
-        currentIndex++
-        currentBit = 7
-      } else {
-        currentBit--
-      }
-    }
-
-    for (i in 0 until leadingZeros + 1) {
-      if (currentBit == 0) {
-        currentIndex++
-        currentBit = 7
-      } else {
-        currentBit--
-      }
-
-      value = (value shl 1) or ((byteArray[currentIndex].toInt() ushr currentBit) and 1)
-    }
-
-    return Pair(value, offset + leadingZeros + 1)
   }
 }
