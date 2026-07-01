@@ -200,8 +200,8 @@ abstract class BaseSenderReport internal constructor(private val rtpTracks: RtpT
     encryptedData = encryptedData.plus(i.toUInt32())
     val payload = encryptedData.copyOfRange(8, encryptedData.size - 4)
     val encryptPayload = cryptoUtils.encrypt(payload, getIvData(ssrc, index, cryptoUtils))
-    encryptPayload.copyInto(encryptedData, 8, encryptedData.size - 4)
-    val hmac = cryptoUtils.calculateHmac(encryptedData, index)
+    encryptPayload.copyInto(encryptedData, 8)
+    val hmac = cryptoUtils.calculateHmac(encryptedData)
     return encryptedData.plus(hmac)
   }
 

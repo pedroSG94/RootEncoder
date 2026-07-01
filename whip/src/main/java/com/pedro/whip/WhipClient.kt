@@ -333,8 +333,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
                     Log.i(TAG, "dtls connected!!")
                     onMainThread { connectChecker.onConnectionSuccess() }
-                    whipSender.setCrypto(cryptoProperties[1])
                     whipSender.setSocketsInfo(socket)
+                    whipSender.setCrypto(cryptoProperties[1])
                     whipSender.start()
                 }.exceptionOrNull()
                 if (error != null) {

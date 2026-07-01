@@ -70,10 +70,10 @@ class CryptoUtils(
     return result
   }
 
-  fun calculateHmac(buffer: ByteArray, roc: Int): ByteArray {
+  fun calculateHmac(buffer: ByteArray, roc: Int? = null): ByteArray {
     mac.reset()
     mac.update(buffer)
-    mac.update(roc.toUInt32())
+    roc?.let { mac.update(roc.toUInt32()) }
     return mac.doFinal().copyOf(RtpConstants.HMAC_SIZE)
   }
 

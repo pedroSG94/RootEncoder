@@ -34,6 +34,7 @@ import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
+import com.pedro.library.base.StreamBase
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
@@ -75,7 +76,7 @@ class CameraFragment: Fragment(), ConnectChecker {
     fun getInstance(): CameraFragment = CameraFragment()
   }
 
-  val genericStream: GenericStream by lazy {
+  val genericStream: StreamBase by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
     }
