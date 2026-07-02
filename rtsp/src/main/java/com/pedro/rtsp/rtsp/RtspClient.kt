@@ -309,7 +309,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
           if (!commandsManager.videoDisabled) {
             socket.write(commandsManager.createSetup(commandsManager.rtpTracks.trackVideo))
             socket.flush()
-            val setupVideoStatus = commandsManager.getResponse(socket, Method.SETUP).status
+            val setupVideoStatus = commandsManager.getResponse(socket, Method.SETUP, commandsManager.rtpTracks.trackVideo).status
             if (setupVideoStatus != 200) {
               onMainThread {
                 connectChecker.onConnectionFailed("Error configure stream, setup video $setupVideoStatus")
@@ -320,7 +320,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
           if (!commandsManager.audioDisabled) {
             socket.write(commandsManager.createSetup(commandsManager.rtpTracks.trackAudio))
             socket.flush()
-            val setupAudioStatus = commandsManager.getResponse(socket, Method.SETUP).status
+            val setupAudioStatus = commandsManager.getResponse(socket, Method.SETUP, commandsManager.rtpTracks.trackAudio).status
             if (setupAudioStatus != 200) {
               onMainThread {
                 connectChecker.onConnectionFailed("Error configure stream, setup audio $setupAudioStatus")

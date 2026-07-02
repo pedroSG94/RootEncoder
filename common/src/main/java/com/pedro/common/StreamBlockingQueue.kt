@@ -55,7 +55,8 @@ class StreamBlockingQueue(var capacity: Int) {
 
     fun setCacheTime(cache: Long) {
         cacheTime = cache
-        cacheQueue = PriorityBlockingQueue<MediaFrame>((cache / 5).toInt()) { p0, p1 ->
+        if (cacheTime == 0L) return
+        cacheQueue = PriorityBlockingQueue<MediaFrame>(maxOf(1, (cache / 5).toInt())) { p0, p1 ->
             p0.info.timestamp.compare(p1.info.timestamp)
         }
     }

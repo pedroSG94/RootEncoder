@@ -31,6 +31,7 @@ import androidx.annotation.RequiresApi
 import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.io.UnsupportedEncodingException
@@ -53,9 +54,9 @@ import kotlin.coroutines.Continuation
 @Suppress("DEPRECATION")
 fun MediaCodec.BufferInfo.isKeyframe(): Boolean {
   return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-    this.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+    this.flags and MediaCodec.BUFFER_FLAG_KEY_FRAME != 0
   } else {
-    this.flags == MediaCodec.BUFFER_FLAG_SYNC_FRAME
+    this.flags and MediaCodec.BUFFER_FLAG_SYNC_FRAME != 0
   }
 }
 
@@ -74,6 +75,7 @@ fun ByteBuffer.toByteArray(
 }
 
 fun ByteBuffer.getStartCodeSize(): Int {
+  if (this.remaining() < 4) return 0
   var startCodeSize = 0
   if (this.get(0).toInt() == 0x00 && this.get(1).toInt() == 0x00
     && this.get(2).toInt() == 0x00 && this.get(3).toInt() == 0x01) {
@@ -236,29 +238,34 @@ fun BigInteger.toByteArray(length: Int): ByteArray {
   }
 }
 
+@Throws(IOException::class)
 fun InputStream.readUntil(byteArray: ByteArray) {
   var bytesRead = 0
   while (bytesRead < byteArray.size) {
     val result = read(byteArray, bytesRead, byteArray.size - bytesRead)
-    if (result != -1) bytesRead += result
+    if (result == -1) throw IOException("End of stream")
+    bytesRead += result
   }
 }
 
+@Throws(IOException::class)
 fun InputStream.readUInt32(): Int {
   val data = ByteArray(4)
-  read(data)
+  readUntil(data)
   return data.toUInt32()
 }
 
+@Throws(IOException::class)
 fun InputStream.readUInt24(): Int {
   val data = ByteArray(3)
-  read(data)
+  readUntil(data)
   return data.toUInt24()
 }
 
+@Throws(IOException::class)
 fun InputStream.readUInt16(): Int {
   val data = ByteArray(2)
-  read(data)
+  readUntil(data)
   return data.toUInt16()
 }
 

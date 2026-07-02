@@ -37,16 +37,16 @@ class SenderReportTcp(rtpTracks: RtpTracks): BaseSenderReport(rtpTracks) {
 
   @Throws(IOException::class)
   override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame) {
-    sendReportTCP(buffer, rtpFrame.channelIdentifier)
+    tcpHeader[1] = (2 * rtpFrame.channelIdentifier + 1).toByte()
+    socket?.write(tcpHeader)
+    socket?.write(buffer, 0, RtpConstants.REPORT_PACKET_LENGTH)
+    socket?.flush()
   }
 
   override suspend fun close() {}
 
   @Throws(IOException::class)
   private suspend fun sendReportTCP(buffer: ByteArray, channelIdentifier: Int) {
-    tcpHeader[1] = (2 * channelIdentifier + 1).toByte()
-    socket?.write(tcpHeader)
-    socket?.write(buffer, 0, RtpConstants.REPORT_PACKET_LENGTH)
-    socket?.flush()
+
   }
 }
