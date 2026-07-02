@@ -116,7 +116,7 @@ class AndroidMuxerRecordController : AsyncBaseRecordController() {
     when (frame.type) {
       MediaFrame.Type.VIDEO -> {
         if (recordStatus == RecordController.Status.STARTED && videoFormat != null && (audioFormat != null || tracks == RecordTracks.VIDEO)) {
-          if (frame.info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(frame.data)) {
+          if (frame.info.isKeyFrame || isKeyFrame(frame.data)) {
             myRequestKeyFrame = null
             videoTrack = mediaMuxer?.addTrack(videoFormat!!) ?: -1
             init()
@@ -124,7 +124,7 @@ class AndroidMuxerRecordController : AsyncBaseRecordController() {
             myRequestKeyFrame?.onRequestKeyFrame()
             myRequestKeyFrame = null
           }
-        } else if (recordStatus == RecordController.Status.RESUMED && (frame.info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME
+        } else if (recordStatus == RecordController.Status.RESUMED && (frame.info.isKeyFrame
               || isKeyFrame(frame.data))
         ) {
           recordStatus = RecordController.Status.RECORDING

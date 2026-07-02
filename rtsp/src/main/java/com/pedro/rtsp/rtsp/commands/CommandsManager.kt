@@ -261,7 +261,7 @@ open class CommandsManager {
   }
 
   @Throws(IOException::class)
-  suspend fun getResponse(socket: TcpStreamSocket, method: Method = Method.UNKNOWN): Command {
+  suspend fun getResponse(socket: TcpStreamSocket, method: Method = Method.UNKNOWN, track: Int? = null): Command {
     var response = ""
     var line: String?
     while (socket.readLine().also { line = it } != null) {
@@ -276,7 +276,8 @@ open class CommandsManager {
       val command = commandParser.parseResponse(method, response)
       sessionId = commandParser.getSessionId(command)
       if (command.method == Method.SETUP && protocol == Protocol.UDP) {
-        commandParser.loadServerPorts(command, protocol, audioClientPorts, videoClientPorts,
+        val isAudio = track == rtpTracks.trackAudio
+        commandParser.loadServerPorts(command, protocol, isAudio, audioClientPorts, videoClientPorts,
           audioServerPorts, videoServerPorts)
       }
       command
