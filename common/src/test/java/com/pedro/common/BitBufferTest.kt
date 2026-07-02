@@ -182,14 +182,14 @@ class BitBufferTest {
   @Test
   fun `GIVEN a uvlc with no leading zeros WHEN readUVLC THEN return 0 and consume one bit`() {
     val bitBuffer = bitBufferOf(0x80) // 1000 0000
-    assertEquals(0, bitBuffer.readUVLC())
+    assertEquals(0L, bitBuffer.readUVLC())
     assertEquals(1, bitBuffer.bufferPosition)
   }
 
   @Test
   fun `GIVEN a uvlc with leading zeros WHEN readUVLC THEN decode value and consume 2n+1 bits`() {
     val bitBuffer = bitBufferOf(0x60) // 0110 0000
-    assertEquals(2, bitBuffer.readUVLC())
+    assertEquals(2L, bitBuffer.readUVLC())
     assertEquals(3, bitBuffer.bufferPosition)
   }
 
@@ -197,7 +197,7 @@ class BitBufferTest {
   fun `GIVEN a uvlc whose value crosses a byte boundary WHEN readUVLC THEN decode it`() {
     // 0000 1 101 | 10... -> 4 leading zeros, terminator, value bits span into the second byte
     val bitBuffer = bitBufferOf(0x0D, 0x80)
-    assertEquals(22, bitBuffer.readUVLC())
+    assertEquals(26L, bitBuffer.readUVLC())
     assertEquals(9, bitBuffer.bufferPosition)
   }
 
@@ -205,16 +205,16 @@ class BitBufferTest {
   fun `GIVEN a uvlc whose leading zeros cross a byte boundary WHEN readUVLC THEN decode it`() {
     // 8 leading zeros (whole first byte), terminator on the second byte, value spans into the third
     val bitBuffer = bitBufferOf(0x00, 0xD5, 0x40)
-    assertEquals(341, bitBuffer.readUVLC())
+    assertEquals(425L, bitBuffer.readUVLC())
     assertEquals(17, bitBuffer.bufferPosition)
   }
 
   @Test
   fun `GIVEN an unaligned position WHEN readUVLC THEN decode from that bit offset`() {
-    // skip 4 bits, then 0 1 11 -> 1 leading zero, terminator, value = 3
+    // skip 4 bits, then 0 1 1 -> 1 leading zero, terminator, value bit 1 -> 1 + (1 shl 1) - 1 = 2
     val bitBuffer = bitBufferOf(0x07)
     bitBuffer.skip(4)
-    assertEquals(3, bitBuffer.readUVLC())
+    assertEquals(2L, bitBuffer.readUVLC())
     assertEquals(7, bitBuffer.bufferPosition)
   }
 

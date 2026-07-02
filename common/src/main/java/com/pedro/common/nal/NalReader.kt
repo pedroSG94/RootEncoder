@@ -30,6 +30,7 @@ object NalReader {
     val start = offset + buffer.position()
     val limit = offset + buffer.limit()
     var payloadStart = -1
+    var nalFound = false
 
     var i = start
     while (i < limit - 2) {
@@ -40,6 +41,7 @@ object NalReader {
           duplicate.position(payloadStart - offset)
           duplicate.limit(previousPayloadEnd - offset)
           val nal = duplicate.slice()
+          nalFound = true
           if (shouldKeepNal(nal, codec, shouldDiscardVideoInfo)) units.add(nal)
         }
         payloadStart = i + 3
@@ -53,9 +55,10 @@ object NalReader {
       duplicate.position(payloadStart - offset)
       duplicate.limit(limit - offset)
       val nal = duplicate.slice()
+      nalFound = true
       if (shouldKeepNal(nal, codec, shouldDiscardVideoInfo)) units.add(nal)
     }
-    if (units.isEmpty()) units.add(buffer)
+    if (!nalFound) units.add(buffer)
     return units
   }
 

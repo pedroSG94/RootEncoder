@@ -19,7 +19,7 @@ class UdpStreamSocketJava(
 ): UdpStreamSocket() {
 
     private var socket: DatagramSocket? = null
-    private val packetSize = receiveSize ?: SocketOptions.SO_RCVBUF
+    private val packetSize = receiveSize ?: 65536
     private var remoteHost: String? = null
     private var remotePort: Int? = null
 

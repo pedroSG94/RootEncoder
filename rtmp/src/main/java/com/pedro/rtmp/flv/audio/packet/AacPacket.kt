@@ -60,6 +60,8 @@ class AacPacket: BasePacket() {
     callback: suspend (FlvPacket) -> Unit
   ) {
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
+    val ts = mediaFrame.info.timestamp / 1000
+
     //header is 2 bytes length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
     //8 bits sound data (always 10 because we are using aac)
@@ -71,20 +73,20 @@ class AacPacket: BasePacket() {
       5500 -> AudioSoundRate.SR_5_5K
       else -> AudioSoundRate.SR_44_1K
     }
+
     header[0] = type or (audioSize.value shl 1).toByte() or (soundRate.value shl 2).toByte() or (AudioFormat.AAC.value shl 4).toByte()
-    val buffer: ByteArray
     if (!configSend) {
       header[1] = Type.SEQUENCE.mark
       val config = AacAudioSpecificConfig(objectType, sampleRate, if (isStereo) 2 else 1)
-      buffer = ByteArray(header.size).plus(config.calculate())
+      val buffer = ByteArray(header.size).plus(config.calculate())
       configSend = true
-    } else {
-      header[1] = Type.RAW.mark
-      buffer = ByteArray(fixedBuffer.remaining() + header.size)
-      fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
+      System.arraycopy(header, 0, buffer, 0, header.size)
+      callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
     }
+    header[1] = Type.RAW.mark
+    val buffer = ByteArray(fixedBuffer.remaining() + header.size)
+    fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     System.arraycopy(header, 0, buffer, 0, header.size)
-    val ts = mediaFrame.info.timestamp / 1000
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }
 

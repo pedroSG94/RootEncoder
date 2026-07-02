@@ -99,7 +99,7 @@ abstract class BaseSender(
     }
 
     fun resizeCache(newSize: Int) {
-        if (newSize < queue.getSize() - queue.remainingCapacity()) {
+        if (newSize < queue.getSize()) {
             throw RuntimeException("Can't fit current cache inside new cache size")
         }
         queue.capacity = newSize
