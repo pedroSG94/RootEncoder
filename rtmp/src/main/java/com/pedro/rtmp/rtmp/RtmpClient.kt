@@ -141,7 +141,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     if (!isStreaming) {
       commandsManager = when (amfVersion) {
         AmfVersion.VERSION_0 -> CommandsManagerAmf0()
-        AmfVersion.VERSION_3 -> CommandsManagerAmf3()
+        AmfVersion.VERSION_3 -> TODO("Not yet implemented")
       }
     }
   }

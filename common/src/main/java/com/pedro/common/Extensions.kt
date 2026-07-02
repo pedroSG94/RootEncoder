@@ -125,7 +125,7 @@ fun ExecutorService.secureSubmit(timeout: Long = 5000, code: () -> Unit) {
   try {
     if (isTerminated || isShutdown) return
     submit { code() }.get(timeout, TimeUnit.MILLISECONDS)
-  } catch (ignored: InterruptedException) {}
+  } catch (_: Exception) {}
 }
 
 fun String.getMd5Hash(): String {
@@ -133,8 +133,8 @@ fun String.getMd5Hash(): String {
   try {
     md = MessageDigest.getInstance("MD5")
     return md.digest(toByteArray()).bytesToHex()
-  } catch (ignore: NoSuchAlgorithmException) {
-  } catch (ignore: UnsupportedEncodingException) {
+  } catch (_: NoSuchAlgorithmException) {
+  } catch (_: UnsupportedEncodingException) {
   }
   return ""
 }
