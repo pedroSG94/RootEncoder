@@ -47,6 +47,11 @@ class Media3AudioSource(
             throw IllegalArgumentException("Audio file isStereo (${audioInfo.channels > 1}) is different than the configured: $isStereo")
         }
         mediaExtractor.release()
+        return true
+    }
+
+    override fun start(getMicrophoneData: GetMicrophoneData) {
+        this.getMicrophoneData = getMicrophoneData
         player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.AUDIO, processor)).build().also { exoPlayer ->
             val mediaItem = MediaItem.fromUri(path)
             exoPlayer.setMediaItem(mediaItem)
@@ -59,11 +64,6 @@ class Media3AudioSource(
                 if (state == Player.STATE_ENDED) onFinish(loopMode)
             }
         })
-        return true
-    }
-
-    override fun start(getMicrophoneData: GetMicrophoneData) {
-        this.getMicrophoneData = getMicrophoneData
         player?.play()
     }
 

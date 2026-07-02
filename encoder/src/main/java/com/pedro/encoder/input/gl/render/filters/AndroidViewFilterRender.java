@@ -73,7 +73,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   private SurfaceTexture surfaceTexture, surfaceTexture2;
   private Surface surface, surface2;
   private final Handler mainHandler;
-  private boolean running = false;
+  private volatile boolean running = false;
   private ExecutorService thread = null;
   private boolean hardwareMode = true;
   private final AndroidViewSprite sprite;

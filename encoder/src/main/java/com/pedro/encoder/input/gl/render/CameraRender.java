@@ -52,6 +52,8 @@ public class CameraRender extends BaseRenderOffScreen {
 
   private SurfaceTexture surfaceTexture = new SurfaceTexture(textureID[0]);
   private Surface surface = new Surface(surfaceTexture);
+  private int width;
+  private int height;
 
   public CameraRender() {
     Matrix.setIdentityM(MVPMatrix, 0);

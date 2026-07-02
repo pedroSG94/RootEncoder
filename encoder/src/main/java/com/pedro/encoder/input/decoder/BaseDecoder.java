@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class BaseDecoder {
@@ -49,6 +50,7 @@ public abstract class BaseDecoder {
   protected long duration;
   protected final Object sync = new Object();
   protected AtomicBoolean pause = new AtomicBoolean(false);
+  protected final Semaphore semaphore = new Semaphore(0);
   protected volatile boolean looped = false;
   private final DecoderInterface decoderInterface;
   private Extractor extractor = new AndroidExtractor();
@@ -217,7 +219,12 @@ public abstract class BaseDecoder {
     boolean shouldFinish = false;
     long sleepTime = 0;
     while (running) {
-        if (pause.get()) continue;
+        if (pause.get()) {
+          try {
+            semaphore.acquire();
+          } catch (InterruptedException ignored) {}
+          continue;
+        }
         if (shouldFinish) {
           finished();
           break;

@@ -349,8 +349,15 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
         surfaceHandlerThread?.quitSafely()
         surfaceHandlerThread = null
         threadQueue.clear()
-        executor?.shutdownNow()
-        executor = null
+        val executor = this.executor
+        if (executor != null) {
+            executor.secureSubmit(100) { releaseSurfaceManagers() }
+            executor.shutdownNow()
+            this.executor = null
+        } else releaseSurfaceManagers()
+    }
+
+    private fun releaseSurfaceManagers() {
         surfaceManagerPhoto.release()
         surfaceManagerEncoder.release()
         surfaceManagerEncoderRecord.release()

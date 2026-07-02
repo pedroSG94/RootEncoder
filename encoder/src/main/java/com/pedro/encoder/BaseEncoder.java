@@ -107,6 +107,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   private void initCodec() {
+    running = true;
     if (!type.equals(CodecUtil.G711_MIME)) codec.start();
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || type.equals(CodecUtil.G711_MIME)) {
       executorService = Executors.newSingleThreadExecutor();
@@ -121,7 +122,6 @@ public abstract class BaseEncoder implements EncoderCallback {
         }
       });
     }
-    running = true;
   }
 
   public abstract boolean reset();
@@ -237,7 +237,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       Frame frame = getInputFrame();
       while (frame == null) frame = getInputFrame();
       byteBuffer.clear();
-      int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()) - frame.getOffset());
+      int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()));
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
       long pts = calculatePts(frame, presentTimeUs);
       mediaCodec.queueInputBuffer(inBufferIndex, 0, size, pts, 0);

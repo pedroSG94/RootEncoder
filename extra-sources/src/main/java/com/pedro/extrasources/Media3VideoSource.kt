@@ -37,6 +37,11 @@ class Media3VideoSource(
             throw IllegalArgumentException("Video file track not found")
         }
         mediaExtractor.release()
+        return true
+    }
+
+    override fun start(surfaceTexture: SurfaceTexture) {
+        surface = Surface(surfaceTexture)
         player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.VIDEO)).build().also { exoPlayer ->
             exoPlayer.setVideoSurface(surface)
             val mediaItem = MediaItem.fromUri(path)
@@ -50,11 +55,6 @@ class Media3VideoSource(
                 if (state == Player.STATE_ENDED) onFinish(loopMode)
             }
         })
-        return true
-    }
-
-    override fun start(surfaceTexture: SurfaceTexture) {
-        surface = Surface(surfaceTexture)
         player?.play()
     }
 
