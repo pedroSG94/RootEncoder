@@ -73,7 +73,7 @@ abstract class TcpStreamSocketJavaBase: TcpStreamSocket() {
         return String(bytes)
     }
 
-    override fun isConnected(): Boolean = socket.isConnected
+    override fun isConnected(): Boolean = socket.isConnected && !socket.isClosed
 
     override fun isReachable(): Boolean = socket.inetAddress?.isReachable(timeout.toInt()) ?: false
 }
