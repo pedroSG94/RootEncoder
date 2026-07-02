@@ -62,7 +62,7 @@ class UrlParser private constructor(
   }
 
   fun getAuthPassword(): String? {
-    val userInfo = auth?.split(":") ?: return null
+    val userInfo = auth?.split(":", limit = 2) ?: return null
     return if (userInfo.size == 2) userInfo[1] else null
   }
 
