@@ -388,7 +388,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         dtlsConnection?.close()
         dtlsConnection = null
         val error = runCatching {
-            //TODO write delete command
+            withTimeoutOrNull(100.milliseconds) {
+                commandsManager.writeDelete()
+            }
             Log.i(TAG, "write delete success")
         }.exceptionOrNull()
         if (error != null) {

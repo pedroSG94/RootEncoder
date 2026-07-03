@@ -193,6 +193,22 @@ class CommandsManager {
         return answer
     }
 
+    fun writeDelete(): RequestResponse {
+        val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
+        val headers = mutableMapOf<String, String>().apply {
+            if (!token.isNullOrEmpty()) put("Authorization", "Bearer $token")
+        }
+        return Requests.makeRequest(
+            uri,
+            "DELETE",
+            headers,
+            null,
+            timeout,
+            tlsEnabled,
+            certificates
+        )
+    }
+
     private suspend fun getStunCandidates(
         socketType: SocketType,
         stunHost: String,

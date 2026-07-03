@@ -39,7 +39,7 @@ object Requests {
       val responseHeaders = mutableMapOf<String, String>()
       socket.headerFields.forEach {
         try {
-          responseHeaders.put(it.key, it.value.joinToString(", "))
+          responseHeaders[it.key] = it.value.joinToString(", ")
         } catch (_: Exception){}
       }
       val bodyResult = String(bytes)
