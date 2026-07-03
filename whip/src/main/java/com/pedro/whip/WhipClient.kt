@@ -207,6 +207,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 }
 
                 val error = runCatching {
+                    commandsManager.updateTimestamp()
                     commandsManager.setUrl(host, port, path, tlsEnabled)
                     if (!commandsManager.audioDisabled) {
                         whipSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)

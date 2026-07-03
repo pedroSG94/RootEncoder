@@ -57,7 +57,7 @@ class CommandsManager {
     var videoCodec = VideoCodec.H264
     var audioCodec = AudioCodec.OPUS
     private val timeout = 5000
-    private val timeStamp: Long
+    private var timeStamp = 0L
     private val secureRandom = SecureRandom()
     val rtpTracks = RtpTracks()
     private var certificates: TrustManager? = null
@@ -83,12 +83,6 @@ class CommandsManager {
 
     companion object {
         private const val TAG = "CommandsManager"
-    }
-
-    init {
-        val uptime = TimeUtils.getCurrentTimeMillis()
-        timeStamp = uptime / 1000 shl 32 and ((uptime - uptime / 1000 * 1000 shr 32)
-                / 1000) // NTP timestamp
     }
 
     fun addCertificates(certificates: TrustManager?) {
@@ -334,5 +328,9 @@ class CommandsManager {
 
     fun generateTransactionId(): ByteArray {
         return secureRandom.nextBytes(12)
+    }
+
+    fun updateTimestamp() {
+        timeStamp = TimeUtils.getCurrentTimeNano()
     }
 }
