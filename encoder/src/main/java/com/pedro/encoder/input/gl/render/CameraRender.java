@@ -50,8 +50,8 @@ public class CameraRender extends BaseRenderOffScreen {
   private int aPositionHandle = -1;
   private int aTextureCameraHandle = -1;
 
-  private SurfaceTexture surfaceTexture = new SurfaceTexture(textureID[0]);
-  private Surface surface = new Surface(surfaceTexture);
+  private SurfaceTexture surfaceTexture;
+  private Surface surface;
   private int width;
   private int height;
 
@@ -80,7 +80,6 @@ public class CameraRender extends BaseRenderOffScreen {
     aPositionHandle = GLES20.glGetAttribLocation(program, "aPosition");
     aTextureCameraHandle = GLES20.glGetAttribLocation(program, "aTextureCoord");
     uMVPMatrixHandle = GLES20.glGetUniformLocation(program, "uMVPMatrix");
-    uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
     uSTMatrixHandle = GLES20.glGetUniformLocation(program, "uSTMatrix");
 
     //camera texture

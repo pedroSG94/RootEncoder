@@ -66,8 +66,8 @@ public class TextStreamObject extends StreamObjectBase {
     paint.setTextAlign(Paint.Align.LEFT);
 
     float baseline = -paint.ascent(); // ascent() is negative
-    int width = (int) (paint.measureText(text) + 0.5f); // round
-    int height = (int) (baseline + paint.descent() + 0.5f);
+    int width = Math.max(1, (int) (paint.measureText(text) + 0.5f)); // round
+    int height = Math.max(1, (int) (baseline + paint.descent() + 0.5f));
     Bitmap image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
     Canvas canvas = new Canvas(image);
     canvas.drawColor(backgroundColor);

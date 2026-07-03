@@ -41,7 +41,7 @@ class G711Codec {
 
   fun decode(src: ByteArray, offset: Int, len: Int): ByteArray {
     var j = 0
-    val out = ByteArray(src.size * 2)
+    val out = ByteArray(len * 2)
     for (i in 0 until len) {
       val s = aLawDecompressTable[src[i + offset].toInt() and 0xff]
       out[j++] = s.toByte()
