@@ -136,11 +136,9 @@ data class Handshake(
   }
 
   private fun readAddress(input: InputStream): String {
-    val num1 = input.readUInt32LittleEndian()
-    val num2 = input.readUInt32LittleEndian()
-    val num3 = input.readUInt32LittleEndian()
-    val num4 = input.readUInt32LittleEndian()
-    return "$num1.$num2.$num3.$num4"
+    val ip = input.readUInt32LittleEndian()
+    repeat(3) { input.readUInt32LittleEndian() }
+    return "${(ip ushr 24) and 0xFF}.${(ip ushr 16) and 0xFF}.${(ip ushr 8) and 0xFF}.${ip and 0xFF}"
   }
 
   fun isErrorType(): Boolean {

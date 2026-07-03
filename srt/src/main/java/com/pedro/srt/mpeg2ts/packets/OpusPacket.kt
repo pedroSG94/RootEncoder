@@ -51,7 +51,7 @@ class OpusPacket(
 
     val pes = Pes(psiManager.getAudioPid().toInt(), true, PesType.PRIVATE_STREAM_1, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize).map { buffer ->
-      MpegTsPacket(buffer, MpegType.AUDIO, PacketPosition.SINGLE, true)
+      MpegTsPacket(buffer, MpegType.AUDIO, PacketPosition.SINGLE, false)
     }
     if (mpeg2tsPackets.isNotEmpty()) callback(mpeg2tsPackets)
   }

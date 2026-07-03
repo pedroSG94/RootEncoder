@@ -55,6 +55,7 @@ class CommandsManager {
   var audioDisabled = false
   var videoDisabled = false
   var host = ""
+  var latency = 120 //in millis
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
   private var encryptor: EncryptionUtil? = null
@@ -121,6 +122,7 @@ class CommandsManager {
       )
       sequenceNumber++
       packetHandlingQueue.add(dataPacket)
+      dropTooLatePackets(dataPacket.ts)
       dataPacket.write()
       socket?.write(dataPacket)
       return dataPacket.getSize()
@@ -151,6 +153,12 @@ class CommandsManager {
         diff in 1 until 0x40000000
       }
     }
+  }
+
+  private fun dropTooLatePackets(nowTs: Int) {
+    val thresholdUs = latency * 1000
+    val firstKept = packetHandlingQueue.indexOfFirst { (nowTs - it.ts) <= thresholdUs }
+    if (firstKept > 0) packetHandlingQueue.subList(0, firstKept).clear()
   }
 
   @Throws(IOException::class)
