@@ -351,4 +351,6 @@ class CommandsManager {
     fun generateTransactionId(): ByteArray {
         return secureRandom.nextBytes(12)
     }
+
+    fun authEnabled(): Boolean = token != null
 }

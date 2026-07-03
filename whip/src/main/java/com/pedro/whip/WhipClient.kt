@@ -229,7 +229,18 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     Log.i(TAG, "found ${localCandidates.size} candidates")
                     val offerResponse = commandsManager.writeOffer()
                     Log.i(TAG, offerResponse.body)
-
+                    if (offerResponse.statusCode !in 200..299) {
+                        if (offerResponse.statusCode == 401 || offerResponse.statusCode == 403) {
+                            onMainThread { connectChecker.onAuthError() }
+                        } else {
+                            onMainThread {
+                                connectChecker.onConnectionFailed("Write offer failed: ${offerResponse.statusCode}")
+                            }
+                        }
+                        return@launch
+                    } else if (commandsManager.authEnabled()) {
+                        onMainThread { connectChecker.onAuthSuccess() }
+                    }
 
                     val localFrag = commandsManager.localSdpInfo?.uFrag ?: return@launch
                     val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return@launch
@@ -494,6 +505,5 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     fun resetBytesSend() {
         whipSender.resetBytesSend()
     }
-
 
 }
