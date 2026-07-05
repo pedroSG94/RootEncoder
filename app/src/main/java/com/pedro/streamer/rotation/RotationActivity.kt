@@ -157,4 +157,9 @@ class RotationActivity : AppCompatActivity(), OnTouchListener {
     }
     return false
   }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    filterMenu.release()
+  }
 }
