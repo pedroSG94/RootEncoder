@@ -6,6 +6,7 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.isKeyframe
 import com.pedro.common.toMediaCodecBufferInfo
 import com.pedro.common.toUInt24
 import com.pedro.common.toUInt32
@@ -111,7 +112,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
   }
 
     private fun getVideoInfo(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
-        if (info.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME || isKeyFrame(buffer)) {
+        if (info.isKeyframe() || isKeyFrame(buffer)) {
             if (!sendInfo) {
                 when (videoPacket) {
                     is H264Packet -> {

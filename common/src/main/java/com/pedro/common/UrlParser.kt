@@ -57,12 +57,12 @@ class UrlParser private constructor(
   fun getQuery(key: String): String? = getAllQueries()[key]
 
   fun getAuthUser(): String? {
-    val userInfo = auth?.split(":") ?: return null
+    val userInfo = auth?.split(":", limit = 2) ?: return null
     return if (userInfo.size == 2) userInfo[0] else null
   }
 
   fun getAuthPassword(): String? {
-    val userInfo = auth?.split(":") ?: return null
+    val userInfo = auth?.split(":", limit = 2) ?: return null
     return if (userInfo.size == 2) userInfo[1] else null
   }
 

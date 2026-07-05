@@ -35,7 +35,6 @@ class UdpStreamSocketKtor(
     private var myAddress: InetAddress? = null
 
     override suspend fun connect() {
-        selectorManager = SelectorManager(Dispatchers.IO)
         val builder = aSocket(selectorManager).udp()
         val localAddress = if (sourcePort == null) null else {
             val localAddress = InetSocketAddress(sourceHost ?: "0.0.0.0", sourcePort)

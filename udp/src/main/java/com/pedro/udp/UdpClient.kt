@@ -162,6 +162,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
         val host = urlParser.host
         val port = urlParser.port
         if (port == null) {
+          isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, port is required")
           }

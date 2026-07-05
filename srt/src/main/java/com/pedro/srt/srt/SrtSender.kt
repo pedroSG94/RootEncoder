@@ -112,7 +112,7 @@ class SrtSender(
     setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
     //send config
     val psiList = mutableListOf<Psi>(psiManager.getPat())
-    psiManager.getPmt()?.let { psiList.add(0, it) }
+    psiManager.getPmt()?.let { psiList.add(it) }
     psiList.add(psiManager.getSdt())
     val psiPacketsConfig = mpegTsPacketizer.write(psiList).chunkPackets(chunkSize).map { buffer ->
       MpegTsPacket(buffer, MpegType.PSI, PacketPosition.SINGLE, isKey = false)

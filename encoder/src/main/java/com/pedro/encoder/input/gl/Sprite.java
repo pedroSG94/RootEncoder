@@ -71,7 +71,7 @@ public class Sprite {
     switch (translation) {
       case CENTER:
         this.position.x = 50f - scale.x / 2f;
-        this.position.y = 50f - scale.x / 2f;
+        this.position.y = 50f - scale.y / 2f;
         break;
       case BOTTOM:
         this.position.x = 50f - scale.x / 2f;

@@ -77,4 +77,15 @@ class NakTest {
     assertEquals(listOf(0x7FFFFFFE to 1), packet.getNakRanges())
     assertEquals(4, packet.getLostCount())
   }
+
+  @Test
+  fun `GIVEN a truncated nak ending in a range start WHEN get ranges THEN drop the incomplete range without crashing`() {
+    //header (16 bytes) + a single range-start word (0x80000007) with no range-end → odd-sized cif list
+    val buffer = byteArrayOf(-128, 3, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64, -128, 0, 0, 7)
+    val packet = Nak()
+    packet.read(ByteArrayInputStream(buffer))
+
+    assertEquals(emptyList<Pair<Int, Int>>(), packet.getNakRanges())
+    assertEquals(0, packet.getLostCount())
+  }
 }

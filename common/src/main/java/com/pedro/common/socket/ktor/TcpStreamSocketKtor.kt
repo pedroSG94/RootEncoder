@@ -18,7 +18,6 @@ class TcpStreamSocketKtor(
 ): TcpStreamSocketKtorBase(host, port) {
 
     override suspend fun onConnectSocket(timeout: Long, error: (Throwable) -> Unit): ReadWriteSocket {
-        selectorManager = SelectorManager(Dispatchers.IO)
         val builder = aSocket(selectorManager).tcp().connect(
             remoteAddress = InetSocketAddress(host, port),
             configure = { if (!secured) socketTimeout = timeout }

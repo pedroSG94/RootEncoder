@@ -38,6 +38,7 @@ import com.pedro.library.base.StreamBase
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
+import com.pedro.library.whip.WhipStream
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -77,7 +78,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   val genericStream: StreamBase by lazy {
-    GenericStream(requireContext(), this).apply {
+    WhipStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
     }
   }
@@ -88,7 +89,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   val height = 480
   val vBitrate = 1200 * 1000
   private var rotation = 0
-  private val sampleRate = 32000
+  private val sampleRate = 48000
   private val isStereo = true
   private val aBitrate = 128 * 1000
   private var recordPath = ""

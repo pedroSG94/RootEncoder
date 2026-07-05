@@ -47,6 +47,11 @@ class WhipStream(
 ): StreamBase(context, videoSource, audioSource) {
 
   private val whipClient = WhipClient(connectChecker)
+
+  init {
+    setAudioCodec(AudioCodec.OPUS)
+  }
+
   private val streamClientListener = object: StreamClientListener {
     override fun onRequestKeyframe() {
       requestKeyframe()

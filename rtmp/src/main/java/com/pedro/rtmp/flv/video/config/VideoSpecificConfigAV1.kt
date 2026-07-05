@@ -159,12 +159,12 @@ class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
     }
     val subsamplingX: Boolean
     val subsamplingY: Boolean
-    var samplePosition = false
+    var samplePosition = 0
     if (monochrome) {
       bitBuffer.getBool()
       subsamplingX = true
       subsamplingY = true
-    } else if (colorPrimaries == 1 && transferCharacteristics == 1 && matrixCoefficients == 1) {
+    } else if (colorPrimaries == 1 && transferCharacteristics == 13 && matrixCoefficients == 0) {
       subsamplingX = false
       subsamplingY = false
     } else {
@@ -187,9 +187,9 @@ class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
           subsamplingX = true
           subsamplingY = false
         }
-        if (subsamplingX && subsamplingY) {
-          samplePosition = bitBuffer.getBool()
-        }
+      }
+      if (subsamplingX && subsamplingY) {
+        samplePosition = bitBuffer.getInt(2)
       }
     }
     //finish config color

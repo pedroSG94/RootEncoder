@@ -34,9 +34,6 @@ public class AudioDecoder extends BaseDecoder {
   private int sampleRate;
   private boolean isStereo;
   private int channels = 1;
-  private int size = 2048;
-  private byte[] pcmBuffer = new byte[size];
-  private byte[] pcmBufferMuted = new byte[11];
   private boolean muted = false;
 
   public AudioDecoder(GetMicrophoneData getMicrophoneData,
@@ -51,7 +48,6 @@ public class AudioDecoder extends BaseDecoder {
   @Override
   protected boolean extract(Extractor extractor) {
     try {
-      size = 2048;
       mime = extractor.selectTrack(MediaFrame.Type.AUDIO);
       AudioInfo audioInfo = extractor.getAudioInfo();
       mediaFormat = extractor.getFormat();
@@ -59,17 +55,11 @@ public class AudioDecoder extends BaseDecoder {
       isStereo = channels >= 2;
       this.sampleRate = audioInfo.getSampleRate();
       this.duration = audioInfo.getDuration();
-      fixBuffer();
       return true;
     } catch (Exception e) {
       mime = "";
       return false;
     }
-  }
-
-  private void fixBuffer() {
-    if (channels >= 2) size *= channels;
-    pcmBuffer = new byte[size];
   }
 
   public boolean prepareAudio() {
@@ -81,15 +71,11 @@ public class AudioDecoder extends BaseDecoder {
     //This buffer is PCM data
     GetMicrophoneData getMicrophoneData = this.getMicrophoneData;
     if (getMicrophoneData == null) return false;
+    byte[] pcmBuffer = new byte[outputBuffer.remaining()];
     if (muted) {
-      outputBuffer.get(pcmBufferMuted, 0,
-              Math.min(outputBuffer.remaining(), pcmBufferMuted.length));
-      getMicrophoneData.inputPCMData(new Frame(pcmBufferMuted, 0, pcmBufferMuted.length, timeStamp));
+      getMicrophoneData.inputPCMData(new Frame(pcmBuffer, 0, pcmBuffer.length, timeStamp));
     } else {
-      if (pcmBuffer.length < outputBuffer.remaining()) {
-        pcmBuffer = new byte[outputBuffer.remaining()];
-      }
-      outputBuffer.get(pcmBuffer, 0, Math.min(outputBuffer.remaining(), pcmBuffer.length));
+      outputBuffer.get(pcmBuffer, 0, outputBuffer.remaining());
       if (channels > 2) { //downgrade to stereo
         byte[] bufferStereo = PCMUtil.pcmToStereo(pcmBuffer, channels);
         getMicrophoneData.inputPCMData(new Frame(bufferStereo, 0, bufferStereo.length, timeStamp));
@@ -123,10 +109,6 @@ public class AudioDecoder extends BaseDecoder {
 
   public boolean isStereo() {
     return isStereo;
-  }
-
-  public int getSize() {
-    return size;
   }
 
   public void setGetMicrophoneData(GetMicrophoneData getMicrophoneData) {

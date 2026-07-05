@@ -49,68 +49,37 @@ open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> =
     return null
   }
 
-  open fun setProperty(name: String, data: String) {
-    val key = AmfString(name)
-    val value = AmfString(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
+  open fun setProperty(name: String, data: String) = putProperty(name, AmfString(data))
 
-  open fun setProperty(name: String, data: Boolean) {
-    val key = AmfString(name)
-    val value = AmfBoolean(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
+  open fun setProperty(name: String, data: Boolean) = putProperty(name, AmfBoolean(data))
 
-  open fun setProperty(name: String) {
-    val key = AmfString(name)
-    val value = AmfNull()
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
+  open fun setProperty(name: String) = putProperty(name, AmfNull())
 
-  open fun setProperty(name: String, data: Double) {
-    val key = AmfString(name)
-    val value = AmfNumber(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
+  open fun setProperty(name: String, data: Double) = putProperty(name, AmfNumber(data))
 
-  open fun setProperty(name: String, data: AmfData) {
-    val key = AmfString(name)
-    properties[key] = data
-    bodySize += key.getSize()
-    bodySize += data.getSize() + 1
-  }
+  open fun setProperty(name: String, data: AmfData) = putProperty(name, data)
 
   open fun setProperty(name: String, data: Any) {
-    val newValue: AmfData = when (data) {
-      is String   -> AmfString(data)
-      is Int      -> AmfNumber(data.toDouble())
-      is Long     -> AmfNumber(data.toDouble())
-      is Double   -> AmfNumber(data)
-      is Float    -> AmfNumber(data.toDouble())
-      is Boolean  -> AmfBoolean(data)
-      is AmfData  -> data
-      else        -> throw IllegalArgumentException(
-        "Unsupported value type: ${data::class.java.name}"
-      )
+    val newValue= when (data) {
+      is String -> AmfString(data)
+      is Int -> AmfNumber(data.toDouble())
+      is Long -> AmfNumber(data.toDouble())
+      is Double -> AmfNumber(data)
+      is Float -> AmfNumber(data.toDouble())
+      is Boolean -> AmfBoolean(data)
+      is AmfData -> data
+      else -> throw IllegalArgumentException("Unsupported value type: ${data::class.java.name}")
     }
+    putProperty(name, newValue)
+  }
 
-    val existingEntry = properties.entries.find { it.key.value == name }
-
-    if (existingEntry != null) {
-      properties[existingEntry.key] = newValue
-      bodySize += newValue.getSize() - existingEntry.value.getSize()
+  private fun putProperty(name: String, value: AmfData) {
+    val key = AmfString(name)
+    val previous = properties.put(key, value)
+    bodySize += if (previous != null) {
+      value.getSize() - previous.getSize()
     } else {
-      val key = AmfString(name)
-      properties[key] = newValue
-      bodySize += key.getSize() + newValue.getSize() + 1
+      key.getSize() + value.getSize() + 1
     }
   }
 

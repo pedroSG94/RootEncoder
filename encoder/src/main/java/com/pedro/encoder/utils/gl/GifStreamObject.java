@@ -44,12 +44,12 @@ public class GifStreamObject extends StreamObjectBase {
 
   @Override
   public int getWidth() {
-    return gifBitmaps != null ? gifBitmaps[0].getWidth() : 0;
+    return gifBitmaps != null && gifBitmaps.length > 0 && gifBitmaps[0] != null ? gifBitmaps[0].getWidth() : 0;
   }
 
   @Override
   public int getHeight() {
-    return gifBitmaps != null ? gifBitmaps[0].getHeight() : 0;
+    return gifBitmaps != null && gifBitmaps.length > 0 && gifBitmaps[0] != null ? gifBitmaps[0].getHeight() : 0;
   }
 
   public void load(InputStream inputStreamGif) throws IOException {
@@ -57,6 +57,7 @@ public class GifStreamObject extends StreamObjectBase {
     if (gifDecoder.read(inputStreamGif, inputStreamGif.available()) == 0) {
       Log.i(TAG, "read gif ok");
       numFrames = gifDecoder.getFrameCount();
+      if (numFrames <= 0) throw new IOException("Read gif error: no frames");
       gifDelayFrames = new int[numFrames];
       gifBitmaps = new Bitmap[numFrames];
       for (int i = 0; i < numFrames; i++) {
@@ -99,6 +100,7 @@ public class GifStreamObject extends StreamObjectBase {
 
   @Override
   public int updateFrame() {
+    if (gifDelayFrames == null || numFrames <= 0) return 0;
     if (startDelayFrame == 0) {
       startDelayFrame = TimeUtils.getCurrentTimeMillis();
     }

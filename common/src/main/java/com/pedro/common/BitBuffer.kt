@@ -71,34 +71,13 @@ class BitBuffer(val buffer: ByteBuffer) {
     }
   }
 
-  fun readUVLC(): Int {
+  fun readUVLC(): Long {
     var leadingZeros = 0
-    var value = 0
-    var currentIndex = bufferPosition / 8
-    var currentBit = 7 - bufferPosition % 8
-
-    while (buffer[currentIndex].toInt() and (1 shl currentBit) == 0) {
+    while (!getBool()) {
       leadingZeros++
-      if (currentBit == 0) {
-        currentIndex++
-        currentBit = 7
-      } else {
-        currentBit--
-      }
+      if (leadingZeros >= 32) return (1L shl 32) - 1
     }
-
-    repeat((0 until leadingZeros + 1).count()) {
-      if (currentBit == 0) {
-        currentIndex++
-        currentBit = 7
-      } else {
-        currentBit--
-      }
-
-      value = (value shl 1) or ((buffer[currentIndex].toInt() ushr currentBit) and 1)
-    }
-    bufferPosition += 2 * leadingZeros + 1
-    return value
+    return getLong(leadingZeros) + (1L shl leadingZeros) - 1
   }
 
   fun resetPosition() {

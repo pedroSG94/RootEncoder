@@ -207,6 +207,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                 }
 
                 val error = runCatching {
+                    commandsManager.updateTimestamp()
                     commandsManager.setUrl(host, port, path, tlsEnabled)
                     if (!commandsManager.audioDisabled) {
                         whipSender.setAudioInfo(commandsManager.sampleRate, commandsManager.isStereo)
@@ -228,18 +229,45 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     val localCandidates = commandsManager.gatheringCandidates(socketType, socketTimeout, GatheringMode.LOCAL)
                     Log.i(TAG, "found ${localCandidates.size} candidates")
                     val offerResponse = commandsManager.writeOffer()
-                    Log.i(TAG, offerResponse.body)
-                    if (offerResponse.statusCode !in 200..299) {
-                        if (offerResponse.statusCode == 401 || offerResponse.statusCode == 403) {
-                            onMainThread { connectChecker.onAuthError() }
-                        } else {
+                    Log.i(TAG, offerResponse.toString())
+                    when (offerResponse.statusCode) {
+                        403 -> {
                             onMainThread {
-                                connectChecker.onConnectionFailed("Write offer failed: ${offerResponse.statusCode}")
+                                connectChecker.onConnectionFailed("Error configure stream, access denied")
+                            }
+                            Log.e(TAG, "Response 403, access denied")
+                            return@launch
+                        }
+                        401 -> {
+                            if (commandsManager.token == null) {
+                                onMainThread { connectChecker.onAuthError() }
+                                return@launch
+                            } else {
+                                val offerResponseAuth = commandsManager.writeOffer(sendAuth = true)
+                                Log.i(TAG, offerResponseAuth.toString())
+                                when (offerResponseAuth.statusCode) {
+                                    401 -> {
+                                        onMainThread { connectChecker.onAuthError() }
+                                        return@launch
+                                    }
+                                    in 200..299 -> {
+                                        onMainThread { connectChecker.onAuthSuccess() }
+                                    }
+                                    else -> {
+                                        onMainThread {
+                                            connectChecker.onConnectionFailed("Error configure stream, offer with auth failed: ${offerResponseAuth.statusCode}")
+                                        }
+                                        return@launch
+                                    }
+                                }
                             }
                         }
-                        return@launch
-                    } else if (commandsManager.authEnabled()) {
-                        onMainThread { connectChecker.onAuthSuccess() }
+                        !in 200..299 -> {
+                            onMainThread {
+                                connectChecker.onConnectionFailed("Error configure stream, offer failed: ${offerResponse.statusCode}")
+                            }
+                            return@launch
+                        }
                     }
 
                     val localFrag = commandsManager.localSdpInfo?.uFrag ?: return@launch

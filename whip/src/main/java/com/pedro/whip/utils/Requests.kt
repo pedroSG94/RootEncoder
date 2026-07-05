@@ -44,7 +44,8 @@ object Requests {
       }
       val bodyResult = String(bytes)
       return RequestResponse(socket.responseCode, responseHeaders, bodyResult)
-    } catch (_ : Exception) {
+    } catch (e : Exception) {
+      Log.e("Requests", "Error", e)
       return RequestResponse(-1, emptyMap(), "")
     } finally {
       socket.disconnect()

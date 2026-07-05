@@ -66,6 +66,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           messageType = RtmpMessage.getMarkType(socket.read())
           //extended timestamp
           if (timeStamp >= 0xffffff) timeStamp = socket.readUInt32()
+          if (lastHeader != null) timeStamp += lastHeader.timeStamp
         }
         ChunkType.TYPE_2 -> {
           if (lastHeader != null) {
@@ -76,6 +77,7 @@ class RtmpHeader(var basicHeader: BasicHeader) {
           timeStamp = socket.readUInt24()
           //extended timestamp
           if (timeStamp >= 0xffffff) timeStamp = socket.readUInt32()
+          if (lastHeader != null) timeStamp += lastHeader.timeStamp
         }
         ChunkType.TYPE_3 -> {
           if (lastHeader != null) {

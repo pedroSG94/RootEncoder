@@ -61,6 +61,7 @@ import java.net.URISyntaxException
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.TrustManager
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Created by pedro on 8/04/21.
@@ -141,7 +142,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     if (!isStreaming) {
       commandsManager = when (amfVersion) {
         AmfVersion.VERSION_0 -> CommandsManagerAmf0()
-        AmfVersion.VERSION_3 -> CommandsManagerAmf3()
+        AmfVersion.VERSION_3 -> TODO("Not yet implemented")
       }
     }
   }
@@ -302,7 +303,10 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             //Handle all command received and send response for it.
             handleMessages()
           }
-          if (shouldSendPings) commandsManager.sendPing(socket)
+          if (shouldSendPings) {
+            pingTs.set(TimeUtils.getCurrentTimeMicro())
+            commandsManager.sendPing(socket)
+          }
           //read packet because maybe server want send you something while streaming
           handleServerPackets()
         }.exceptionOrNull()
@@ -409,7 +413,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
             if (shouldSendPings) {
               rtt = (TimeUtils.getCurrentTimeMicro() - pingTs.get()).toInt()
               scopePing.launch {
-                delay(1000)
+                delay(1000.milliseconds)
                 if (isStreaming) {
                   pingTs.set(TimeUtils.getCurrentTimeMicro())
                   commandsManager.sendPing(socket)
@@ -557,7 +561,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
-      delay(delay)
+      delay(delay.milliseconds)
       val reconnectUrl = backupUrl ?: url
       connect(reconnectUrl, true)
     }
@@ -572,7 +576,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private suspend fun disconnect(clear: Boolean) {
     if (isStreaming) rtmpSender.stop(clear)
     runCatching {
-      withTimeoutOrNull(100) {
+      withTimeoutOrNull(100.milliseconds) {
         socket?.let { commandsManager.sendClose(it) }
       }
     }

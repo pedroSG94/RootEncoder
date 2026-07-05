@@ -7,9 +7,7 @@ import kotlin.math.abs
 
 object FpsUtils {
     fun adaptFpsRange(expectedFps: Int, fpsRanges: List<IntArray>): IntArray {
-        val expectedRange = intArrayOf(expectedFps, expectedFps)
         if (fpsRanges.isEmpty()) throw IllegalArgumentException("fpsRanges is empty")
-        if (fpsRanges.contains(expectedRange)) return expectedRange
         val exactFps = fpsRanges.filter { it[1] == expectedFps }
         if (exactFps.isNotEmpty()) return exactFps.sortedBy { abs(expectedFps - it[0]) }[0]
         val higherFps = fpsRanges.filter { it[1] > expectedFps }

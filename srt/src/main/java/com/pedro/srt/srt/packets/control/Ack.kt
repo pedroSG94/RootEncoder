@@ -56,12 +56,12 @@ class Ack(
 
   private fun readBody(input: InputStream) {
     lastAcknowledgedPacketSequenceNumber = input.readUInt32() and 0x7FFFFFFF //31 bits
-    rtt = input.readUInt32()
-    rttVariance = input.readUInt32()
-    availableBufferSize = input.readUInt32()
-    packetReceivingRate = input.readUInt32()
-    estimatedLinkCapacity = input.readUInt32()
-    receivingRate = input.readUInt32()
+    if (input.available() >= 4) rtt = input.readUInt32()
+    if (input.available() >= 4) rttVariance = input.readUInt32()
+    if (input.available() >= 4) availableBufferSize = input.readUInt32()
+    if (input.available() >= 4) packetReceivingRate = input.readUInt32()
+    if (input.available() >= 4) estimatedLinkCapacity = input.readUInt32()
+    if (input.available() >= 4) receivingRate = input.readUInt32()
   }
 
   override fun toString(): String {

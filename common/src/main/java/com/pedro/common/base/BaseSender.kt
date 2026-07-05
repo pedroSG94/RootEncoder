@@ -23,9 +23,8 @@ abstract class BaseSender(
 
     @Volatile
     protected var running = false
-    private var cacheSize = 400
 
-    protected val queue = StreamBlockingQueue(cacheSize)
+    protected val queue = StreamBlockingQueue(400)
 
     protected val audioFramesSent = AtomicLong(0)
     protected val videoFramesSent = AtomicLong(0)
@@ -92,7 +91,7 @@ abstract class BaseSender(
 
     @Throws(IllegalArgumentException::class)
     fun hasCongestion(percentUsed: Float = 20f): Boolean {
-        if (percentUsed < 0 || percentUsed > 100) throw IllegalArgumentException("the value must be in range 0 to 100")
+        if (percentUsed !in 0.0..100.0) throw IllegalArgumentException("the value must be in range 0 to 100")
         val size = queue.getSize().toFloat()
         val remaining = queue.remainingCapacity().toFloat()
         val capacity = size + remaining
@@ -100,13 +99,13 @@ abstract class BaseSender(
     }
 
     fun resizeCache(newSize: Int) {
-        if (newSize < queue.getSize() - queue.remainingCapacity()) {
+        if (newSize < queue.getSize()) {
             throw RuntimeException("Can't fit current cache inside new cache size")
         }
         queue.capacity = newSize
     }
 
-    fun getCacheSize(): Int = cacheSize
+    fun getCacheSize(): Int = queue.capacity
 
     fun getItemsInCache(): Int = queue.getSize()
 
