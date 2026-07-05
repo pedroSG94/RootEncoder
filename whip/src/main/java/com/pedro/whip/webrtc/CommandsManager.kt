@@ -60,6 +60,7 @@ class CommandsManager {
     var audioCodec = AudioCodec.OPUS
     private val timeout = 5000
     private var timeStamp = 0L
+    private var sessionUrl: String? = null
     private val secureRandom = SecureRandom()
     val rtpTracks = RtpTracks()
     private var certificates: TrustManager? = null
@@ -127,6 +128,7 @@ class CommandsManager {
         vps = null
         remoteSdpInfo = null
         shouldSendAuth = false
+        sessionUrl = null
     }
 
     suspend fun gatheringCandidates(socketType: SocketType, timeout: Long, gatheringMode: GatheringMode): List<Candidate> {
@@ -187,13 +189,17 @@ class CommandsManager {
         if (answer.statusCode !in 200..299) return answer
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
         tieBreak = secureRandom.nextBytes(8)
+        sessionUrl = answer.headers.entries.firstOrNull { it.key.equals("location", true) }?.value
         Log.i(TAG, "remote info: $remoteSdpInfo")
         if (sendAuth) shouldSendAuth = true
         return answer
     }
 
     fun writeDelete(): RequestResponse {
-        val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
+        val uri = sessionUrl?.let {
+            if (it.startsWith("http", true)) it
+            else "${if (tlsEnabled) "https" else "http"}://$host:$port/${it.removePrefix("/")}"
+        } ?: "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             if (!token.isNullOrEmpty() && shouldSendAuth) put("Authorization", "Bearer $token")
         }
