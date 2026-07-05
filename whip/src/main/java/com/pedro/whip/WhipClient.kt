@@ -230,39 +230,23 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     Log.i(TAG, "found ${localCandidates.size} candidates")
                     val offerResponse = commandsManager.writeOffer()
                     Log.i(TAG, offerResponse.toString())
-                    when (offerResponse.statusCode) {
-                        403 -> {
-                            onMainThread {
-                                connectChecker.onConnectionFailed("Error configure stream, access denied")
-                            }
-                            Log.e(TAG, "Response 403, access denied")
-                            return@launch
-                        }
-                        401 -> {
-                            if (commandsManager.token == null) {
-                                onMainThread { connectChecker.onAuthError() }
+                    if (offerResponse.statusCode !in 200..299) {
+                        val needAuth = offerResponse.statusCode in 400..499
+                        if (needAuth && commandsManager.token != null) {
+                            val offerResponseAuth = commandsManager.writeOffer(sendAuth = true)
+                            Log.i(TAG, offerResponseAuth.toString())
+                            if (offerResponseAuth.statusCode !in 200..299) {
+                                onMainThread {
+                                    connectChecker.onConnectionFailed("Error configure stream, offer failed: ${offerResponseAuth.statusCode}")
+                                }
                                 return@launch
                             } else {
-                                val offerResponseAuth = commandsManager.writeOffer(sendAuth = true)
-                                Log.i(TAG, offerResponseAuth.toString())
-                                when (offerResponseAuth.statusCode) {
-                                    401 -> {
-                                        onMainThread { connectChecker.onAuthError() }
-                                        return@launch
-                                    }
-                                    in 200..299 -> {
-                                        onMainThread { connectChecker.onAuthSuccess() }
-                                    }
-                                    else -> {
-                                        onMainThread {
-                                            connectChecker.onConnectionFailed("Error configure stream, offer with auth failed: ${offerResponseAuth.statusCode}")
-                                        }
-                                        return@launch
-                                    }
-                                }
+                                onMainThread { connectChecker.onAuthSuccess() }
                             }
-                        }
-                        !in 200..299 -> {
+                        } else if (needAuth) {
+                            onMainThread { connectChecker.onAuthError() }
+                            return@launch
+                        } else {
                             onMainThread {
                                 connectChecker.onConnectionFailed("Error configure stream, offer failed: ${offerResponse.statusCode}")
                             }

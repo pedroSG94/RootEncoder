@@ -34,8 +34,10 @@ object Requests {
     try {
       socket.connect()
       if (body != null) socket.outputStream.write(body.toByteArray())
-      Log.i("Requests", "$method, code: ${socket.responseCode}\nheaders: $headers\nbody: $body")
-      val bytes = socket.inputStream.readBytes()
+      val code = socket.responseCode
+      Log.i("Requests", "$method, code: $code\nheaders: $headers\nbody: $body")
+      val stream = if (code in 200..399) socket.inputStream else socket.errorStream
+      val bytes = stream?.readBytes() ?: ByteArray(0)
       val responseHeaders = mutableMapOf<String, String>()
       socket.headerFields.forEach {
         try {
@@ -43,7 +45,7 @@ object Requests {
         } catch (_: Exception){}
       }
       val bodyResult = String(bytes)
-      return RequestResponse(socket.responseCode, responseHeaders, bodyResult)
+      return RequestResponse(code, responseHeaders, bodyResult)
     } catch (e : Exception) {
       Log.e("Requests", "Error", e)
       return RequestResponse(-1, emptyMap(), "")
