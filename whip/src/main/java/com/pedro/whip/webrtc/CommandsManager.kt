@@ -42,7 +42,9 @@ class CommandsManager {
         private set
     var path: String? = null
         private set
-    private var token: String? = null
+    var token: String? = null
+        private set
+    private var shouldSendAuth = false
     private var tlsEnabled = false
     var sps: ByteBuffer? = null
         private set
@@ -58,6 +60,7 @@ class CommandsManager {
     var audioCodec = AudioCodec.OPUS
     private val timeout = 5000
     private var timeStamp = 0L
+    private var sessionUrl: String? = null
     private val secureRandom = SecureRandom()
     val rtpTracks = RtpTracks()
     private var certificates: TrustManager? = null
@@ -124,6 +127,8 @@ class CommandsManager {
         pps = null
         vps = null
         remoteSdpInfo = null
+        shouldSendAuth = false
+        sessionUrl = null
     }
 
     suspend fun gatheringCandidates(socketType: SocketType, timeout: Long, gatheringMode: GatheringMode): List<Candidate> {
@@ -162,7 +167,7 @@ class CommandsManager {
         return ((type.preference shl 24) or (localPreference shl 8) or (256 - componentId)).toInt()
     }
 
-    fun writeOffer(): RequestResponse {
+    fun writeOffer(sendAuth: Boolean = false): RequestResponse {
         val uFrag = secureRandom.nextLong().toString(36).replace("-", "")
         val uPass = (BigInteger(130, secureRandom).toString(32)).replace("-", "")
         val certificate = CryptoUtils.generateCert("RootEncoder", crypto)
@@ -176,15 +181,37 @@ class CommandsManager {
         val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
-            if (!token.isNullOrEmpty()) put("Authorization", "Bearer $token")
+            if (!token.isNullOrEmpty() && sendAuth) put("Authorization", "Bearer $token")
         }
         val answer = Requests.makeRequest(
             uri, "POST", headers, body, timeout, tlsEnabled, certificates
         )
+        if (answer.statusCode !in 200..299) return answer
         remoteSdpInfo = SdpParser.parseBodyAnswer(answer.body)
         tieBreak = secureRandom.nextBytes(8)
+        sessionUrl = answer.headers.entries.firstOrNull { it.key.equals("location", true) }?.value
         Log.i(TAG, "remote info: $remoteSdpInfo")
+        if (sendAuth) shouldSendAuth = true
         return answer
+    }
+
+    fun writeDelete(): RequestResponse {
+        val uri = sessionUrl?.let {
+            if (it.startsWith("http", true)) it
+            else "${if (tlsEnabled) "https" else "http"}://$host:$port/${it.removePrefix("/")}"
+        } ?: "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
+        val headers = mutableMapOf<String, String>().apply {
+            if (!token.isNullOrEmpty() && shouldSendAuth) put("Authorization", "Bearer $token")
+        }
+        return Requests.makeRequest(
+            uri,
+            "DELETE",
+            headers,
+            null,
+            timeout,
+            tlsEnabled,
+            certificates
+        )
     }
 
     private suspend fun getStunCandidates(

@@ -229,8 +229,30 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     val localCandidates = commandsManager.gatheringCandidates(socketType, socketTimeout, GatheringMode.LOCAL)
                     Log.i(TAG, "found ${localCandidates.size} candidates")
                     val offerResponse = commandsManager.writeOffer()
-                    Log.i(TAG, offerResponse.body)
-
+                    Log.i(TAG, offerResponse.toString())
+                    if (offerResponse.statusCode !in 200..299) {
+                        val needAuth = offerResponse.statusCode in 400..499
+                        if (needAuth && commandsManager.token != null) {
+                            val offerResponseAuth = commandsManager.writeOffer(sendAuth = true)
+                            Log.i(TAG, offerResponseAuth.toString())
+                            if (offerResponseAuth.statusCode !in 200..299) {
+                                onMainThread {
+                                    connectChecker.onConnectionFailed("Error configure stream, offer failed: ${offerResponseAuth.statusCode}")
+                                }
+                                return@launch
+                            } else {
+                                onMainThread { connectChecker.onAuthSuccess() }
+                            }
+                        } else if (needAuth) {
+                            onMainThread { connectChecker.onAuthError() }
+                            return@launch
+                        } else {
+                            onMainThread {
+                                connectChecker.onConnectionFailed("Error configure stream, offer failed: ${offerResponse.statusCode}")
+                            }
+                            return@launch
+                        }
+                    }
 
                     val localFrag = commandsManager.localSdpInfo?.uFrag ?: return@launch
                     val remoteFrag = commandsManager.remoteSdpInfo?.uFrag ?: return@launch
@@ -389,7 +411,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
         dtlsConnection?.close()
         dtlsConnection = null
         val error = runCatching {
-            //TODO write delete command
+            withTimeoutOrNull(100.milliseconds) {
+                commandsManager.writeDelete()
+            }
             Log.i(TAG, "write delete success")
         }.exceptionOrNull()
         if (error != null) {
@@ -493,6 +517,5 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     fun resetBytesSend() {
         whipSender.resetBytesSend()
     }
-
 
 }
