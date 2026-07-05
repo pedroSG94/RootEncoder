@@ -68,11 +68,11 @@ object AuthUtil {
     return "?authmod=$authMod&user=$user&nonce=$nonce&cnonce=$cNonce&nc=$ncHex&response=$hash3"
   }
 
-  fun getSalt(description: String): String = findDescriptionValue("salt=", description)
+  fun getSalt(description: String): String = findDescriptionValue("salt", description)
 
-  fun getChallenge(description: String): String = findDescriptionValue("challenge=", description)
+  fun getChallenge(description: String): String = findDescriptionValue("challenge", description)
 
-  fun getOpaque(description: String): String = findDescriptionValue("opaque=", description)
+  fun getOpaque(description: String): String = findDescriptionValue("opaque", description)
 
   @OptIn(ExperimentalEncodingApi::class)
   fun stringToMd5Base64(s: String): String {
@@ -81,21 +81,23 @@ object AuthUtil {
       md.update(s.toByteArray())
       val md5hash = md.digest()
       return Base64.encode(md5hash)
-    } catch (ignore: Exception) { }
+    } catch (_: Exception) { }
     return ""
   }
 
   /**
    * Limelight auth utils
    */
-  fun getNonce(description: String): String = findDescriptionValue("nonce=", description)
+  fun getNonce(description: String): String = findDescriptionValue("nonce", description)
 
-  private fun findDescriptionValue(value: String, description: String): String {
+  private fun findDescriptionValue(keyToFind: String, description: String): String {
     val data = description.split("&").toTypedArray()
     for (s in data) {
-      if (s.contains(value)) {
-        return s.substring(value.length)
-      }
+      val param = s.split("=", limit = 2)
+      if (param.size < 2) continue
+      val key = param[0]
+      val value = param[1]
+      if (key.contains(keyToFind, ignoreCase = true)) return value
     }
     return ""
   }

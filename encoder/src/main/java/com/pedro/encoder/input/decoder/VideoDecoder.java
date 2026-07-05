@@ -101,6 +101,7 @@ public class VideoDecoder extends BaseDecoder {
   public void resumeRender() {
     synchronized (sync) {
       pause.set(false);
+      semaphore.release();
     }
   }
 }

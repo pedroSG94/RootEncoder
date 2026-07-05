@@ -225,7 +225,7 @@ class FilterMenu(private val context: Context) {
           BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
         )
         imageObjectFilterRender.setScale(50f, 50f)
-        imageObjectFilterRender.setPosition(TranslateTo.RIGHT)
+        imageObjectFilterRender.setPosition(TranslateTo.CENTER)
         spriteGestureController.setBaseObjectFilterRender(imageObjectFilterRender) //Optional
         spriteGestureController.setPreventMoveOutside(false) //Optional
         return true

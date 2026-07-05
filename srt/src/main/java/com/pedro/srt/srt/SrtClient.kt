@@ -105,7 +105,6 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     private set
   var packetsLost = 0
     private set
-  private var latency = 120 //in millis
   var socketType = SocketType.JAVA
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
@@ -128,7 +127,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
   }
 
   fun setLatency(latency: Int) {
-    this.latency = latency
+    commandsManager.latency = latency
   }
 
   fun setDelay(millis: Long) {
@@ -211,8 +210,8 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
         val host = urlParser.host
         val port = urlParser.port ?: 8888
-        val path = urlParser.getQuery("streamid") ?: urlParser.getFullPath()
-        latency = urlParser.getQuery("latency")?.toIntOrNull() ?: latency
+        val path = urlParser.getQuery("streamid") ?: urlParser.path
+        commandsManager.latency = urlParser.getQuery("latency")?.toIntOrNull() ?: commandsManager.latency
         val passphrase = urlParser.getQuery("passphrase") ?: ""
         if (passphrase.isNotEmpty() && passphrase.length in 10..79) {
           val encryptionType = when (urlParser.getQuery("pbkeylen")?.toIntOrNull()) {
@@ -247,8 +246,8 @@ class SrtClient(private val connectChecker: ConnectChecker) {
               flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
                   ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
                   ExtensionContentFlag.PERIODICNAK.value or ExtensionContentFlag.REXMITFLG.value,
-              receiverDelay = latency,
-              senderDelay = latency,
+              receiverDelay = commandsManager.latency,
+              senderDelay = commandsManager.latency,
               path = path,
               encryptInfo = commandsManager.getEncryptInfo()
             )))

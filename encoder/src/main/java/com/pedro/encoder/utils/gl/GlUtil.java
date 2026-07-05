@@ -81,7 +81,7 @@ public class GlUtil {
   public static void createTextures(int quantity, int[] texturesId, int offset, int filter, boolean isExternal) {
     GLES20.glGenTextures(quantity, texturesId, offset);
     final int type = isExternal ? GLES11Ext.GL_TEXTURE_EXTERNAL_OES : GLES20.GL_TEXTURE_2D;
-    for (int i = offset; i < quantity; i++) {
+    for (int i = offset; i < offset + quantity; i++) {
       GLES20.glActiveTexture(GLES20.GL_TEXTURE0 + i);
       GLES20.glBindTexture(type, texturesId[i]);
       GLES20.glTexParameterf(type, GLES20.GL_TEXTURE_MIN_FILTER, filter);
@@ -156,9 +156,16 @@ public class GlUtil {
     return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true);
   }
 
+  private static int maxVertexAttribs = -1;
+
   public static void disableResources(int... vertex) {
+    if (maxVertexAttribs < 0) {
+      int[] value = new int[1];
+      GLES20.glGetIntegerv(GLES20.GL_MAX_VERTEX_ATTRIBS, value, 0);
+      maxVertexAttribs = value[0];
+    }
     for (int v: vertex) {
-      if (v >= 0 && v < GLES20.GL_MAX_VERTEX_ATTRIBS) GLES20.glDisableVertexAttribArray(v);
+      if (v >= 0 && v < maxVertexAttribs) GLES20.glDisableVertexAttribArray(v);
     }
     GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);

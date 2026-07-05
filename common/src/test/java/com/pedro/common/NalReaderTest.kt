@@ -45,4 +45,22 @@ class NalReaderTest {
       assertEquals(10_000, it.capacity())
     }
   }
+
+  @Test
+  fun testReturnEmptyWhenEveryNalIsDiscarded() {
+    val sei = header.plus(0x06).plus(ByteArray(10) { 0x0f })
+    val aud = header.plus(0x09).plus(ByteArray(10) { 0x0f })
+    val buffer = ByteBuffer.wrap(sei.plus(aud))
+    val nals = NalReader.extractNals(buffer, VideoCodec.H264, true)
+    assertEquals(0, nals.size)
+  }
+
+  @Test
+  fun testFallbackToWholeBufferWhenNoStartCodeFound() {
+    val raw = ByteArray(10_000) { 0x0f }
+    val buffer = ByteBuffer.wrap(raw)
+    val nals = NalReader.extractNals(buffer, VideoCodec.H264, true)
+    assertEquals(1, nals.size)
+    assertEquals(10_000, nals[0].capacity())
+  }
 }

@@ -73,7 +73,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
   private SurfaceTexture surfaceTexture, surfaceTexture2;
   private Surface surface, surface2;
   private final Handler mainHandler;
-  private boolean running = false;
+  private volatile boolean running = false;
   private ExecutorService thread = null;
   private boolean hardwareMode = true;
   private final AndroidViewSprite sprite;
@@ -251,6 +251,12 @@ public class AndroidViewFilterRender extends BaseFilterRender {
     thread = Executors.newSingleThreadExecutor();
     thread.execute(() -> {
       while (running) {
+        Surface surface = this.surface;
+        Surface surface2 = this.surface2;
+        if (surface == null || this.surface2 == null) {
+          sleep();
+          continue;
+        }
         final Status status = renderingStatus;
         if (status == Status.RENDER1 || status == Status.RENDER2) {
           final Canvas canvas;
@@ -261,6 +267,7 @@ public class AndroidViewFilterRender extends BaseFilterRender {
               canvas = status == Status.RENDER1 ? surface.lockCanvas(null) : surface2.lockCanvas(null);
             }
           } catch (IllegalStateException e) {
+            sleep();
             continue;
           }
 
@@ -299,14 +306,16 @@ public class AndroidViewFilterRender extends BaseFilterRender {
         }
         else {
           // not rendering, no need to try again immediately
-          try {
-            Thread.sleep(10);
-          } catch (InterruptedException e) {
-
-          }
+          sleep();
         }
       }
     });
+  }
+
+  private void sleep() {
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException ignored) {}
   }
 
   private void stopRender() {

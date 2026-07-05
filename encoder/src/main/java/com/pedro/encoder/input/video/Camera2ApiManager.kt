@@ -276,7 +276,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                 val streamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
                 val list = mutableListOf<Range<Int>>()
                 val fd = streamConfigurationMap?.getOutputMinFrameDuration(SurfaceTexture::class.java, size) ?: return emptyList()
-                val maxFPS = (10f / "0.$fd".toFloat()).toInt()
+                val maxFPS = (1e9 / fd).toInt()
                 for (r in fpsSupported) { if (r.upper <= maxFPS) { list.add(r) } }
                 list
             } else listOf(*fpsSupported)

@@ -58,18 +58,18 @@ class OpusPacket: BasePacket() {
     header[3] = (codec shr 8).toByte()
     header[4] = codec.toByte()
 
-    val buffer: ByteArray
     if (!configSend) {
       header[0] = ((AudioFormat.EX_HEADER.value shl 4) or (AudioFourCCPacketType.SEQUENCE_START.value and 0x0F)).toByte()
       val config = OpusAudioSpecificConfig(sampleRate, if (isStereo) 2 else 1)
-      buffer = ByteArray(config.size + header.size)
+      val buffer = ByteArray(config.size + header.size)
       config.write(buffer, header.size)
       configSend = true
-    } else {
-      header[0] = ((AudioFormat.EX_HEADER.value shl 4) or (AudioFourCCPacketType.CODED_FRAMES.value and 0x0F)).toByte()
-      buffer = ByteArray(fixedBuffer.remaining() + header.size)
-      fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
+      System.arraycopy(header, 0, buffer, 0, header.size)
+      callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
     }
+    header[0] = ((AudioFormat.EX_HEADER.value shl 4) or (AudioFourCCPacketType.CODED_FRAMES.value and 0x0F)).toByte()
+    val buffer = ByteArray(fixedBuffer.remaining() + header.size)
+    fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     System.arraycopy(header, 0, buffer, 0, header.size)
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }

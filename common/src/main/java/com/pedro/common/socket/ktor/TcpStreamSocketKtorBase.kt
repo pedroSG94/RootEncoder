@@ -31,6 +31,7 @@ abstract class TcpStreamSocketKtorBase(
     abstract suspend fun onConnectSocket(timeout: Long, error: (Throwable) -> Unit): ReadWriteSocket
 
     override suspend fun connect() {
+        selectorManager = SelectorManager(Dispatchers.IO)
         val socket = onConnectSocket(timeout) {
             runBlocking { close() }
         }
@@ -83,7 +84,7 @@ abstract class TcpStreamSocketKtorBase(
 
     override suspend fun readLine(): String? = input?.readLine()
 
-    override fun isConnected(): Boolean = socket?.isClosed != true
+    override fun isConnected(): Boolean = socket?.let { !it.isClosed } ?: false
 
     override fun isReachable(): Boolean = address?.isReachable(timeout.toInt()) ?: false
 }

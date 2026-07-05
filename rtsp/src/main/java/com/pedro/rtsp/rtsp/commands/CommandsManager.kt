@@ -29,7 +29,6 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createG711Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
-import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
@@ -58,7 +57,7 @@ open class CommandsManager {
     private set
   private var cSeq = 0
   private var sessionId: String? = null
-  private var timeStamp: ULong = 0uL
+  private var timeStamp = 0L
   var sampleRate = 32000
   var isStereo = true
   var protocol: Protocol = Protocol.TCP
@@ -261,14 +260,16 @@ open class CommandsManager {
   }
 
   @Throws(IOException::class)
-  suspend fun getResponse(socket: TcpStreamSocket, method: Method = Method.UNKNOWN): Command {
+  suspend fun getResponse(socket: TcpStreamSocket, method: Method = Method.UNKNOWN, track: Int? = null): Command {
     var response = ""
     var line: String?
     while (socket.readLine().also { line = it } != null) {
       response += "${line ?: ""}\n"
-      //end of response
       if ((line?.length ?: 0) < 3) break
     }
+    val contentLength = Regex("Content-Length:\\s*(\\d+)", RegexOption.IGNORE_CASE)
+      .find(response)?.groupValues?.getOrNull(1)?.toIntOrNull() ?: 0
+    if (contentLength > 0) response += socket.read(contentLength).decodeToString()
     Log.i(TAG, response)
     return if (method == Method.UNKNOWN) {
       commandParser.parseCommand(response)
@@ -276,7 +277,8 @@ open class CommandsManager {
       val command = commandParser.parseResponse(method, response)
       sessionId = commandParser.getSessionId(command)
       if (command.method == Method.SETUP && protocol == Protocol.UDP) {
-        commandParser.loadServerPorts(command, protocol, audioClientPorts, videoClientPorts,
+        val isAudio = track == rtpTracks.trackAudio
+        commandParser.loadServerPorts(command, protocol, isAudio, audioClientPorts, videoClientPorts,
           audioServerPorts, videoServerPorts)
       }
       command
@@ -304,10 +306,7 @@ open class CommandsManager {
     return ""
   }
 
-  fun updateNtpTimestamp() {
-    val uptime = TimeUtils.getCurrentTimeMillis()
-    val seconds = (uptime / 1000).toULong()
-    val fraction = ((uptime % 1000) * (1L shl 32) / 1000).toULong()
-    timeStamp = (seconds shl 32) or fraction
+  fun updateTimestamp() {
+    timeStamp = TimeUtils.getCurrentTimeNano()
   }
 }

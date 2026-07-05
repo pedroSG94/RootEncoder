@@ -39,7 +39,6 @@ public class TextureLoader {
       if (bitmaps[i] != null && !bitmaps[i].isRecycled()) {
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId[i]);
         GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmaps[i], 0);
-        bitmaps[i].recycle();
       }
       bitmaps[i] = null;
     }

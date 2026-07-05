@@ -16,11 +16,9 @@
 
 package com.pedro.srt.mpeg2ts
 
-import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
 import kotlin.experimental.and
-import kotlin.math.pow
 
 /**
  * Created by pedro on 28/8/23.
@@ -62,10 +60,7 @@ class Pes(
   }
 
   private fun addTimestamp(buffer: ByteBuffer, timestamp: Long, fourBits: Byte) {
-    val pts =
-      (Constants.SYSTEM_CLOCK_FREQ * timestamp / 1000000 /* µs -> s */ / 300) % 2.toDouble()
-        .pow(33)
-        .toLong()
+    val pts = (timestamp * 9 / 100) % (1L shl 33)
 
     buffer.put((((fourBits and 0xF).toInt() shl 4) or ((pts shr 29) and 0xE).toInt() or 1).toByte())
     buffer.putShort((((pts shr 14) and 0xFFFE) or 1).toShort())

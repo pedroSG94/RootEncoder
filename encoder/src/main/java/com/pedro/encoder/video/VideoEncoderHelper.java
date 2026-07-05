@@ -21,6 +21,7 @@ package com.pedro.encoder.video;
 import android.media.MediaCodec;
 import android.util.Pair;
 
+import com.pedro.common.ExtensionsKt;
 import com.pedro.common.av1.Av1Parser;
 import com.pedro.common.av1.Obu;
 import com.pedro.common.av1.ObuType;
@@ -123,7 +124,7 @@ public class VideoEncoderHelper {
    */
   public static ByteBuffer extractObuSequence(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
     //we can only extract info from keyframes
-    if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_KEY_FRAME) return null;
+    if (!ExtensionsKt.isKeyframe(bufferInfo)) return null;
     byte[] av1Data = new byte[buffer.remaining()];
     buffer.get(av1Data);
     Av1Parser av1Parser = new Av1Parser();

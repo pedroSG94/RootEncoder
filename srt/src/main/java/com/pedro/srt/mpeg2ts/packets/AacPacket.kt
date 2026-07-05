@@ -54,7 +54,7 @@ class AacPacket(
     adts.get(payload, 0, headerSize)
     fixedBuffer.get(payload, headerSize, length)
 
-    val pes = Pes(psiManager.getAudioPid().toInt(), false, PesType.AUDIO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
+    val pes = Pes(psiManager.getAudioPid().toInt(), true, PesType.AUDIO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize).map { buffer ->
         MpegTsPacket(buffer, MpegType.AUDIO, PacketPosition.SINGLE, isKey = false)
     }

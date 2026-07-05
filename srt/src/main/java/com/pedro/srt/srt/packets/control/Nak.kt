@@ -77,7 +77,7 @@ class Nak: ControlPacket(ControlType.NAK) {
   }
 
   fun getNakRanges(): List<Pair<Int, Int>> {
-    return cifLostList.chunked(2).map { ranges ->
+    return cifLostList.chunked(2).filter { it.size == 2 }.map { ranges ->
       (ranges[0] and 0x7FFFFFFF) to (ranges[1] and 0x7FFFFFFF)
     }
   }
