@@ -53,7 +53,6 @@ import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
-import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
 import com.pedro.library.util.FpsListener;
@@ -93,7 +92,7 @@ public abstract class Camera1Base {
   private boolean streaming = false;
   protected boolean audioInitialized = false;
   private boolean onPreview = false;
-  protected BaseRecordController recordController;
+  protected RecordController recordController;
   private int previewWidth, previewHeight;
   private final FpsListener fpsListener = new FpsListener();
 
@@ -388,12 +387,9 @@ public abstract class Camera1Base {
       throws IOException {
     RecordController.RecordTracks tracks = audioInitialized ?
             RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.setRequestKeyFrame(this::requestKeyFrame);
     recordController.startRecord(path, listener, tracks);
-    if (!streaming) {
-      startEncoders();
-    } else if (videoEncoder.isRunning()) {
-      requestKeyFrame();
-    }
+    if (!streaming) startEncoders();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -412,12 +408,9 @@ public abstract class Camera1Base {
       @Nullable RecordController.Listener listener) throws IOException {
     RecordController.RecordTracks tracks = audioInitialized ?
             RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.setRequestKeyFrame(this::requestKeyFrame);
     recordController.startRecord(fd, listener, tracks);
-    if (!streaming) {
-      startEncoders();
-    } else if (videoEncoder.isRunning()) {
-      requestKeyFrame();
-    }
+    if (!streaming) startEncoders();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)
@@ -664,11 +657,16 @@ public abstract class Camera1Base {
     return cameraManager.getMinZoom();
   }
 
+  public void forceBt709Color(boolean enabled) {
+    videoEncoder.forceBt709Color(enabled);
+  }
+
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startStreamAndRecord(String url, String path, RecordController.Listener listener) throws IOException {
     startStream(url);
     RecordController.RecordTracks tracks = audioInitialized ?
             RecordController.RecordTracks.ALL : RecordController.RecordTracks.VIDEO;
+    recordController.setRequestKeyFrame(this::requestKeyFrame);
     recordController.startRecord(path, listener, tracks);
   }
 
@@ -956,8 +954,11 @@ public abstract class Camera1Base {
 
   protected abstract void getVideoDataImp(ByteBuffer videoBuffer, MediaCodec.BufferInfo info);
 
-  public void setRecordController(BaseRecordController recordController) {
-    if (!isRecording()) this.recordController = recordController;
+  public void setRecordController(RecordController recordController) {
+    if (!isRecording()) {
+      recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec());
+      this.recordController = recordController;
+    }
   }
 
   private final GetCameraData getCameraData = frame -> {

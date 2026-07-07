@@ -30,7 +30,7 @@ class SrtStreamClient(
 ): StreamBaseClient() {
 
   /**
-   * Set latency in micro. By default 120_000.
+   * Set latency in millis. By default 120.
    */
   fun setLatency(latency: Int) {
     srtClient.setLatency(latency)
@@ -52,7 +52,6 @@ class SrtStreamClient(
   }
 
   override fun setAuthorization(user: String?, password: String?) {
-    srtClient.setAuthorization(user, password)
   }
 
   override fun setReTries(reTries: Int) {
@@ -146,6 +145,13 @@ class SrtStreamClient(
    */
   override fun setSocketType(type: SocketType) {
     srtClient.socketType = type
+  }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    srtClient.socketTimeout = timeout
   }
 
   /**

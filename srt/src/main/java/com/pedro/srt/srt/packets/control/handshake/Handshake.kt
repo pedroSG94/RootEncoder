@@ -18,6 +18,7 @@ package com.pedro.srt.srt.packets.control.handshake
 
 import com.pedro.common.readUInt16
 import com.pedro.common.readUInt32
+import com.pedro.common.readUInt32LittleEndian
 import com.pedro.common.writeUInt16
 import com.pedro.common.writeUInt32
 import com.pedro.srt.srt.packets.ControlPacket
@@ -131,15 +132,13 @@ data class Handshake(
     handshakeType = HandshakeType.from(input.readUInt32())
     srtSocketId = input.readUInt32()
     synCookie = input.readUInt32()
-    readAddress(input)
+    ipAddress = readAddress(input)
   }
 
   private fun readAddress(input: InputStream): String {
-    val num1 = input.readUInt32()
-    val num2 = input.readUInt32()
-    val num3 = input.readUInt32()
-    val num4 = input.readUInt32()
-    return "$num1.$num2.$num3.$num4"
+    val ip = input.readUInt32LittleEndian()
+    repeat(3) { input.readUInt32LittleEndian() }
+    return "${(ip ushr 24) and 0xFF}.${(ip ushr 16) and 0xFF}.${(ip ushr 8) and 0xFF}.${ip and 0xFF}"
   }
 
   fun isErrorType(): Boolean {

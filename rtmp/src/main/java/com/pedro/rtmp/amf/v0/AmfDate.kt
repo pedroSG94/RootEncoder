@@ -54,6 +54,6 @@ class AmfDate(var date: Double = TimeUtils.getCurrentTimeMillis().toDouble()): A
   override fun getSize(): Int = 10
 
   override fun toString(): String {
-    return "AmfUnsupported"
+    return "AmfDate value: $date"
   }
 }

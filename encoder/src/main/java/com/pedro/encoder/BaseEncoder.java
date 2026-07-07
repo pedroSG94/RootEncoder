@@ -49,12 +49,12 @@ public abstract class BaseEncoder implements EncoderCallback {
   private ExecutorService executorService;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
   protected MediaCodec codec;
-  protected long presentTimeUs;
+  protected volatile long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
   protected CodecUtil.CodecType codecType = CodecUtil.CodecType.FIRST_COMPATIBLE_FOUND;
   private MediaCodec.Callback callback;
-  private long oldTimeStamp = 0L;
+  private volatile long oldTimeStamp = 0L;
   protected boolean shouldReset = true;
   protected boolean prepared = false;
   private Handler handler;
@@ -107,6 +107,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   private void initCodec() {
+    running = true;
     if (!type.equals(CodecUtil.G711_MIME)) codec.start();
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || type.equals(CodecUtil.G711_MIME)) {
       executorService = Executors.newSingleThreadExecutor();
@@ -121,7 +122,6 @@ public abstract class BaseEncoder implements EncoderCallback {
         }
       });
     }
-    running = true;
   }
 
   public abstract boolean reset();
@@ -130,12 +130,10 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   protected abstract void stopImp();
 
-  protected void fixTimeStamp(MediaCodec.BufferInfo info) {
-    if (oldTimeStamp > info.presentationTimeUs) {
-      info.presentationTimeUs = oldTimeStamp;
-    } else {
-      oldTimeStamp = info.presentationTimeUs;
-    }
+  protected boolean checkValidTimeStamp(MediaCodec.BufferInfo info) {
+    boolean valid = oldTimeStamp <= info.presentationTimeUs;
+    oldTimeStamp = info.presentationTimeUs;
+    return valid;
   }
 
   private void reloadCodec(IllegalStateException e) {
@@ -239,7 +237,7 @@ public abstract class BaseEncoder implements EncoderCallback {
       Frame frame = getInputFrame();
       while (frame == null) frame = getInputFrame();
       byteBuffer.clear();
-      int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()) - frame.getOffset());
+      int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()));
       byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
       long pts = calculatePts(frame, presentTimeUs);
       mediaCodec.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
@@ -250,7 +248,7 @@ public abstract class BaseEncoder implements EncoderCallback {
     }
   }
 
-  protected abstract void checkBuffer(@NonNull ByteBuffer byteBuffer,
+  protected abstract boolean checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo);
 
   protected abstract void sendBuffer(@NonNull ByteBuffer byteBuffer,
@@ -258,8 +256,7 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   private void processOutput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
       int outBufferIndex, @NonNull MediaCodec.BufferInfo bufferInfo) throws IllegalStateException {
-    checkBuffer(byteBuffer, bufferInfo);
-    sendBuffer(byteBuffer, bufferInfo);
+    if (checkBuffer(byteBuffer, bufferInfo)) sendBuffer(byteBuffer, bufferInfo);
     mediaCodec.releaseOutputBuffer(outBufferIndex, false);
   }
 

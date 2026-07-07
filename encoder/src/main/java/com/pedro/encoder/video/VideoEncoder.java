@@ -30,19 +30,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.TimeUtils;
-import com.pedro.common.av1.Av1Parser;
-import com.pedro.common.av1.Obu;
-import com.pedro.common.av1.ObuType;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
+import com.pedro.encoder.utils.SpsColorPatcher;
 import com.pedro.encoder.utils.yuv.YUVUtil;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,7 +50,7 @@ import java.util.List;
 public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   private final GetVideoData getVideoData;
-  private boolean spsPpsSetted = false;
+  private volatile boolean spsPpsSetted = false;
   private boolean forceKey = false;
   //video data necessary to send after requestKeyframe.
   private ByteBuffer oldSps, oldPps, oldVps;
@@ -73,6 +70,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
   private int profile = -1;
   private int level = -1;
+  private final SpsColorPatcher spsColorPatcher = new SpsColorPatcher();
+  private boolean forceBt709Color = false;
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -168,6 +167,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         // MediaFormat.KEY_LEVEL, API > 23
         videoFormat.setInteger("level", this.level);
       }
+      // Set BT.709 color metadata so the encoder embeds correct VUI in the SPS NAL unit.
+      // Without this, devices default to smpte170m/bt470bg which ffprobe/players read incorrectly.
+      // KEY_COLOR_STANDARD / KEY_COLOR_TRANSFER / KEY_COLOR_RANGE added in API 24.
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && forceBt709Color) {
+        videoFormat.setInteger(MediaFormat.KEY_COLOR_STANDARD, MediaFormat.COLOR_STANDARD_BT709);  // primaries + matrix = BT.709
+        videoFormat.setInteger(MediaFormat.KEY_COLOR_TRANSFER, MediaFormat.COLOR_TRANSFER_SDR_VIDEO); // transfer = BT.709 (gamma)
+        videoFormat.setInteger(MediaFormat.KEY_COLOR_RANGE, MediaFormat.COLOR_RANGE_LIMITED);        // TV range (16-235)
+      }
       setCallback();
       codec.configure(videoFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;
@@ -255,7 +262,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   @RequiresApi(api = Build.VERSION_CODES.KITKAT)
   public void requestKeyframe() {
     if (isRunning()) {
-      if (spsPpsSetted) {
+      if (spsPpsSetted && oldSps != null) {
         Bundle bundle = new Bundle();
         bundle.putInt(MediaCodec.PARAMETER_KEY_REQUEST_SYNC_FRAME, 0);
         try {
@@ -266,6 +273,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         }
       } else {
         //You need wait until encoder generate first frame.
+        spsPpsSetted = false;
         forceKey = true;
       }
     }
@@ -311,6 +319,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     fpsLimiter.setFPS(fps);
   }
 
+  public void forceBt709Color(boolean enabled) {
+    if (prepared) throw new IllegalStateException("Encoder already prepared, this must be called before prepareVideo");
+    this.forceBt709Color = enabled;
+  }
+
   @Override
   public void inputYUVData(@NonNull Frame frame) {
     if (running && !queue.offer(frame)) {
@@ -324,15 +337,16 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       //we need an av1ConfigurationRecord with sequenceObu to work
       if (bufferInfo != null && bufferInfo.remaining() > 4) {
-        getVideoData.onVideoInfo(bufferInfo, null, null);
+        oldSps = bufferInfo.duplicate();
+        getVideoData.onVideoInfo(oldSps, null, null);
         return true;
       }
       //H265
     } else if (type.equals(CodecUtil.H265_MIME)) {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       if (bufferInfo != null) {
-        List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(bufferInfo);
-        oldSps = byteBufferList.get(1);
+        List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate());
+        oldSps = forceBt709Color ? spsColorPatcher.patchSpsNalColorToBt709(byteBufferList.get(1), true) : byteBufferList.get(1);
         oldPps = byteBufferList.get(2);
         oldVps = byteBufferList.get(0);
         getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
@@ -340,11 +354,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
       //H264
     } else {
-      oldSps = mediaFormat.getByteBuffer("csd-0");
-      oldPps = mediaFormat.getByteBuffer("csd-1");
-      oldVps = null;
-      getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
-      return true;
+      ByteBuffer sps = mediaFormat.getByteBuffer("csd-0");
+      ByteBuffer pps = mediaFormat.getByteBuffer("csd-1");
+      if (sps != null && pps != null) {
+        oldSps = forceBt709Color ? spsColorPatcher.patchSpsNalColorToBt709(sps.duplicate(), false) : sps.duplicate();
+        oldPps = pps.duplicate();
+        oldVps = null;
+        getVideoData.onVideoInfo(oldSps, oldPps, oldVps);
+        return true;
+      }
     }
     return false;
   }
@@ -387,108 +405,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return null;
   }
 
-  /**
-   * decode sps and pps if the encoder never call to MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
-   */
-  private Pair<ByteBuffer, ByteBuffer> decodeSpsPpsFromBuffer(ByteBuffer outputBuffer, int length) {
-    byte[] csd = new byte[length];
-    outputBuffer.get(csd, 0, length);
-    outputBuffer.rewind();
-    int i = 0;
-    int spsIndex = -1;
-    int ppsIndex = -1;
-    while (i < length - 4) {
-      if (csd[i] == 0 && csd[i + 1] == 0 && csd[i + 2] == 0 && csd[i + 3] == 1) {
-        if (spsIndex == -1) {
-          spsIndex = i;
-        } else {
-          ppsIndex = i;
-          break;
-        }
-      }
-      i++;
-    }
-    if (spsIndex != -1 && ppsIndex != -1) {
-      byte[] sps = new byte[ppsIndex];
-      System.arraycopy(csd, spsIndex, sps, 0, ppsIndex);
-      byte[] pps = new byte[length - ppsIndex];
-      System.arraycopy(csd, ppsIndex, pps, 0, length - ppsIndex);
-      return new Pair<>(ByteBuffer.wrap(sps), ByteBuffer.wrap(pps));
-    }
-    return null;
-  }
-
-  /**
-   * You need find 0 0 0 1 byte sequence that is the initiation of vps, sps and pps
-   * buffers.
-   *
-   * @param csd0byteBuffer get in mediacodec case MediaCodec.INFO_OUTPUT_FORMAT_CHANGED
-   * @return list with vps, sps and pps
-   */
-  private List<ByteBuffer> extractVpsSpsPpsFromH265(ByteBuffer csd0byteBuffer) {
-    List<ByteBuffer> byteBufferList = new ArrayList<>();
-    int vpsPosition = -1;
-    int spsPosition = -1;
-    int ppsPosition = -1;
-    int contBufferInitiation = 0;
-    int length = csd0byteBuffer.remaining();
-    byte[] csdArray = new byte[length];
-    csd0byteBuffer.get(csdArray, 0, length);
-    csd0byteBuffer.rewind();
-    for (int i = 0; i < csdArray.length; i++) {
-      if (contBufferInitiation == 3 && csdArray[i] == 1) {
-        if (vpsPosition == -1) {
-          vpsPosition = i - 3;
-        } else if (spsPosition == -1) {
-          spsPosition = i - 3;
-        } else {
-          ppsPosition = i - 3;
-        }
-      }
-      if (csdArray[i] == 0) {
-        contBufferInitiation++;
-      } else {
-        contBufferInitiation = 0;
-      }
-    }
-    byte[] vps = new byte[spsPosition];
-    byte[] sps = new byte[ppsPosition - spsPosition];
-    byte[] pps = new byte[csdArray.length - ppsPosition];
-    for (int i = 0; i < csdArray.length; i++) {
-      if (i < spsPosition) {
-        vps[i] = csdArray[i];
-      } else if (i < ppsPosition) {
-        sps[i - spsPosition] = csdArray[i];
-      } else {
-        pps[i - ppsPosition] = csdArray[i];
-      }
-    }
-    byteBufferList.add(ByteBuffer.wrap(vps));
-    byteBufferList.add(ByteBuffer.wrap(sps));
-    byteBufferList.add(ByteBuffer.wrap(pps));
-    return byteBufferList;
-  }
-
-  /**
-   *
-   * @param buffer key frame
-   * @return av1 ObuSequence
-   */
-  private ByteBuffer extractObuSequence(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
-    //we can only extract info from keyframes
-    if (bufferInfo.flags != MediaCodec.BUFFER_FLAG_KEY_FRAME) return null;
-    byte[] av1Data = new byte[buffer.remaining()];
-    buffer.get(av1Data);
-    Av1Parser av1Parser = new Av1Parser();
-    List<Obu> obuList = av1Parser.getObus(av1Data);
-    for (Obu obu: obuList) {
-      if (av1Parser.getObuType(obu.getHeader()[0]) == ObuType.SEQUENCE_HEADER) {
-        return ByteBuffer.wrap(obu.getFullData());
-      }
-    }
-    return null;
-  }
-
   @Override
   protected Frame getInputFrame() throws InterruptedException {
     Frame frame = queue.take();
@@ -520,16 +436,14 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   @Override
-  protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
-      @NonNull MediaCodec.BufferInfo bufferInfo) {
+  protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec.BufferInfo bufferInfo) {
     if (forceKey && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
       forceKey = false;
       requestKeyframe();
     }
-    fixTimeStamp(bufferInfo);
     if (!spsPpsSetted && type.equals(CodecUtil.H264_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual sps/pps extraction...");
-      Pair<ByteBuffer, ByteBuffer> buffers = decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
+      Pair<ByteBuffer, ByteBuffer> buffers = VideoEncoderHelper.decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
       if (buffers != null) {
         Log.i(TAG, "manual sps/pps extraction success");
         oldSps = buffers.first;
@@ -542,7 +456,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     } else if (!spsPpsSetted && type.equals(CodecUtil.H265_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...");
-      List<ByteBuffer> byteBufferList = extractVpsSpsPpsFromH265(byteBuffer.duplicate());
+      List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(byteBuffer.duplicate());
       if (byteBufferList.size() == 3) {
         Log.i(TAG, "manual vps/sps/pps extraction success");
         oldSps = byteBufferList.get(1);
@@ -555,8 +469,9 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     } else if (!spsPpsSetted && type.equals(CodecUtil.AV1_MIME)) {
       Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
-      ByteBuffer obuSequence = extractObuSequence(byteBuffer.duplicate(), bufferInfo);
+      ByteBuffer obuSequence = VideoEncoderHelper.extractObuSequence(byteBuffer.duplicate(), bufferInfo);
       if (obuSequence != null) {
+        oldSps = obuSequence;
         getVideoData.onVideoInfo(obuSequence, null, null);
         spsPpsSetted = true;
       } else {
@@ -564,13 +479,21 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       }
     }
     if (timestampMode == TimestampMode.CLOCK) {
-      if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+      if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
+        // Buffer mode: synthesize PTS from wall clock.
         bufferInfo.presentationTimeUs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
+      } else {
+        // Surface mode: EGL timestamp is camera sensor time (nanoseconds from boot ÷ 1000).
+        // It has clean, jitter-free intervals — but it's a huge absolute value that breaks RTMP.
+        // Rebase to relative by subtracting the first frame's PTS → clean intervals, starts at 0.
+        if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
+        bufferInfo.presentationTimeUs -= firstTimestamp;
       }
     } else {
       if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
       bufferInfo.presentationTimeUs -= firstTimestamp;
     }
+    return checkValidTimeStamp(bufferInfo);
   }
 
   @Override

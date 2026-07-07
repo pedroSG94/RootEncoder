@@ -56,22 +56,23 @@ public class PCMUtil {
     return pcmL;
   }
 
-  private static final byte[] pcmBufferStereo = new byte[4096];
-
   /**
    * Experimental method to downgrade pcm with 3 channels or more to stereo.
+   * Keeps the first two channels (16 bits little endian per sample) and drops the rest.
    *
    * @return pcm buffer in stereo (2 channels)
    */
   public static byte[] pcmToStereo(byte[] pcm, int channels) {
+    int frameSize = channels * 2;
+    int frames = pcm.length / frameSize;
+    byte[] pcmBufferStereo = new byte[frames * 4];
     int cont = 0;
-    for (int i = 0; i < pcm.length; i += channels) {
-      byte channel1 = pcm[i];
-      byte channel2 = pcm[i + 1];
-
-      pcmBufferStereo[cont] = channel1;
-      pcmBufferStereo[cont + 1] = channel2;
-      cont += 2;
+    for (int i = 0; i + frameSize <= pcm.length; i += frameSize) {
+      pcmBufferStereo[cont] = pcm[i];
+      pcmBufferStereo[cont + 1] = pcm[i + 1];
+      pcmBufferStereo[cont + 2] = pcm[i + 2];
+      pcmBufferStereo[cont + 3] = pcm[i + 3];
+      cont += 4;
     }
     return pcmBufferStereo;
   }

@@ -19,15 +19,17 @@ package com.pedro.rtsp.rtcp
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.RtpTracks
 import java.io.IOException
 
 /**
  * Created by pedro on 8/11/18.
  */
 class SenderReportUdp(
+  private val rtpTracks: RtpTracks,
   private val videoSocket: UdpStreamSocket?,
   private val audioSocket: UdpStreamSocket?,
-) : BaseSenderReport() {
+) : BaseSenderReport(rtpTracks) {
 
   @Throws(IOException::class)
   override suspend fun setSocket(socket: TcpStreamSocket) {
@@ -37,7 +39,7 @@ class SenderReportUdp(
 
   @Throws(IOException::class)
   override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame) {
-    sendReportUDP(buffer, rtpFrame.isVideoFrame())
+    sendReportUDP(buffer, rtpFrame.isVideoFrame(rtpTracks.trackVideo))
   }
 
   override suspend fun close() {

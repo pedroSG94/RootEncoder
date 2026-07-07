@@ -21,21 +21,17 @@ import com.pedro.rtmp.rtmp.message.RtmpHeader
 /**
  * Created by pedro on 22/04/21.
  */
-class CommandSessionHistory(private val commandHistory: HashMap<Int, String> = HashMap(),
-    private val headerHistory: MutableList<RtmpHeader> = ArrayList()) {
+class CommandSessionHistory {
+
+  private val commandHistory = hashMapOf<Int, String>()
+  private val headerHistory = hashMapOf<Int, RtmpHeader>()
 
   fun setReadHeader(header: RtmpHeader) {
-    headerHistory.add(header)
+    headerHistory[header.basicHeader.chunkStreamId] = header
   }
 
   fun getLastReadHeader(chunkStreamId: Int): RtmpHeader? {
-    val reverseList = headerHistory
-    reverseList.reversed().forEach {
-      if (it.basicHeader.chunkStreamId == chunkStreamId) {
-        return it
-      }
-    }
-    return null
+    return headerHistory[chunkStreamId]
   }
 
   fun getName(id: Int): String? {

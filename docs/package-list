@@ -6,6 +6,7 @@ com.pedro.common
 com.pedro.common.av1
 com.pedro.common.base
 com.pedro.common.frame
+com.pedro.common.nal
 com.pedro.common.socket.base
 com.pedro.common.socket.java
 com.pedro.common.socket.ktor
@@ -43,6 +44,7 @@ com.pedro.library.udp
 com.pedro.library.util
 com.pedro.library.util.streamclient
 com.pedro.library.view
+com.pedro.library.view.preview
 module:rtmp
 com.pedro.rtmp.amf
 com.pedro.rtmp.amf.v0

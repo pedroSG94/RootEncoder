@@ -63,8 +63,7 @@ class UdpSender(
   var socket: UdpSocket? = null
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
-    Pid.reset()
-    service.clearTracks()
+    service.clear()
     if (audioEnabled) service.addTrack(commandManager.audioCodec.toCodec())
     if (videoEnabled) service.addTrack(commandManager.videoCodec.toCodec())
     service.generatePmt()
@@ -95,7 +94,7 @@ class UdpSender(
     setTrackConfig(!commandManager.videoDisabled, !commandManager.audioDisabled)
     //send config
     val psiList = mutableListOf<Psi>(psiManager.getPat())
-    psiManager.getPmt()?.let { psiList.add(0, it) }
+    psiManager.getPmt()?.let { psiList.add(it) }
     psiList.add(psiManager.getSdt())
     val psiPacketsConfig = mpegTsPacketizer.write(psiList).chunkPackets(chunkSize).map { b ->
       MpegTsPacket(b, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
@@ -109,8 +108,8 @@ class UdpSender(
           val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
           val bytesPsi = sendPackets(psiPackets, MpegType.PSI)
           val bytes = sendPackets(mpegTsPackets, mpegTsPackets[0].type)
-          bytesSend += bytesPsi + bytes
-          bytesSendPerSecond += bytesPsi + bytes
+          bytesSend.addAndGet(bytesPsi + bytes)
+          bytesSendPerSecond.addAndGet(bytesPsi + bytes)
         }
       }.exceptionOrNull()
       if (error != null) {
@@ -140,8 +139,8 @@ class UdpSender(
       size += commandManager.writeData(mpegTsPacket, socket)
       bytesSend += size
     }
-    if (type == MpegType.VIDEO) videoFramesSent++
-    else if (type == MpegType.AUDIO) audioFramesSent++
+    if (type == MpegType.VIDEO) videoFramesSent.incrementAndGet()
+    else if (type == MpegType.AUDIO) audioFramesSent.incrementAndGet()
     if (isEnableLogs) {
       Log.i(TAG, "wrote ${type.name} packet, size $bytesSend")
     }

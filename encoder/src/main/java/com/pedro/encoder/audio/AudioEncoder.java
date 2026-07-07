@@ -150,7 +150,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     } else {
       if (tsBuffer == 0) tsBuffer = clockPts;
       int channels = isStereo ? 2 : 1;
-      tsBuffer += (long)((double)frame.getSize() / (sampleRate * channels * 2L)) * 1_000_000L;
+      tsBuffer += (long)((double)frame.getSize() / (sampleRate * channels * 2L) * 1_000_000L);
       if (clockPts - tsBuffer > 500_000) tsBuffer = clockPts;
       pts = tsBuffer;
     }
@@ -158,9 +158,9 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   }
 
   @Override
-  protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
+  protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-    fixTimeStamp(bufferInfo);
+    return checkValidTimeStamp(bufferInfo);
   }
 
   @Override

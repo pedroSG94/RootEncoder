@@ -49,43 +49,38 @@ open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> =
     return null
   }
 
-  open fun setProperty(name: String, data: String) {
-    val key = AmfString(name)
-    val value = AmfString(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
+  open fun setProperty(name: String, data: String) = putProperty(name, AmfString(data))
+
+  open fun setProperty(name: String, data: Boolean) = putProperty(name, AmfBoolean(data))
+
+  open fun setProperty(name: String) = putProperty(name, AmfNull())
+
+  open fun setProperty(name: String, data: Double) = putProperty(name, AmfNumber(data))
+
+  open fun setProperty(name: String, data: AmfData) = putProperty(name, data)
+
+  open fun setProperty(name: String, data: Any) {
+    val newValue= when (data) {
+      is String -> AmfString(data)
+      is Int -> AmfNumber(data.toDouble())
+      is Long -> AmfNumber(data.toDouble())
+      is Double -> AmfNumber(data)
+      is Float -> AmfNumber(data.toDouble())
+      is Boolean -> AmfBoolean(data)
+      is AmfData -> data
+      else -> throw IllegalArgumentException("Unsupported value type: ${data::class.java.name}")
+    }
+    putProperty(name, newValue)
   }
 
-  open fun setProperty(name: String, data: Boolean) {
+  private fun putProperty(name: String, value: AmfData) {
     val key = AmfString(name)
-    val value = AmfBoolean(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
-
-  open fun setProperty(name: String) {
-    val key = AmfString(name)
-    val value = AmfNull()
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
-
-  open fun setProperty(name: String, data: Double) {
-    val key = AmfString(name)
-    val value = AmfNumber(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
-
-  open fun setProperty(name: String, data: AmfData) {
-    val key = AmfString(name)
-    properties[key] = data
-    bodySize += key.getSize()
-    bodySize += data.getSize() + 1
+    val previous = properties.put(key, value)
+    bodySize += if (previous != null) {
+      value.getSize() - previous.getSize()
+    } else {
+      key.getSize() + value.getSize() + 1
+    }
   }
 
   fun getProperties() = properties
@@ -95,20 +90,20 @@ open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> =
     properties.clear()
     bodySize = 0
     val objectEnd = AmfObjectEnd()
-    val markInputStream: InputStream = if (input.markSupported()) input else BufferedInputStream(input)
+    val markInputStream = if (input.markSupported()) input else BufferedInputStream(input)
     while (!objectEnd.found) {
       markInputStream.mark(objectEnd.getSize())
-      objectEnd.readBody(input)
+      objectEnd.readBody(markInputStream)
       if (objectEnd.found) {
         bodySize += objectEnd.getSize()
       } else {
         markInputStream.reset()
 
         val key = AmfString()
-        key.readBody(input)
+        key.readBody(markInputStream)
         bodySize += key.getSize()
 
-        val value = getAmfData(input)
+        val value = getAmfData(markInputStream)
         bodySize += value.getSize() + 1
 
         properties[key] = value

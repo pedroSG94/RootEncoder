@@ -85,10 +85,16 @@ import java.io.IOException
 class FilterMenu(private val context: Context) {
 
   val spriteGestureController = SpriteGestureController()
+  private var mediaPlayer: MediaPlayer? = null
+
+  fun release() {
+    mediaPlayer?.release()
+  }
 
   fun onOptionsItemSelected(item: MenuItem, glInterface: GlInterface): Boolean {
     //Stop listener for image, text and gif stream objects.
     spriteGestureController.stopListener()
+    mediaPlayer?.release()
     when (item.itemId) {
       R.id.no_filter -> {
         glInterface.clearFilters()
@@ -180,7 +186,7 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.edge_detection -> {
-        glInterface.setFilter(EdgeDetectionFilterRender())
+        glInterface.setFilter(EdgeDetectionFilterRender(false))
         return true
       }
       R.id.exposure -> {
@@ -225,7 +231,7 @@ class FilterMenu(private val context: Context) {
           BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
         )
         imageObjectFilterRender.setScale(50f, 50f)
-        imageObjectFilterRender.setPosition(TranslateTo.RIGHT)
+        imageObjectFilterRender.setPosition(TranslateTo.CENTER)
         spriteGestureController.setBaseObjectFilterRender(imageObjectFilterRender) //Optional
         spriteGestureController.setPreventMoveOutside(false) //Optional
         return true
@@ -301,9 +307,10 @@ class FilterMenu(private val context: Context) {
       }
       R.id.surface_filter -> {
         val surfaceFilterRender = SurfaceFilterRender { surfaceTexture -> //You can render this filter with other api that draw in a surface. for example you can use VLC
-          val mediaPlayer: MediaPlayer = MediaPlayer.create(context, R.raw.big_bunny_240p)
-          mediaPlayer.setSurface(Surface(surfaceTexture))
-          mediaPlayer.start()
+          mediaPlayer = MediaPlayer.create(context, R.raw.big_bunny_240p)
+          mediaPlayer?.setSurface(Surface(surfaceTexture))
+          mediaPlayer?.isLooping = true
+          mediaPlayer?.start()
         }
         glInterface.setFilter(surfaceFilterRender)
         //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)

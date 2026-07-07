@@ -15,6 +15,14 @@ Enterprise Grade APIs for Feeds & Chat. <a href="https://getstream.io/tutorials/
 
 </br>
 
+
+
+## Recall.ai - Mobile Recording SDK
+
+If you’re looking for a hosted mobile recording API, consider checking out [Recall.ai](https://www.recall.ai/product/mobile-recording-sdk?utm_source=github&utm_medium=sponsorship&utm_campaign=pedrosg94-rootencoder), an API that records phone calls and in-person meetings.
+
+---
+
 RootEncoder (rtmp-rtsp-stream-client-java) is a stream encoder to push video/audio to media servers using protocols RTMP, RTSP and SRT with all code written in Java/Kotlin
 
 Note: The library was renamed from rtmp-rtsp-stream-client-java to RootEncoder after add SRT protocol because the name has no sense anymore
@@ -50,9 +58,9 @@ allprojects {
   }
 }
 dependencies {
-  implementation "com.github.pedroSG94.RootEncoder:library:2.6.4"
+  implementation "com.github.pedroSG94.RootEncoder:library:2.7.5"
   //Optional, allow use CameraXSource and CameraUvcSource 
-  implementation "com.github.pedroSG94.RootEncoder:extra-sources:2.6.4"
+  implementation "com.github.pedroSG94.RootEncoder:extra-sources:2.7.5"
 }
 
 ```
@@ -116,7 +124,7 @@ dependencies {
 - [x] TCP/UDP.
 - [x] RTSPS.
 
-### SRT (beta):
+### SRT:
 
 - [X] Get upload bandwidth used.
 - [X] H264, H265, AAC and OPUS support.
@@ -126,13 +134,17 @@ dependencies {
 
 https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 
-### UDP (beta):
+### UDP:
 
 - [X] Get upload bandwidth used.
 - [X] H264, H265, AAC and OPUS support.
 - [X] Unicast, Multicast and Broadcast support.
 - [X] MPEG2-TS support.
 
+### WHIP (beta):
+
+- [X] Get upload bandwidth used.
+- [X] H264, H265, AV1, G711 and OPUS support.
 
 ## Other related projects:
 

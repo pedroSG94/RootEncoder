@@ -67,8 +67,7 @@ class SrtSender(
   var socket: SrtSocket? = null
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
-    Pid.reset()
-    service.clearTracks()
+    service.clear()
     if (audioEnabled) service.addTrack(commandsManager.audioCodec.toCodec())
     if (videoEnabled) service.addTrack(commandsManager.videoCodec.toCodec())
     service.generatePmt()
@@ -113,7 +112,7 @@ class SrtSender(
     setTrackConfig(!commandsManager.videoDisabled, !commandsManager.audioDisabled)
     //send config
     val psiList = mutableListOf<Psi>(psiManager.getPat())
-    psiManager.getPmt()?.let { psiList.add(0, it) }
+    psiManager.getPmt()?.let { psiList.add(it) }
     psiList.add(psiManager.getSdt())
     val psiPacketsConfig = mpegTsPacketizer.write(psiList).chunkPackets(chunkSize).map { buffer ->
       MpegTsPacket(buffer, MpegType.PSI, PacketPosition.SINGLE, isKey = false)
@@ -127,8 +126,8 @@ class SrtSender(
           val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
           val bytesPsi = sendPackets(psiPackets, MpegType.PSI)
           val bytes = sendPackets(mpegTsPackets, mpegTsPackets[0].type)
-          bytesSend += bytesPsi + bytes
-          bytesSendPerSecond += bytesPsi + bytes
+          bytesSend.addAndGet(bytesPsi + bytes)
+          bytesSendPerSecond.addAndGet(bytesPsi + bytes)
         }
       }.exceptionOrNull()
       if (error != null) {
@@ -158,8 +157,8 @@ class SrtSender(
       size += commandsManager.writeData(mpegTsPacket, socket)
       bytesSend += size
     }
-    if (type == MpegType.VIDEO) videoFramesSent++
-    else if (type == MpegType.AUDIO) audioFramesSent++
+    if (type == MpegType.VIDEO) videoFramesSent.incrementAndGet()
+    else if (type == MpegType.AUDIO) audioFramesSent.incrementAndGet()
     if (isEnableLogs) {
       Log.i(TAG, "wrote ${type.name} packet, size $bytesSend")
     }

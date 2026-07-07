@@ -19,12 +19,13 @@ package com.pedro.rtsp.rtcp
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import java.io.IOException
 
 /**
  * Created by pedro on 8/11/18.
  */
-class SenderReportTcp : BaseSenderReport() {
+class SenderReportTcp(rtpTracks: RtpTracks): BaseSenderReport(rtpTracks) {
 
   private var socket: TcpStreamSocket? = null
   private val tcpHeader: ByteArray = byteArrayOf('$'.code.toByte(), 0, 0, RtpConstants.REPORT_PACKET_LENGTH.toByte())
@@ -36,16 +37,16 @@ class SenderReportTcp : BaseSenderReport() {
 
   @Throws(IOException::class)
   override suspend fun sendReport(buffer: ByteArray, rtpFrame: RtpFrame) {
-    sendReportTCP(buffer, rtpFrame.channelIdentifier)
+    tcpHeader[1] = (2 * rtpFrame.channelIdentifier + 1).toByte()
+    socket?.write(tcpHeader)
+    socket?.write(buffer, 0, RtpConstants.REPORT_PACKET_LENGTH)
+    socket?.flush()
   }
 
   override suspend fun close() {}
 
   @Throws(IOException::class)
   private suspend fun sendReportTCP(buffer: ByteArray, channelIdentifier: Int) {
-    tcpHeader[1] = (2 * channelIdentifier + 1).toByte()
-    socket?.write(tcpHeader)
-    socket?.write(buffer, 0, RtpConstants.REPORT_PACKET_LENGTH)
-    socket?.flush()
+
   }
 }

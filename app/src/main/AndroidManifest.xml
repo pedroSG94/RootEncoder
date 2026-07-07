@@ -25,7 +25,9 @@
   androidx.core.ktx,androidx.core,
   androidx.annotation.experimental,
   androidx.media3.*,
-  androidx.camera.*" />
+  androidx.camera.*,
+  androidx.exifinterface"
+      />
 
   <application
       android:name=".App"

@@ -50,7 +50,7 @@ abstract class ControlPacket(
 ): SrtPacket() {
 
   protected fun writeHeader(ts: Int, socketId: Int) {
-    val headerData = PacketType.CONTROL.value and 0xff shl 31 or (controlType.value and 0xff shl 16) or subtype.value
+    val headerData = PacketType.CONTROL.value and 0xff shl 31 or (controlType.value and 0x7fff shl 16) or subtype.value
     buffer.writeUInt32(headerData)
     buffer.writeUInt32(typeSpecificInformation)
     buffer.writeUInt32(ts)
@@ -63,7 +63,7 @@ abstract class ControlPacket(
     if (packetType != PacketType.CONTROL) {
       throw IOException("error, parsing data packet as control packet")
     }
-    controlType = ControlType.from((headerData ushr 16) and 0xFF)
+    controlType = ControlType.from((headerData ushr 16) and 0x7FFF)
     val subtypeValue = headerData and 0xFFFF
     if (subtypeValue == 0) subtype = ControlType.SUB_TYPE
     else throw IOException("unknown subtype: $subtypeValue")
@@ -80,7 +80,7 @@ abstract class ControlPacket(
   companion object {
     fun getType(input: InputStream): ControlType {
       val headerData = input.readUInt32()
-      return ControlType.from((headerData ushr 16) and 0xFF)
+      return ControlType.from((headerData ushr 16) and 0x7FFF)
     }
   }
 }

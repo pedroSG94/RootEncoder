@@ -87,7 +87,7 @@ class GenericCamera1: Camera1Base {
       RtmpStreamClient(rtmpClient, streamClientListener),
       RtspStreamClient(rtspClient, streamClientListener),
       SrtStreamClient(srtClient, streamClientListener),
-      UdpStreamClient(udpClient, streamClientListener),
+      UdpStreamClient(udpClient, streamClientListener)
     )
   }
 

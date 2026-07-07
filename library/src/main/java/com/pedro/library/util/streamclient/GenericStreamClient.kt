@@ -28,7 +28,7 @@ class GenericStreamClient(
   private val rtmpClient: RtmpStreamClient,
   private val rtspClient: RtspStreamClient,
   private val srtClient: SrtStreamClient,
-  private val udpClient: UdpStreamClient,
+  private val udpClient: UdpStreamClient
 ): StreamBaseClient() {
 
   private var connectedStreamClient : StreamBaseClient? = null
@@ -41,6 +41,16 @@ class GenericStreamClient(
     rtspClient.setSocketType(type)
     srtClient.setSocketType(type)
     udpClient.setSocketType(type)
+  }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtmpClient.setSocketTimeout(timeout)
+    rtspClient.setSocketTimeout(timeout)
+    srtClient.setSocketTimeout(timeout)
+    udpClient.setSocketTimeout(timeout)
   }
 
   /**
@@ -116,7 +126,6 @@ class GenericStreamClient(
   override fun setAuthorization(user: String?, password: String?) {
     rtmpClient.setAuthorization(user, password)
     rtspClient.setAuthorization(user, password)
-    srtClient.setAuthorization(user, password)
   }
 
   override fun setReTries(reTries: Int) {
@@ -228,9 +237,9 @@ class GenericStreamClient(
         rtmpClient
       } else if (url.startsWith("rtsp", ignoreCase = true)) {
         rtspClient
-      } else if (url.startsWith("srt", ignoreCase = true)){
+      } else if (url.startsWith("srt", ignoreCase = true)) {
         srtClient
-      } else if (url.startsWith("udp", ignoreCase = true)){
+      } else if (url.startsWith("udp", ignoreCase = true)) {
         udpClient
       } else null
   }

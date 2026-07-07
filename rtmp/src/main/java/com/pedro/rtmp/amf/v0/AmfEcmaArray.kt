@@ -56,6 +56,16 @@ class AmfEcmaArray(private val properties: LinkedHashMap<AmfString, AmfData> = L
     length = properties.size
   }
 
+  override fun setProperty(name: String, data: AmfData) {
+    super.setProperty(name, data)
+    length = properties.size
+  }
+
+  override fun setProperty(name: String, data: Any) {
+    super.setProperty(name, data)
+    length = properties.size
+  }
+
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     //get number of items as UInt32

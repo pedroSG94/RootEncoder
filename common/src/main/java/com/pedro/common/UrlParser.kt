@@ -48,8 +48,8 @@ class UrlParser private constructor(
     port = if (uri.port < 0) null else uri.port
     path = uri.path.removePrefix("/")
     if (uri.query != null) {
-      val i = url.indexOf(uri.query)
-      query = url.substring(if (i < 0) 0 else i)
+      val i = url.indexOf("?")
+      query = url.substring(i + 1)
     }
     auth = uri.userInfo
   }
@@ -57,12 +57,12 @@ class UrlParser private constructor(
   fun getQuery(key: String): String? = getAllQueries()[key]
 
   fun getAuthUser(): String? {
-    val userInfo = auth?.split(":") ?: return null
+    val userInfo = auth?.split(":", limit = 2) ?: return null
     return if (userInfo.size == 2) userInfo[0] else null
   }
 
   fun getAuthPassword(): String? {
-    val userInfo = auth?.split(":") ?: return null
+    val userInfo = auth?.split(":", limit = 2) ?: return null
     return if (userInfo.size == 2) userInfo[1] else null
   }
 
@@ -71,6 +71,7 @@ class UrlParser private constructor(
     val path = getFullPath().ifEmpty { query ?: "" }.replace(queries, "")
     val segments = path.split('/').filter { it.isNotEmpty() }
     return when(segments.size) {
+      0 -> ""
       1, 2 -> segments[0]
       else -> segments.subList(0, 2).joinToString("/")
     }

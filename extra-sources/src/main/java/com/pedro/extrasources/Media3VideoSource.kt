@@ -6,6 +6,7 @@ import android.net.Uri
 import android.view.Surface
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -18,7 +19,10 @@ import com.pedro.extrasources.extractor.Media3Extractor
 @OptIn(UnstableApi::class)
 class Media3VideoSource(
     private val context: Context,
-    private val path: Uri
+    private val path: Uri,
+    private val speed: Float = 1f,
+    private val loopMode: Boolean = true,
+    private val onFinish: (isLoop: Boolean) -> Unit = {}
 ): VideoSource() {
 
     private var player: ExoPlayer? = null
@@ -29,22 +33,28 @@ class Media3VideoSource(
         try {
             mediaExtractor.initialize(context, path)
             mediaExtractor.selectTrack(MediaFrame.Type.VIDEO)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             throw IllegalArgumentException("Video file track not found")
         }
         mediaExtractor.release()
-        player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.VIDEO)).build().also { exoPlayer ->
-            exoPlayer.setVideoSurface(surface)
-            val mediaItem = MediaItem.fromUri(path)
-            exoPlayer.setMediaItem(mediaItem)
-            exoPlayer.prepare()
-            exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
-        }
         return true
     }
 
     override fun start(surfaceTexture: SurfaceTexture) {
         surface = Surface(surfaceTexture)
+        player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.VIDEO)).build().also { exoPlayer ->
+            exoPlayer.setVideoSurface(surface)
+            val mediaItem = MediaItem.fromUri(path)
+            exoPlayer.setMediaItem(mediaItem)
+            exoPlayer.playbackParameters = PlaybackParameters(speed)
+            exoPlayer.prepare()
+            if (loopMode) exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
+        }
+        player?.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(state: Int) {
+                if (state == Player.STATE_ENDED) onFinish(loopMode)
+            }
+        })
         player?.play()
     }
 

@@ -134,6 +134,7 @@ class Handshake {
   private suspend fun readS0(socket: RtmpSocket): ByteArray {
     Log.i(TAG, "reading S0")
     val response = socket.read()
+    //few servers send 72 as response of c0 + c1. Assuming correct the connection worked.
     if (response == protocolVersion || response == 72) {
       Log.i(TAG, "read S0 successful")
       return byteArrayOf(response.toByte())

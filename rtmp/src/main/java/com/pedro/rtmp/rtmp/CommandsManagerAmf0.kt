@@ -42,24 +42,28 @@ class CommandsManagerAmf0: CommandsManager() {
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", flashVersion)
     connectInfo.setProperty("tcUrl", tcUrl + auth)
+    val list = mutableListOf<AmfData>()
     if (!videoDisabled) {
-      if (videoCodec == VideoCodec.H265) {
-        val list = mutableListOf<AmfData>()
-        list.add(AmfString("hvc1"))
-        val array = AmfStrictArray(list)
-        connectInfo.setProperty("fourCcList", array)
-      } else if (videoCodec == VideoCodec.AV1) {
-        val list = mutableListOf<AmfData>()
-        list.add(AmfString("av01"))
-        val array = AmfStrictArray(list)
-        connectInfo.setProperty("fourCcList", array)
-      }
+      if (videoCodec == VideoCodec.H265) list.add(AmfString("hvc1"))
+      else if (videoCodec == VideoCodec.AV1) list.add(AmfString("av01"))
+    }
+    if (!audioDisabled) {
+      if (audioCodec == AudioCodec.OPUS) list.add(AmfString("Opus"))
+    }
+    if (list.isNotEmpty()) {
+      val array = AmfStrictArray(list)
+      connectInfo.setProperty("fourCcList", array)
     }
     connectInfo.setProperty("objectEncoding", 0.0)
+
+    // Inject other custom AMF fields as-is
+    customAmfObject.forEach { (key, value) ->
+      connectInfo.setProperty(key, value)
+    }
     connect.addData(connectInfo)
 
     connect.writeHeader(socket)
-    connect.writeBody(socket)
+    connect.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "connect")
     Log.i(TAG, "send $connect")
   }
@@ -71,7 +75,7 @@ class CommandsManagerAmf0: CommandsManager() {
     releaseStream.addData(AmfString(streamName))
 
     releaseStream.writeHeader(socket)
-    releaseStream.writeBody(socket)
+    releaseStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "releaseStream")
     Log.i(TAG, "send $releaseStream")
 
@@ -81,7 +85,7 @@ class CommandsManagerAmf0: CommandsManager() {
     fcPublish.addData(AmfString(streamName))
 
     fcPublish.writeHeader(socket)
-    fcPublish.writeBody(socket)
+    fcPublish.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "FCPublish")
     Log.i(TAG, "send $fcPublish")
 
@@ -90,7 +94,7 @@ class CommandsManagerAmf0: CommandsManager() {
     createStream.addData(AmfNull())
 
     createStream.writeHeader(socket)
-    createStream.writeBody(socket)
+    createStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "createStream")
     Log.i(TAG, "send $createStream")
   }
@@ -118,7 +122,7 @@ class CommandsManagerAmf0: CommandsManager() {
       val codecValue = when (audioCodec) {
         AudioCodec.G711 -> AudioFormat.G711_A.value
         AudioCodec.AAC -> AudioFormat.AAC.value
-        AudioCodec.OPUS -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
+        AudioCodec.OPUS -> AudioFormat.OPUS.value
       }
       amfEcmaArray.setProperty("audiocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
@@ -130,7 +134,7 @@ class CommandsManagerAmf0: CommandsManager() {
     metadata.addData(amfEcmaArray)
 
     metadata.writeHeader(socket)
-    metadata.writeBody(socket)
+    metadata.writeBody(socket, config.writeChunkSize)
     Log.i(TAG, "send $metadata")
   }
 
@@ -143,7 +147,7 @@ class CommandsManagerAmf0: CommandsManager() {
     publish.addData(AmfString("live"))
 
     publish.writeHeader(socket)
-    publish.writeBody(socket)
+    publish.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, name)
     Log.i(TAG, "send $publish")
   }
@@ -154,7 +158,7 @@ class CommandsManagerAmf0: CommandsManager() {
     closeStream.addData(AmfNull())
 
     closeStream.writeHeader(socket)
-    closeStream.writeBody(socket)
+    closeStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, name)
     Log.i(TAG, "send $closeStream")
   }

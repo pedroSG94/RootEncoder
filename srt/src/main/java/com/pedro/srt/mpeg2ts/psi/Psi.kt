@@ -49,7 +49,7 @@ abstract class Psi(
         (reserved shl 12) or (sectionLengthUnusedBits shl 10) or (sectionLength and 0x03FF)
     byteBuffer.putShort(combined.toShort())
     byteBuffer.putShort(idExtension)
-    val combined2 = (reserved shl 6) or (version.toInt() shl 1) or indicator.toInt()
+    val combined2 = (reserved shl 6) or ((version.toInt() and 0x1F) shl 1) or indicator.toInt()
     byteBuffer.put(combined2.toByte())
     byteBuffer.put(sectionNumber)
     byteBuffer.put(lastSectionNumber)

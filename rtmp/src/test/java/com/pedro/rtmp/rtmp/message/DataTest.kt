@@ -65,7 +65,7 @@ class DataTest {
     dataAmf0.addData(AmfNumber(20.0))
 
     dataAmf0.writeHeader(socket)
-    dataAmf0.writeBody(socket)
+    dataAmf0.writeBody(socket, RtmpConfig.DEFAULT_CHUNK_SIZE)
 
     assertArrayEquals(expectedBuffer, socket.output.toByteArray())
   }

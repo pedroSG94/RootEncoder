@@ -30,33 +30,31 @@ data class Mpeg2TsService(
   val providerName: String = "com.pedro.srt",
   var pmt: Pmt? = null,
   val tracks: MutableList<Track> = mutableListOf(),
-  var pcrPid: Short? = null
+  var pcrPid: Short? = null,
+  private val pid: Pid = Pid()
 ) {
 
   fun addTrack(codec: Codec) {
-    val pid = Pid.generatePID()
-    tracks.add(Track(codec, pid))
-    if (pcrPid == null) pcrPid = pid
-    else if (!codec.isAudio()) pcrPid = pid
+    val trackPid = pid.generatePID()
+    tracks.add(Track(codec, trackPid))
+    if (pcrPid == null) pcrPid = trackPid
+    else if (!codec.isAudio()) pcrPid = trackPid
   }
 
   fun generatePmt() {
     if (pmt == null) {
       pmt = Pmt(
-        Pid.generatePID().toInt(),
+        pid.generatePID().toInt(),
         version = 0,
         service = this
       )
     }
   }
 
-  fun clearTracks() {
-    tracks.clear()
-  }
-
   fun clear() {
-    clearTracks()
-    pmt = null
+    tracks.clear()
+    pid.reset()
     pcrPid = null
+    pmt = null
   }
 }

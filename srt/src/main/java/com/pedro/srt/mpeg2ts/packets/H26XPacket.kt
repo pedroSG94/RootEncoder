@@ -18,6 +18,7 @@ package com.pedro.srt.mpeg2ts.packets
 
 import android.util.Log
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.getStartCodeSize
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
 import com.pedro.srt.mpeg2ts.Codec
@@ -111,7 +112,7 @@ class H26XPacket(
    */
   private fun fixHeader(byteBuffer: ByteBuffer, isKeyFrame: Boolean): ByteBuffer {
     var noHeaderBuffer = removeHeader(byteBuffer, isKeyFrame) //remove video info header
-    val startCodeSize = getStartCodeSize(noHeaderBuffer)
+    val startCodeSize = noHeaderBuffer.getStartCodeSize()
     if (startCodeSize == 0) { //make sure buffer start with prefix
       val bufferWithPrefix = ByteBuffer.allocate(noHeaderBuffer.remaining() + 4)
       bufferWithPrefix.putInt(0x00000001)
@@ -122,9 +123,11 @@ class H26XPacket(
       val vps = this.vps ?: byteArrayOf()
       val sps = this.sps ?: byteArrayOf()
       val pps = this.pps ?: byteArrayOf()
+      val codec = this.codec
       val audSize = if (codec == Codec.AVC) 6 else 7
       val videoHeader = vps.plus(sps).plus(pps)
-      val validBuffer = ByteBuffer.allocate(audSize + videoHeader.size + noHeaderBuffer.remaining())
+      val noHeaderBytes = noHeaderBuffer.toByteArray()
+      val validBuffer = ByteBuffer.allocate(audSize + videoHeader.size + noHeaderBytes.size)
       validBuffer.putInt(0x00000001)
       if (codec == Codec.AVC) {
         validBuffer.put(0x09.toByte())
@@ -135,7 +138,7 @@ class H26XPacket(
         validBuffer.put(0x50.toByte())
       }
       validBuffer.put(videoHeader)
-      validBuffer.put(noHeaderBuffer.toByteArray())
+      validBuffer.put(noHeaderBytes)
       validBuffer.rewind()
       configSend = true
       validBuffer
@@ -147,7 +150,7 @@ class H26XPacket(
 
   private fun getVideoInfoData(byteBuffer: ByteBuffer): ByteArray {
     byteBuffer.rewind()
-    val startCodeSize = getStartCodeSize(byteBuffer)
+    val startCodeSize = byteBuffer.getStartCodeSize()
     return if (startCodeSize == 0) { //make sure video info start with prefix
       val validBuffer = ByteBuffer.allocate(byteBuffer.remaining() + 4)
       validBuffer.putInt(0x00000001)
@@ -188,19 +191,5 @@ class H26XPacket(
         byteBuffer.rewind()
         return byteBuffer
       }
-  }
-
-  private fun getStartCodeSize(byteBuffer: ByteBuffer): Int {
-    var startCodeSize = 0
-    if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x00 && byteBuffer.get(3).toInt() == 0x01) {
-      //match 00 00 00 01
-      startCodeSize = 4
-    } else if (byteBuffer.get(0).toInt() == 0x00 && byteBuffer.get(1).toInt() == 0x00
-      && byteBuffer.get(2).toInt() == 0x01) {
-      //match 00 00 01
-      startCodeSize = 3
-    }
-    return startCodeSize
   }
 }

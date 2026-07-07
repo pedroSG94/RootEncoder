@@ -44,13 +44,13 @@ import com.pedro.encoder.utils.CodecUtil
 import com.pedro.encoder.video.FormatVideoEncoder
 import com.pedro.encoder.video.GetVideoData
 import com.pedro.encoder.video.VideoEncoder
-import com.pedro.library.base.recording.BaseRecordController
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.util.AndroidMuxerRecordController
 import com.pedro.library.util.FpsListener
 import com.pedro.library.util.PreviewCallback
 import com.pedro.library.util.streamclient.StreamBaseClient
 import com.pedro.library.view.GlStreamInterface
+import com.pedro.library.view.preview.MultiPreviewConfig
 import java.nio.ByteBuffer
 import kotlin.math.max
 
@@ -82,14 +82,14 @@ abstract class StreamBase(
   //video render
   private val glInterface = GlStreamInterface(context)
   //video/audio record
-  private var recordController: BaseRecordController = AndroidMuxerRecordController()
+  private var recordController: RecordController = AndroidMuxerRecordController()
   private val fpsListener = FpsListener()
   var isStreaming = false
     private set
   var isOnPreview = false
     private set
   val isRecording: Boolean
-    get() = recordController.isRunning
+    get() = recordController.isRunning()
   var videoSource: VideoSource = vSource
     private set
   var audioSource: AudioSource = aSource
@@ -264,12 +264,12 @@ abstract class StreamBase(
     val usedTracks = tracks ?: if (videoSource is NoVideoSource) RecordController.RecordTracks.AUDIO
         else if (audioSource is NoAudioSource) RecordController.RecordTracks.VIDEO
         else RecordController.RecordTracks.ALL
-    recordController.startRecord(path, listener, usedTracks)
-    if (!isStreaming) startSources()
-    else {
+    recordController.setRequestKeyFrame {
       videoEncoder.requestKeyframe()
       videoEncoderRecord.requestKeyframe()
     }
+    recordController.startRecord(path, listener, usedTracks)
+    if (!isStreaming) startSources()
   }
 
   /**
@@ -366,6 +366,30 @@ abstract class StreamBase(
     if (removeCallbacks) previewCallback.removeCallbacks()
   }
 
+  fun addPreviewSurface(surface: Surface, config: MultiPreviewConfig) {
+    if (!surface.isValid) throw IllegalArgumentException("Make sure the Surface is valid")
+    if (!isOnPreview) throw IllegalStateException("Preview must be started before adding surfaces")
+    glInterface.addMultiPreviewSurface(surface, config)
+  }
+
+  fun removeMultiPreviewSurface(surface: Surface) {
+    glInterface.removeMultiPreviewSurface(surface)
+  }
+
+  fun removeAllMultiPreviewSurfaces() {
+    glInterface.removeAllMultiPreviewSurfaces()
+  }
+
+  fun updateMultiPreviewConfig(surface: Surface, config: MultiPreviewConfig): Boolean {
+    return glInterface.updateMultiPreviewConfig(surface, config)
+  }
+
+  fun hasMultiPreviewSurface(surface: Surface): Boolean {
+    return glInterface.hasMultiPreviewSurface(surface)
+  }
+
+  fun getMultiPreviewSurfaceCount(): Int = glInterface.getMultiPreviewSurfaceCount()
+
   /**
    * Change video source to Camera1 or Camera2.
    * Must be called after prepareVideo.
@@ -430,6 +454,10 @@ abstract class StreamBase(
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback)
   }
 
+  fun forceBt709Color(enabled: Boolean) {
+    videoEncoder.forceBt709Color(enabled)
+  }
+
   /**
    * @param callback get fps while record or stream
    */
@@ -457,8 +485,11 @@ abstract class StreamBase(
    * Replace the current BaseRecordController.
    * This method allow record in other format or even create your custom implementation and record in a new format.
    */
-  fun setRecordController(recordController: BaseRecordController) {
-    if (!isRecording) this.recordController = recordController
+  fun setRecordController(recordController: RecordController) {
+    if (!isRecording) {
+      recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec())
+      this.recordController = recordController
+    }
   }
 
   /**
@@ -568,8 +599,8 @@ abstract class StreamBase(
 
     override fun getVideoData(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
       fpsListener.calculateFps()
-      getVideoDataImp(videoBuffer, info)
       if (!differentRecordResolution) recordController.recordVideo(videoBuffer, info)
+      getVideoDataImp(videoBuffer, info)
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
@@ -588,7 +619,6 @@ abstract class StreamBase(
     }
 
     override fun onVideoFormat(mediaFormat: MediaFormat) {
-      val isOnlyVideo = audioSource is NoAudioSource
       recordController.setVideoFormat(mediaFormat)
     }
   }

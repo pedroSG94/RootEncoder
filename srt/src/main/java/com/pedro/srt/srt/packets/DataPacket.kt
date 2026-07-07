@@ -45,7 +45,7 @@ class DataPacket(
     resetBuffer()
     val headerData = (PacketType.DATA.value shl 31) or (sequenceNumber and 0x7FFFFFFF)
     val info = (packetPosition.value shl 30) or (order.toInt() shl 29) or
-        (encryption.value shl 27) or (retransmitted.toInt() shl 26) or messageNumber
+        (encryption.value shl 27) or (retransmitted.toInt() shl 26) or (messageNumber and 0x03FFFFFF)
     buffer.writeUInt32(headerData)
     buffer.writeUInt32(info)
     buffer.writeUInt32(ts)
@@ -62,7 +62,7 @@ class DataPacket(
     val info = input.readUInt32()
     packetPosition = PacketPosition.from((info ushr 30) and 0x03)
     order = ((info ushr 29) and 0x01).toBoolean()
-    encryption = KeyBasedEncryption.from((info ushr 28) and 0x03)
+    encryption = KeyBasedEncryption.from((info ushr 27) and 0x03)
     retransmitted = ((info ushr 26) and 0x01).toBoolean()
     messageNumber = info and 0x03FFFFFF
     ts = input.readUInt32()

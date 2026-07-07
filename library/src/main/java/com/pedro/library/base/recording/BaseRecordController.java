@@ -18,6 +18,8 @@ package com.pedro.library.base.recording;
 
 import android.media.MediaCodec;
 
+import androidx.annotation.NonNull;
+
 import com.pedro.common.AudioCodec;
 import com.pedro.common.BitrateManager;
 import com.pedro.common.TimeUtils;
@@ -26,85 +28,123 @@ import com.pedro.rtsp.utils.RtpConstants;
 
 import java.nio.ByteBuffer;
 
+import kotlin.Deprecated;
+
+@Deprecated(message = "Use AsyncBaseRecordController instead, this will be removed in the future")
 public abstract class BaseRecordController implements RecordController {
 
-    protected static final String TAG = "RecordController";
+  protected static final String TAG = "RecordController";
 
-    protected Status status = Status.STOPPED;
-    protected VideoCodec videoCodec = VideoCodec.H264;
-    protected AudioCodec audioCodec = AudioCodec.AAC;
-    protected long pauseMoment = 0;
-    protected long pauseTime = 0;
-    protected Listener listener;
-    protected int videoTrack = -1;
-    protected int audioTrack = -1;
-    protected final MediaCodec.BufferInfo videoInfo = new MediaCodec.BufferInfo();
-    protected final MediaCodec.BufferInfo audioInfo = new MediaCodec.BufferInfo();
-    protected BitrateManager bitrateManager;
-    protected long startTs = 0;
-    protected RecordTracks tracks = RecordTracks.ALL;
+  protected Status status = Status.STOPPED;
+  protected VideoCodec videoCodec = VideoCodec.H264;
+  protected AudioCodec audioCodec = AudioCodec.AAC;
+  protected long pauseMoment = 0;
+  protected long pauseTime = 0;
+  protected Listener listener;
+  protected int videoTrack = -1;
+  protected int audioTrack = -1;
+  protected BitrateManager bitrateManager;
+  protected volatile long startTs = 0;
+  protected RecordTracks tracks = RecordTracks.ALL;
+  protected RequestKeyFrame requestKeyFrame = null;
 
-    public void setVideoCodec(VideoCodec videoCodec) {
-        this.videoCodec = videoCodec;
+  public void updateInfo(BaseRecordController recordController) {
+    videoCodec = recordController.videoCodec;
+    audioCodec = recordController.audioCodec;
+  }
+
+  @Override
+  public void updateInfo(@NonNull VideoCodec videoCodec, @NonNull AudioCodec audioCodec) {
+    this.videoCodec = videoCodec;
+    this.audioCodec = audioCodec;
+  }
+
+  @Override
+  public void setRequestKeyFrame(RequestKeyFrame requestKeyFrame) {
+    this.requestKeyFrame = requestKeyFrame;
+  }
+
+  @NonNull
+  @Override
+  public AudioCodec getAudioCodec() {
+    return audioCodec;
+  }
+
+  @NonNull
+  @Override
+  public VideoCodec getVideoCodec() {
+    return videoCodec;
+  }
+
+  @Override
+  public void setVideoCodec(@NonNull VideoCodec videoCodec) {
+    this.videoCodec = videoCodec;
+  }
+
+  @Override
+  public void setAudioCodec(@NonNull AudioCodec audioCodec) {
+    this.audioCodec = audioCodec;
+  }
+
+  @Override
+  public boolean isRunning() {
+    return status == Status.STARTED
+        || status == Status.RECORDING
+        || status == Status.RESUMED
+        || status == Status.PAUSED;
+  }
+
+  @Override
+  public boolean isRecording() {
+    return status == Status.RECORDING;
+  }
+
+  @NonNull
+  @Override
+  public Status getStatus() {
+    return status;
+  }
+
+  @Override
+  public void pauseRecord() {
+    if (status == Status.RECORDING) {
+      pauseMoment = TimeUtils.getCurrentTimeMicro();
+      status = Status.PAUSED;
+      if (listener != null) listener.onStatusChange(status);
     }
+  }
 
-    public void setAudioCodec(AudioCodec audioCodec) {
-        this.audioCodec = audioCodec;
+  @Override
+  public void resumeRecord() {
+    if (status == Status.PAUSED) {
+      pauseTime += TimeUtils.getCurrentTimeMicro() - pauseMoment;
+      status = Status.RESUMED;
+      if (listener != null) listener.onStatusChange(status);
     }
+  }
 
-    public boolean isRunning() {
-        return status == Status.STARTED
-                || status == Status.RECORDING
-                || status == Status.RESUMED
-                || status == Status.PAUSED;
+  protected boolean isKeyFrame(ByteBuffer videoBuffer) {
+    byte[] header = new byte[5];
+    if (videoBuffer.remaining() < header.length) return false;
+    videoBuffer.duplicate().get(header, 0, header.length);
+    if (videoCodec == VideoCodec.AV1) {
+      //TODO find the way to check it
+      return false;
+    } else if (videoCodec == VideoCodec.H264 && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
+      return true;
+    } else { //h265
+      return videoCodec == VideoCodec.H265
+          && ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_W_DLP
+          || ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_N_LP;
     }
+  }
 
-    public boolean isRecording() {
-        return status == Status.RECORDING;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void pauseRecord() {
-        if (status == Status.RECORDING) {
-            pauseMoment = TimeUtils.getCurrentTimeMicro();
-            status = Status.PAUSED;
-            if (listener != null) listener.onStatusChange(status);
-        }
-    }
-
-    public void resumeRecord() {
-        if (status == Status.PAUSED) {
-            pauseTime += TimeUtils.getCurrentTimeMicro() - pauseMoment;
-            status = Status.RESUMED;
-            if (listener != null) listener.onStatusChange(status);
-        }
-    }
-
-    protected boolean isKeyFrame(ByteBuffer videoBuffer) {
-        byte[] header = new byte[5];
-        if (videoBuffer.remaining() < header.length) return false;
-        videoBuffer.duplicate().get(header, 0, header.length);
-        if (videoCodec == VideoCodec.AV1) {
-            //TODO find the way to check it
-            return false;
-        } else if (videoCodec == VideoCodec.H264 && (header[4] & 0x1F) == RtpConstants.IDR) {  //h264
-            return true;
-        } else { //h265
-            return videoCodec == VideoCodec.H265
-                    && ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_W_DLP
-                    || ((header[4] >> 1) & 0x3f) == RtpConstants.IDR_N_LP;
-        }
-    }
-
-    //We can't reuse info because could produce stream issues
-    protected void updateFormat(MediaCodec.BufferInfo newInfo, MediaCodec.BufferInfo oldInfo) {
-        if (startTs <= 0) startTs = oldInfo.presentationTimeUs;
-        newInfo.flags = oldInfo.flags;
-        newInfo.offset = oldInfo.offset;
-        newInfo.size = oldInfo.size;
-        newInfo.presentationTimeUs = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
-    }
+  //We can't reuse info because could produce stream issues
+  protected MediaCodec.BufferInfo updateFormat(MediaCodec.BufferInfo oldInfo) {
+    MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+    if (startTs <= 0) startTs = oldInfo.presentationTimeUs;
+    long ts = Math.max(0, oldInfo.presentationTimeUs - startTs - pauseTime);
+    info.set(oldInfo.offset, oldInfo.size, ts, oldInfo.flags);
+    return info;
+  }
 }

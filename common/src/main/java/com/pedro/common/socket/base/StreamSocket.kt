@@ -28,30 +28,44 @@ import javax.net.ssl.TrustManager
  * Created by pedro on 22/9/24.
  */
 abstract class StreamSocket {
-  protected val timeout = 5000L
+  protected var timeout = DEFAULT_TIMEOUT
+  protected var hostVerification = false
   abstract suspend fun connect()
   abstract suspend fun close()
   abstract fun isConnected(): Boolean
   abstract fun isReachable(): Boolean
 
   companion object {
+    const val DEFAULT_TIMEOUT = 5000L
     fun createTcpSocket(
       type: SocketType,
-      host: String, port: Int, secured: Boolean, certificates: TrustManager? = null
+      host: String, port: Int, secured: Boolean,
+      timeout: Long, hostVerification: Boolean,
+      certificates: TrustManager? = null
     ): TcpStreamSocket {
       return when (type) {
         SocketType.KTOR -> TcpStreamSocketKtor(host, port, secured, certificates)
         SocketType.JAVA -> TcpStreamSocketJava(host, port, secured, certificates)
+      }.apply {
+        this.timeout = timeout
+        this.hostVerification = hostVerification
       }
     }
 
     fun createUdpSocket(
       type: SocketType,
-      host: String, port: Int, sourcePort: Int? = null, receiveSize: Int? = null, udpType: UdpType = UdpType.UNICAST
+      host: String, port: Int,
+      timeout: Long,
+      sourceHost: String? = null,
+      sourcePort: Int? = null,
+      receiveSize: Int? = null,
+      udpType: UdpType = UdpType.UNICAST
     ): UdpStreamSocket {
       return when (type) {
-        SocketType.KTOR -> UdpStreamSocketKtor(host, port, sourcePort, receiveSize, udpType)
-        SocketType.JAVA -> UdpStreamSocketJava(host, port, sourcePort, receiveSize, udpType)
+        SocketType.KTOR -> UdpStreamSocketKtor(host, port, sourceHost, sourcePort, receiveSize, udpType)
+        SocketType.JAVA -> UdpStreamSocketJava(host, port, sourceHost, sourcePort, receiveSize, udpType)
+      }.apply {
+        this.timeout = timeout
       }
     }
   }

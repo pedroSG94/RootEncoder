@@ -24,9 +24,13 @@ import javax.net.ssl.TrustManager
  * Created by pedro on 12/10/23.
  */
 class RtmpStreamClient(
-  private val rtmpClient: RtmpClient, 
+  private val rtmpClient: RtmpClient,
   private val streamClientListener: StreamClientListener?
 ): StreamBaseClient() {
+
+  fun setIgnoredCommandCallback(callback: ((String) -> Unit)?) {
+    rtmpClient.setIgnoredCommandCallback(callback)
+  }
 
   /**
    * Must be called before start stream or will be ignored.
@@ -76,6 +80,22 @@ class RtmpStreamClient(
    */
   fun setWriteChunkSize(chunkSize: Int) {
     rtmpClient.setWriteChunkSize(chunkSize)
+  }
+
+  /**
+   * RTT in micro seconds reported by ping-pong commands.
+   * shouldSendPings must be enabled to work properly.
+   */
+  fun getRtt() = rtmpClient.rtt
+
+  /**
+   * Send ping commands each second to server.
+   * This allow get a RTT and keep alive the read channel in servers that close it due to inactivity.
+   *
+   * Could be useful in combination with shouldFailOnRead to detect connection closed in few servers.
+   */
+  fun shouldSendPings(enabled: Boolean) {
+    rtmpClient.shouldSendPings(enabled)
   }
 
   override fun reTry(delay: Long, reason: String, backupUrl: String?): Boolean {
@@ -173,5 +193,30 @@ class RtmpStreamClient(
    */
   override fun setSocketType(type: SocketType) {
     rtmpClient.socketType = type
+  }
+
+  /**
+   * If using TLS socket force to check host certificate
+   */
+  fun setTlsHostVerification(enabled: Boolean) {
+    rtmpClient.tlsHostVerification = enabled
+  }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    rtmpClient.socketTimeout = timeout
+  }
+
+  fun setCustomAmfObject(amfObject: Map<String, Any>) {
+    rtmpClient.setCustomAmfObject(amfObject)
+  }
+
+  /**
+   * Should notify onConnectionFailed if read packet from the server failed
+   */
+  fun shouldFailOnRead(enabled: Boolean) {
+    rtmpClient.shouldFailOnRead = enabled
   }
 }

@@ -9,10 +9,12 @@ import io.ktor.network.sockets.openWriteChannel
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.readFully
-import io.ktor.utils.io.readUTF8Line
+import io.ktor.utils.io.readLine
 import io.ktor.utils.io.writeByte
 import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.IOException
 import java.net.InetAddress
 
 abstract class TcpStreamSocketKtorBase(
@@ -26,10 +28,13 @@ abstract class TcpStreamSocketKtorBase(
     protected var output: ByteWriteChannel? = null
     protected var selectorManager = SelectorManager(Dispatchers.IO)
 
-    abstract suspend fun onConnectSocket(timeout: Long): ReadWriteSocket
+    abstract suspend fun onConnectSocket(timeout: Long, error: (Throwable) -> Unit): ReadWriteSocket
 
     override suspend fun connect() {
-        val socket = onConnectSocket(timeout)
+        selectorManager = SelectorManager(Dispatchers.IO)
+        val socket = onConnectSocket(timeout) {
+            runBlocking { close() }
+        }
         input = socket.openReadChannel()
         output = socket.openWriteChannel(autoFlush = false)
         address = java.net.InetSocketAddress(host, port).address
@@ -48,15 +53,15 @@ abstract class TcpStreamSocketKtorBase(
     }
 
     override suspend fun write(bytes: ByteArray) {
-        output?.writeFully(bytes)
+        output?.writeFully(bytes) ?: throw IOException("Socket already closed")
     }
 
     override suspend fun write(bytes: ByteArray, offset: Int, size: Int) {
-        output?.writeFully(bytes, offset, offset + size)
+        output?.writeFully(bytes, offset, offset + size) ?: throw IOException("Socket already closed")
     }
 
     override suspend fun write(b: Int) {
-        output?.writeByte(b.toByte())
+        output?.writeByte(b.toByte()) ?: throw IOException("Socket already closed")
     }
 
     override suspend fun write(string: String) {
@@ -64,7 +69,7 @@ abstract class TcpStreamSocketKtorBase(
     }
 
     override suspend fun flush() {
-        output?.flush()
+        output?.flush() ?: throw IOException("Socket already closed")
     }
 
     override suspend fun read(bytes: ByteArray) {
@@ -77,9 +82,9 @@ abstract class TcpStreamSocketKtorBase(
         return data
     }
 
-    override suspend fun readLine(): String? = input?.readUTF8Line()
+    override suspend fun readLine(): String? = input?.readLine()
 
-    override fun isConnected(): Boolean = socket?.isClosed != true
+    override fun isConnected(): Boolean = socket?.let { !it.isClosed } ?: false
 
     override fun isReachable(): Boolean = address?.isReachable(timeout.toInt()) ?: false
 }

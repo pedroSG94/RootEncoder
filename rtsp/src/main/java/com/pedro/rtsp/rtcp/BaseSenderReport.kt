@@ -20,16 +20,21 @@ import com.pedro.common.TimeUtils
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.TcpStreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
+import com.pedro.common.toUInt32
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.utils.CryptoProperties
+import com.pedro.rtsp.utils.CryptoUtils
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.setLong
 import java.io.IOException
 
 /**
  * Created by pedro on 7/11/18.
  */
-abstract class BaseSenderReport internal constructor() {
+abstract class BaseSenderReport internal constructor(private val rtpTracks: RtpTracks) {
 
   private val interval: Long = 3000
   private val videoBuffer = ByteArray(RtpConstants.REPORT_PACKET_LENGTH)
@@ -40,26 +45,39 @@ abstract class BaseSenderReport internal constructor() {
   private var videoOctetCount = 0L
   private var audioPacketCount = 0L
   private var audioOctetCount = 0L
+  private var srtcpVideoIndex = 0
+  private var srtcpAudioIndex = 0
+  private var cryptoUtils: CryptoUtils? = null
+
+  private var ssrcVideo = 0L
+  private var ssrcAudio = 0L
 
   companion object {
     @JvmStatic
     fun getInstance(
+      rtpTracks: RtpTracks,
       socketType: SocketType,
       protocol: Protocol, host: String,
+      timeout: Long,
       videoSourcePort: Int?, audioSourcePort: Int?,
       videoServerPort: Int?, audioServerPort: Int?,
     ): BaseSenderReport {
       return if (protocol === Protocol.TCP) {
-        SenderReportTcp()
+        SenderReportTcp(rtpTracks)
       } else {
         val videoSocket = if (videoServerPort != null) {
-          StreamSocket.createUdpSocket(socketType, host, videoServerPort, videoSourcePort)
+          StreamSocket.createUdpSocket(socketType, host, videoServerPort, timeout, sourcePort = videoSourcePort)
         } else null
         val audioSocket = if (audioServerPort != null) {
-          StreamSocket.createUdpSocket(socketType, host, audioServerPort, audioSourcePort)
+          StreamSocket.createUdpSocket(socketType, host, audioServerPort, timeout, sourcePort = audioSourcePort)
         } else null
-        SenderReportUdp(videoSocket, audioSocket)
+        SenderReportUdp(rtpTracks, videoSocket, audioSocket)
       }
+    }
+
+    @JvmStatic
+    fun getInstance(rtpTracks: RtpTracks, socket: UdpStreamSocket): BaseSenderReport {
+      return SenderReportUdpMux(rtpTracks, socket)
     }
   }
 
@@ -90,8 +108,14 @@ abstract class BaseSenderReport internal constructor() {
   }
 
   fun setSSRC(ssrcVideo: Long, ssrcAudio: Long) {
+    this.ssrcVideo = ssrcVideo
+    this.ssrcAudio = ssrcAudio
     videoBuffer.setLong(ssrcVideo, 4, 8)
     audioBuffer.setLong(ssrcAudio, 4, 8)
+  }
+
+  fun setCrypto(properties: CryptoProperties) {
+    cryptoUtils = CryptoUtils(properties)
   }
 
   @Throws(IOException::class)
@@ -99,7 +123,7 @@ abstract class BaseSenderReport internal constructor() {
 
   @Throws(IOException::class)
   suspend fun update(rtpFrame: RtpFrame): Boolean {
-    return if (rtpFrame.channelIdentifier == RtpConstants.trackVideo) {
+    return if (rtpFrame.channelIdentifier == rtpTracks.trackVideo) {
       updateVideo(rtpFrame)
     } else {
       updateAudio(rtpFrame)
@@ -118,7 +142,9 @@ abstract class BaseSenderReport internal constructor() {
     if (TimeUtils.getCurrentTimeMillis() - videoTime >= interval) {
       videoTime = TimeUtils.getCurrentTimeMillis()
       setData(videoBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
-      sendReport(videoBuffer, rtpFrame)
+      cryptoUtils?.let {
+        sendReport(encrypt(videoBuffer, srtcpVideoIndex++, ssrcVideo, it), rtpFrame)
+      } ?: sendReport(videoBuffer, rtpFrame)
       return true
     }
     return false
@@ -133,7 +159,9 @@ abstract class BaseSenderReport internal constructor() {
     if (TimeUtils.getCurrentTimeMillis() - audioTime >= interval) {
       audioTime = TimeUtils.getCurrentTimeMillis()
       setData(audioBuffer, TimeUtils.getCurrentTimeNano(), rtpFrame.timeStamp)
-      sendReport(audioBuffer, rtpFrame)
+      cryptoUtils?.let {
+        sendReport(encrypt(audioBuffer, srtcpAudioIndex++, ssrcAudio, it), rtpFrame)
+      } ?: sendReport(audioBuffer, rtpFrame)
       return true
     }
     return false
@@ -146,6 +174,8 @@ abstract class BaseSenderReport internal constructor() {
     audioPacketCount = 0
     audioTime = 0
     videoTime = 0
+    srtcpVideoIndex = 0
+    srtcpAudioIndex  = 0
     videoBuffer.setLong(videoPacketCount, 20, 24)
     videoBuffer.setLong(videoOctetCount, 24, 28)
     audioBuffer.setLong(audioPacketCount, 20, 24)
@@ -160,5 +190,22 @@ abstract class BaseSenderReport internal constructor() {
     buffer.setLong(hb, 8, 12)
     buffer.setLong(lb, 12, 16)
     buffer.setLong(rtpts, 16, 20)
+  }
+
+  private fun encrypt(
+    buffer: ByteArray, index: Int, ssrc: Long, cryptoUtils: CryptoUtils,
+  ): ByteArray {
+    var encryptedData = buffer
+    val i = index or (1 shl 31)
+    encryptedData = encryptedData.plus(i.toUInt32())
+    val payload = encryptedData.copyOfRange(8, encryptedData.size - 4)
+    val encryptPayload = cryptoUtils.encrypt(payload, getIvData(ssrc, index, cryptoUtils))
+    encryptPayload.copyInto(encryptedData, 8)
+    val hmac = cryptoUtils.calculateHmac(encryptedData)
+    return encryptedData.plus(hmac)
+  }
+
+  private fun getIvData(ssrc: Long, index: Int, cryptoUtils: CryptoUtils): ByteArray {
+    return cryptoUtils.generateIv(ssrc, index.toLong())
   }
 }

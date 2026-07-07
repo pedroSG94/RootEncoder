@@ -20,11 +20,14 @@ import android.graphics.Point
 import android.graphics.SurfaceTexture
 import android.graphics.SurfaceTexture.OnFrameAvailableListener
 import android.os.Build
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.annotation.RequiresApi
+import com.pedro.common.TimeUtils
 import com.pedro.common.newSingleThreadExecutor
 import com.pedro.common.secureSubmit
 import com.pedro.encoder.input.gl.FilterAction
@@ -74,6 +77,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     private val fpsLimiter = FpsLimiter()
     private val forceRenderer = ForceRenderer()
     private var renderErrorCallback: RenderErrorCallback? = null
+    private var surfaceHandlerThread: HandlerThread? = null
 
     constructor(context: Context?) : super(context) {
         holder.addCallback(this)
@@ -238,6 +242,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             }
             surfaceManager.swapBuffer()
         }
+        val timestamp = TimeUtils.getCurrentTimeNano()
 
         if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
             mainRender.drawFilters(false)
@@ -250,6 +255,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                     w, h, aspectRatioMode,
                     streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null
                 )
+                surfaceManagerEncoder.setPresentationTime(timestamp)
                 surfaceManagerEncoder.swapBuffer()
             }
         }
@@ -259,6 +265,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             val h = if (muteVideo) 0 else encoderRecordHeight
             if (surfaceManagerEncoderRecord.makeCurrent()) {
                 mainRender.drawScreen(w, h, aspectRatioMode, streamRotation, isStreamVerticalFlip, isStreamHorizontalFlip, null)
+                surfaceManagerEncoderRecord.setPresentationTime(timestamp)
                 surfaceManagerEncoderRecord.swapBuffer()
             }
         }
@@ -273,27 +280,33 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun addMediaCodecSurface(surface: Surface) {
+      executor?.submit {
         if (surfaceManager.isReady) {
-            surfaceManagerEncoder.release()
-            surfaceManagerEncoder.eglSetup(surface, surfaceManager)
+          surfaceManagerEncoder.release()
+          surfaceManagerEncoder.eglSetup(surface, surfaceManager)
         }
+      }
     }
 
     override fun removeMediaCodecSurface() {
-        threadQueue.clear()
+      executor?.submit {
         surfaceManagerEncoder.release()
+      }
     }
 
     override fun addMediaCodecRecordSurface(surface: Surface) {
+      executor?.submit {
         if (surfaceManager.isReady) {
-            surfaceManagerEncoderRecord.release()
-            surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
+          surfaceManagerEncoderRecord.release()
+          surfaceManagerEncoderRecord.eglSetup(surface, surfaceManager)
         }
+      }
     }
 
     override fun removeMediaCodecRecordSurface() {
-        threadQueue.clear()
+      executor?.submit {
         surfaceManagerEncoderRecord.release()
+      }
     }
 
     override fun start() {
@@ -301,6 +314,9 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
         executor?.shutdownNow()
         executor = null
         executor = newSingleThreadExecutor(threadQueue)
+        surfaceHandlerThread?.quitSafely()
+        surfaceHandlerThread = HandlerThread("OpenGlViewHandler")
+        surfaceHandlerThread?.start()
         executor?.secureSubmit {
             surfaceManager.release()
             surfaceManager.eglSetup(holder.surface)
@@ -309,7 +325,12 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
             surfaceManager.makeCurrent()
             mainRender.initGl(context, encoderWidth, encoderHeight, encoderWidth, encoderHeight)
             running.set(true)
-            mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+              val surfaceHandler = surfaceHandlerThread?.looper?.let { Handler(it) }
+              mainRender.getSurfaceTexture().setOnFrameAvailableListener(this, surfaceHandler)
+            } else {
+              mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
+            }
             forceRenderer.start {
                 executor?.execute {
                     try {
@@ -324,10 +345,19 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
 
     override fun stop() {
         running.set(false)
-        threadQueue.clear()
-        executor?.shutdownNow()
-        executor = null
         forceRenderer.stop()
+        surfaceHandlerThread?.quitSafely()
+        surfaceHandlerThread = null
+        threadQueue.clear()
+        val executor = this.executor
+        if (executor != null) {
+            executor.secureSubmit(100) { releaseSurfaceManagers() }
+            executor.shutdownNow()
+            this.executor = null
+        } else releaseSurfaceManagers()
+    }
+
+    private fun releaseSurfaceManagers() {
         surfaceManagerPhoto.release()
         surfaceManagerEncoder.release()
         surfaceManagerEncoderRecord.release()

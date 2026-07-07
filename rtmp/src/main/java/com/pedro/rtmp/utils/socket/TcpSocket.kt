@@ -29,10 +29,12 @@ import javax.net.ssl.TrustManager
  */
 class TcpSocket(
   type: SocketType,
-  host: String, port: Int, secured: Boolean, certificates: TrustManager?
+  host: String, port: Int, secured: Boolean,
+  timeout: Long, hostVerification: Boolean,
+  certificates: TrustManager?
 ): RtmpSocket() {
 
-  private val socket = StreamSocket.createTcpSocket(type, host, port, secured, certificates)
+  private val socket = StreamSocket.createTcpSocket(type, host, port, secured, timeout, hostVerification, certificates)
 
   override suspend fun flush(isPacket: Boolean) {
     socket.flush()
@@ -78,7 +80,7 @@ class TcpSocket(
     socket.write(b.toUInt32LittleEndian())
   }
 
-  override suspend fun read(): Int = socket.read(1)[0].toInt()
+  override suspend fun read(): Int = socket.read(1)[0].toInt() and 0xff
 
   override suspend fun readUInt16(): Int = socket.read(2).toUInt16()
 

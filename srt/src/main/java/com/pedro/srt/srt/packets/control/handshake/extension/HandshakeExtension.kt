@@ -42,11 +42,12 @@ data class HandshakeExtension(
     buffer.writeUInt32(flags)
     buffer.writeUInt16(receiverDelay)
     buffer.writeUInt16(senderDelay)
-
-    buffer.writeUInt16(ExtensionType.SRT_CMD_SID.value)
-    val data = fixPathData(path.toByteArray(Charsets.UTF_8))
-    buffer.writeUInt16(data.size / 4)
-    buffer.write(data)
+    if (path.isNotEmpty()) {
+      buffer.writeUInt16(ExtensionType.SRT_CMD_SID.value)
+      val data = fixPathData(path.toByteArray(Charsets.UTF_8))
+      buffer.writeUInt16(data.size / 4)
+      buffer.write(data)
+    }
     //encrypted info
     if (encryptInfo != null) {
       buffer.writeUInt16(ExtensionType.SRT_CMD_KM_REQ.value)

@@ -25,7 +25,7 @@ import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import androidx.media3.exoplayer.MediaExtractorCompat
+import androidx.media3.inspector.MediaExtractorCompat
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.getIntegerSafe
 import com.pedro.common.validMessage
@@ -96,7 +96,7 @@ class Media3Extractor(private val context: Context): Extractor {
 
   override fun advance() = mediaExtractor.advance()
 
-  override fun getTimeStamp() = try { mediaExtractor.sampleTime } catch (e: Exception) { 0 }
+  override fun getTimeStamp() = try { mediaExtractor.sampleTime } catch (_: Exception) { 0 }
 
   override fun getSleepTime(ts: Long): Long {
     val extractorTs = max(0, getTimeStamp())

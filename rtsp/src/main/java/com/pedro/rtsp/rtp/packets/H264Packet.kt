@@ -16,36 +16,37 @@
 
 package com.pedro.rtsp.rtp.packets
 
-import android.util.Log
+import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
-import com.pedro.common.toByteArray
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.getVideoStartCodeSize
+import com.pedro.rtsp.utils.getData
 import java.nio.ByteBuffer
 import kotlin.experimental.and
+import kotlin.experimental.or
 
 /**
  * Created by pedro on 27/11/18.
  *
  * RFC 3984
  */
-class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
-  RtpConstants.payloadType + RtpConstants.trackVideo
+class H264Packet(track: Int): BasePacket(
+  RtpConstants.clockVideoFrequency,
+  RtpConstants.payloadType + track
 ) {
 
-  private var stapA: ByteArray? = null
-  private var sendKeyFrame = false
-  private var sps: ByteArray? = null
-  private var pps: ByteArray? = null
+  private var sps: ByteBuffer? = null
+  private var pps: ByteBuffer? = null
 
   init {
-    channelIdentifier = RtpConstants.trackVideo
+    channelIdentifier = track
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
-    setSpsPps(sps.toByteArray(), pps.toByteArray())
+    this.sps = ByteBuffer.wrap(sps.getData())
+    this.pps = ByteBuffer.wrap(pps.getData())
   }
 
   override suspend fun createAndSendPacket(
@@ -55,126 +56,67 @@ class H264Packet: BasePacket(RtpConstants.clockVideoFrequency,
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     // We read a NAL units from ByteBuffer and we send them
     // NAL units are preceded with 0x00000001
-    val header = ByteArray(getHeaderSize(fixedBuffer) + 1)
-    if (header.size == 1) return //invalid buffer or waiting for sps/pps
     fixedBuffer.rewind()
-    fixedBuffer.get(header, 0, header.size)
+    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H264, false)
+    if (nals.isEmpty()) return
+
     val ts = mediaFrame.info.timestamp * 1000L
-    val naluLength = fixedBuffer.remaining()
-    val type: Int = (header[header.size - 1] and 0x1F).toInt()
     val frames = mutableListOf<RtpFrame>()
-    if (type == RtpConstants.IDR || mediaFrame.info.isKeyFrame) {
-      stapA?.let {
-        val buffer = getBuffer(it.size + RtpConstants.RTP_HEADER_LENGTH)
-        val rtpTs = updateTimeStamp(buffer, ts)
-        markPacket(buffer) //mark end frame
-        System.arraycopy(it, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, it.size)
-        updateSeq(buffer)
-        val rtpFrame = RtpFrame(buffer, rtpTs, it.size + RtpConstants.RTP_HEADER_LENGTH, channelIdentifier)
-        frames.add(rtpFrame)
-        sendKeyFrame = true
-      } ?: run {
-        Log.i(TAG, "can't create key frame because setSpsPps was not called")
+    if (mediaFrame.info.isKeyFrame) {
+      val sps = this.sps
+      val pps = this.pps
+      if (sps != null && pps != null) {
+        if (!nals.contains(pps)) nals.add(0, pps.duplicate())
+        if (!nals.contains(sps)) nals.add(0, sps.duplicate())
       }
     }
-    if (sendKeyFrame) {
+    nals.forEachIndexed { index, data ->
+      val nalType = data.get()
+      val nalSize = data.remaining()
       // Small NAL unit => Single NAL unit
-      if (naluLength <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1) {
-        val buffer = getBuffer(naluLength + RtpConstants.RTP_HEADER_LENGTH + 1)
-        buffer[RtpConstants.RTP_HEADER_LENGTH] = header[header.size - 1]
-        fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, naluLength)
+      if (nalSize <= maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()) {
+        val buffer = getBuffer(nalSize + RtpConstants.RTP_HEADER_LENGTH + 1 + encryptSize())
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = nalType
+        data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, nalSize)
         val rtpTs = updateTimeStamp(buffer, ts)
-        markPacket(buffer) //mark end frame
+        if (index == nals.size - 1) markPacket(buffer) //mark end frame
         updateSeq(buffer)
+        encryptPacket(buffer)
         val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
         frames.add(rtpFrame)
       } else {
         // Set FU-A header
-        header[1] = header[header.size - 1] and 0x1F // FU header type
-        header[1] = header[1].plus(0x80).toByte()  // set start bit to 1
+        val fuHeader = nalType and 0x1F // FU header type
         // Set FU-A indicator
-        header[0] = header[header.size - 1] and 0x60 and 0xFF.toByte() // FU indicator NRI
-        header[0] = header[0].plus(28).toByte()
+        val fuIndicator = (nalType and 0x60).plus(28).toByte() // FU indicator NRI
+
         var sum = 0
-        while (sum < naluLength) {
-          val length = if (naluLength - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2) {
-            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2
+        while (sum < nalSize) {
+          val length = if (nalSize - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 - encryptSize()) {
+            maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 2 - encryptSize()
           } else {
-            fixedBuffer.remaining()
+            data.remaining()
           }
-          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2)
-          buffer[RtpConstants.RTP_HEADER_LENGTH] = header[0]
-          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = header[1]
+          val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 2 + encryptSize())
+          buffer[RtpConstants.RTP_HEADER_LENGTH] = fuIndicator
+          // Switch start bit
+          buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = if (sum > 0) fuHeader else (fuHeader or 0x80.toByte())
           val rtpTs = updateTimeStamp(buffer, ts)
-          fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
+          data.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 2, length)
           sum += length
           // Last packet before next NAL
-          if (sum >= naluLength) {
+          if (sum >= nalSize) {
             // End bit on
             buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = buffer[RtpConstants.RTP_HEADER_LENGTH + 1].plus(0x40).toByte()
-            markPacket(buffer) //mark end frame
+            if (index == nals.size - 1) markPacket(buffer) //mark end frame
           }
           updateSeq(buffer)
+          encryptPacket(buffer)
           val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
           frames.add(rtpFrame)
-          // Switch start bit
-          header[1] = header[1] and 0x7F
         }
       }
-    } else {
-      Log.i(TAG, "waiting for keyframe")
     }
     if (frames.isNotEmpty()) callback(frames)
-  }
-
-  private fun setSpsPps(sps: ByteArray, pps: ByteArray) {
-    this.sps = sps
-    this.pps = pps
-    stapA = ByteArray(sps.size + pps.size + 5)
-    stapA?.let {
-      // STAP-A NAL header is 24
-      it[0] = 24
-
-      // Write NALU 1 size into the array (NALU 1 is the SPS).
-      it[1] = (sps.size shr 8).toByte()
-      it[2] = (sps.size and 0xFF).toByte()
-
-      // Write NALU 2 size into the array (NALU 2 is the PPS).
-      it[sps.size + 3] = (pps.size shr 8).toByte()
-      it[sps.size + 4] = (pps.size and 0xFF).toByte()
-
-      // Write NALU 1 into the array, then write NALU 2 into the array.
-      System.arraycopy(sps, 0, it, 3, sps.size)
-      System.arraycopy(pps, 0, it, 5 + sps.size, pps.size)
-    }
-  }
-
-  private fun getHeaderSize(byteBuffer: ByteBuffer): Int {
-    if (byteBuffer.remaining() < 4) return 0
-
-    val sps = this.sps
-    val pps = this.pps
-    if (sps != null && pps != null) {
-      val startCodeSize = byteBuffer.getVideoStartCodeSize()
-      if (startCodeSize == 0) return 0
-      val startCode = ByteArray(startCodeSize) { 0x00 }
-      startCode[startCodeSize - 1] = 0x01
-      val avcHeader = startCode.plus(sps).plus(startCode).plus(pps).plus(startCode)
-      if (byteBuffer.remaining() < avcHeader.size) return startCodeSize
-
-      val possibleAvcHeader = ByteArray(avcHeader.size)
-      byteBuffer.get(possibleAvcHeader, 0, possibleAvcHeader.size)
-      return if (avcHeader.contentEquals(possibleAvcHeader)) {
-        avcHeader.size
-      } else {
-        startCodeSize
-      }
-    }
-    return 0
-  }
-
-  override fun reset() {
-    super.reset()
-    sendKeyFrame = false
   }
 }

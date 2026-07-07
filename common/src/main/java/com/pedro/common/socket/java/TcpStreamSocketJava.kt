@@ -1,5 +1,6 @@
 package com.pedro.common.socket.java
 
+import android.os.Build
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
@@ -22,9 +23,7 @@ class TcpStreamSocketJava(
             try {
                 val context = SSLContext.getInstance("TLS")
                 context.init(null, certificates?.let { arrayOf(it) }, SecureRandom())
-                val socket = context.socketFactory.createSocket()
-                if (socket is SSLSocket) socket.enabledProtocols = arrayOf("TLSv1.1", "TLSv1.2")
-                socket
+                context.socketFactory.createSocket()
             } catch (e: GeneralSecurityException) {
                 throw IOException("Create SSL socket failed: ${e.message}")
             }
@@ -32,6 +31,12 @@ class TcpStreamSocketJava(
         val socketAddress: SocketAddress = InetSocketAddress(host, port)
         socket.connect(socketAddress, timeout.toInt())
         socket.soTimeout = timeout.toInt()
+        if (hostVerification && socket is SSLSocket && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            socket.sslParameters = socket.sslParameters.apply {
+                endpointIdentificationAlgorithm = "HTTPS"
+            }
+            socket.startHandshake()
+        }
         return socket
     }
 }

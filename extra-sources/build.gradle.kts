@@ -1,17 +1,16 @@
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.jetbrains.kotlin)
     alias(libs.plugins.jetbrains.dokka)
     `maven-publish`
 }
 
 android {
     namespace = "com.pedro.extrasources"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 21
-        lint.targetSdk = 36
+        lint.targetSdk = 37
     }
     buildTypes {
         release {
@@ -22,12 +21,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlin {
-        jvmToolchain(17)
-    }
     publishing {
         singleVariant("release")
     }
+}
+
+kotlin {
+    jvmToolchain(17)
 }
 
 afterEvaluate {
@@ -52,7 +52,7 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.bundles.androidx.camera)
     implementation(libs.uvcandroid)
-    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.inspector)
     testImplementation(libs.junit)
     api(project(":encoder"))
 }

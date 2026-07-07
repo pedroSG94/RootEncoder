@@ -45,9 +45,6 @@ public abstract class BaseRenderOffScreen {
 
   protected RenderHandler renderHandler = new RenderHandler();
 
-  protected int width;
-  protected int height;
-
   public abstract void initGl(int width, int height, Context context, int previewWidth,
       int previewHeight);
 
