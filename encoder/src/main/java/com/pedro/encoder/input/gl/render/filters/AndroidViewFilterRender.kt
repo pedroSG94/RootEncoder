@@ -28,6 +28,7 @@ import android.os.Build
 import android.view.Surface
 import android.view.View
 import androidx.annotation.RequiresApi
+import com.pedro.common.TimeUtils
 import com.pedro.encoder.R
 import com.pedro.encoder.input.gl.AndroidViewSprite
 import com.pedro.encoder.utils.gl.GlUtil
@@ -36,6 +37,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.nio.ByteBuffer
@@ -79,8 +81,6 @@ class AndroidViewFilterRender : BaseFilterRender() {
     }
   private var surfaceTexture: SurfaceTexture? = null
   private var surface: Surface? = null
-  @Volatile
-  private var running = false
   private var job: Job? = null
 
   /**
@@ -90,6 +90,12 @@ class AndroidViewFilterRender : BaseFilterRender() {
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && field
   private val sprite: AndroidViewSprite
   private val frameAvailable = AtomicBoolean(false)
+  @Volatile
+  var targetFps = 30
+    set(value) {
+      if (value <= 0) throw IllegalArgumentException("The targetFps must be at least 1")
+      field = value
+    }
 
   init {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.size * FLOAT_SIZE_BYTES)
@@ -193,13 +199,16 @@ class AndroidViewFilterRender : BaseFilterRender() {
     }
 
   private fun startRender() {
-    running = true
     job = CoroutineScope(Dispatchers.IO).launch {
-      while (running) {
+      while (isActive) {
+        val sleepRate = 1000 / targetFps
+        val startTimestamp = TimeUtils.getCurrentTimeMillis()
+
         val surface = this@AndroidViewFilterRender.surface
         val view = this@AndroidViewFilterRender.view
         if (surface == null || view == null) {
-          delay(10.milliseconds)
+          val sleep = sleepRate - (TimeUtils.getCurrentTimeMillis() - startTimestamp)
+          delay(sleep.milliseconds)
           continue
         }
 
@@ -207,7 +216,8 @@ class AndroidViewFilterRender : BaseFilterRender() {
         try {
           canvas = if (isHardwareMode) surface.lockHardwareCanvas() else surface.lockCanvas(null)
         } catch (_: Exception) {
-          delay(10.milliseconds)
+          val sleep = sleepRate - (TimeUtils.getCurrentTimeMillis() - startTimestamp)
+          delay(sleep.milliseconds)
           continue
         }
 
@@ -230,14 +240,14 @@ class AndroidViewFilterRender : BaseFilterRender() {
           }
         } finally {
           runCatching { surface.unlockCanvasAndPost(canvas) }
-          delay(10.milliseconds)
+          val sleep = sleepRate - (TimeUtils.getCurrentTimeMillis() - startTimestamp)
+          delay(sleep.milliseconds)
         }
       }
     }
   }
 
   private fun stopRender() {
-    running = false
     job?.cancel()
     job = null
     frameAvailable.set(false)
