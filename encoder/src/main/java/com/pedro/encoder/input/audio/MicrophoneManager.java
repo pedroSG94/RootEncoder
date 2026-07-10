@@ -108,7 +108,18 @@ public class MicrophoneManager {
       this.sampleRate = sampleRate;
       channel = isStereo ? AudioFormat.CHANNEL_IN_STEREO : AudioFormat.CHANNEL_IN_MONO;
       getPcmBufferSize(sampleRate, channel);
-      audioRecord = new AudioRecord(audioSource, sampleRate, channel, audioFormat, AudioEncoder.inputSize * 5);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        audioRecord = new AudioRecord.Builder()
+            .setAudioFormat(new AudioFormat.Builder().setEncoding(audioFormat)
+                .setSampleRate(sampleRate)
+                .setChannelMask(channel)
+                .build())
+            .setAudioSource(audioSource)
+            .setBufferSizeInBytes(AudioEncoder.inputSize * 5)
+            .build();
+      } else {
+        audioRecord = new AudioRecord(audioSource, sampleRate, channel, audioFormat, AudioEncoder.inputSize * 5);
+      }
       audioPostProcessEffect = new AudioPostProcessEffect(audioRecord.getAudioSessionId());
       if (echoCanceler) audioPostProcessEffect.enableEchoCanceler();
       if (noiseSuppressor) audioPostProcessEffect.enableNoiseSuppressor();
@@ -119,7 +130,7 @@ public class MicrophoneManager {
       Log.i(TAG, "Microphone created, " + sampleRate + "hz, " + chl);
       mode = Mode.MICROPHONE;
       created = true;
-    } catch (IllegalArgumentException e) {
+    } catch (Exception e) {
       Log.e(TAG, "create microphone error", e);
     }
     return created;
@@ -140,32 +151,31 @@ public class MicrophoneManager {
   public boolean createInternalMicrophone(AudioPlaybackCaptureConfiguration config, int sampleRate,
       boolean isStereo, boolean echoCanceler, boolean noiseSuppressor) {
     try {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        this.sampleRate = sampleRate;
-        channel = isStereo ? AudioFormat.CHANNEL_IN_STEREO : AudioFormat.CHANNEL_IN_MONO;
-        getPcmBufferSize(sampleRate, channel);
-        audioRecordDevice = new AudioRecord.Builder()
-                .setAudioPlaybackCaptureConfig(config)
-                .setAudioFormat(new AudioFormat.Builder().setEncoding(audioFormat)
-                  .setSampleRate(sampleRate)
-                  .setChannelMask(channel)
-                  .build())
-                .setBufferSizeInBytes(AudioEncoder.inputSize * 5)
-                .build();
-        audioPostProcessEffectDevice = new AudioPostProcessEffect(audioRecordDevice.getAudioSessionId());
-        if (echoCanceler) audioPostProcessEffectDevice.enableEchoCanceler();
-        if (noiseSuppressor) audioPostProcessEffectDevice.enableNoiseSuppressor();
-        String chl = (isStereo) ? "Stereo" : "Mono";
-        if (audioRecordDevice.getState() != AudioRecord.STATE_INITIALIZED) {
-          throw new IllegalArgumentException("Some parameters specified are not valid");
-        }
-        Log.i(TAG, "Internal microphone created, " + sampleRate + "hz, " + chl);
-        mode = Mode.INTERNAL;
-        created = true;
-      } else {
-        return createMicrophone(sampleRate, isStereo, echoCanceler, noiseSuppressor);
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
+        throw new IllegalStateException("Internal microphone unsupported in this Android version");
       }
-    } catch (IllegalArgumentException e) {
+      this.sampleRate = sampleRate;
+      channel = isStereo ? AudioFormat.CHANNEL_IN_STEREO : AudioFormat.CHANNEL_IN_MONO;
+      getPcmBufferSize(sampleRate, channel);
+      audioRecordDevice = new AudioRecord.Builder()
+          .setAudioPlaybackCaptureConfig(config)
+          .setAudioFormat(new AudioFormat.Builder().setEncoding(audioFormat)
+              .setSampleRate(sampleRate)
+              .setChannelMask(channel)
+              .build())
+          .setBufferSizeInBytes(AudioEncoder.inputSize * 5)
+          .build();
+      audioPostProcessEffectDevice = new AudioPostProcessEffect(audioRecordDevice.getAudioSessionId());
+      if (echoCanceler) audioPostProcessEffectDevice.enableEchoCanceler();
+      if (noiseSuppressor) audioPostProcessEffectDevice.enableNoiseSuppressor();
+      String chl = (isStereo) ? "Stereo" : "Mono";
+      if (audioRecordDevice.getState() != AudioRecord.STATE_INITIALIZED) {
+        throw new IllegalArgumentException("Some parameters specified are not valid");
+      }
+      Log.i(TAG, "Internal microphone created, " + sampleRate + "hz, " + chl);
+      mode = Mode.INTERNAL;
+      created = true;
+    } catch (Exception e) {
       Log.e(TAG, "create microphone error", e);
     }
     return created;
