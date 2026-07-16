@@ -1,1 +1,1 @@
-sourceset_dependencies = '{":rtmp/release":[],":udp/release":[],":library/release":[],":common/release":[],":srt/release":[],":extra-sources/release":[],":rtsp/release":[],":encoder/release":[]}'
+sourceset_dependencies = '{":rtmp/release":[],":udp/release":[],":library/release":[],":common/release":[],":srt/release":[],":extra-sources/release":[],":rtsp/release":[],":encoder/release":[],":whip/release":[]}'

@@ -1,0 +1,734 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>WhipClient</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    RootEncoder
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">2.8.0
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":whip/release">release</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":whip/release" data-filter=":whip/release">
+                                <span class="checkbox--icon"></span>
+                                release
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    RootEncoder
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="whip::com.pedro.whip/WhipClient///PointingToDeclaration//1948863552">
+  <div class="breadcrumbs"><a href="../../index.html">whip</a><span class="delimiter">/</span><a href="../index.html">com.pedro.whip</a><span class="delimiter">/</span><span class="current">WhipClient</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Whip</span><wbr><span><span>Client</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">WhipClient</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">connectChecker<span class="token operator">: </span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a></span></span><span class="token punctuation">)</span></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="tableheader">Constructors</h2>
+        <div class="table"><a data-name="1361915341%2FConstructors%2F1948863552" anchor-label="WhipClient" id="1361915341%2FConstructors%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-togglable="CONSTRUCTOR" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-whip-client.html"><span>Whip</span><wbr><span><span>Client</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1361915341%2FConstructors%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">connectChecker<span class="token operator">: </span><a href="../../../common/com.pedro.common/-connect-checker/index.html">ConnectChecker</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="1059589038%2FProperties%2F1948863552" anchor-label="bytesSend" id="1059589038%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="bytes-send.html"><span>bytes</span><wbr><span><span>Send</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1059589038%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="bytes-send.html">bytesSend</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1326260638%2FProperties%2F1948863552" anchor-label="cacheSize" id="1326260638%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="cache-size.html"><span>cache</span><wbr><span><span>Size</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1326260638%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="cache-size.html">cacheSize</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1715541923%2FProperties%2F1948863552" anchor-label="droppedAudioFrames" id="-1715541923%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dropped-audio-frames.html"><span>dropped</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1715541923%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="dropped-audio-frames.html">droppedAudioFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1499896600%2FProperties%2F1948863552" anchor-label="droppedVideoFrames" id="1499896600%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="dropped-video-frames.html"><span>dropped</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1499896600%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="dropped-video-frames.html">droppedVideoFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1197844105%2FProperties%2F1948863552" anchor-label="isStreaming" id="1197844105%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-streaming.html"><span>is</span><wbr><span><span>Streaming</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1197844105%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-volatile/index.html"><span class="token annotation builtin">Volatile</span></a></div></div><span class="token keyword">var </span><a href="is-streaming.html">isStreaming</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="673552125%2FProperties%2F1948863552" anchor-label="sentAudioFrames" id="673552125%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sent-audio-frames.html"><span>sent</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="673552125%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="sent-audio-frames.html">sentAudioFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-405976648%2FProperties%2F1948863552" anchor-label="sentVideoFrames" id="-405976648%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="sent-video-frames.html"><span>sent</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-405976648%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="sent-video-frames.html">sentVideoFrames</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1707253299%2FProperties%2F1948863552" anchor-label="socketTimeout" id="1707253299%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="socket-timeout.html"><span>socket</span><wbr><span><span>Timeout</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1707253299%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="socket-timeout.html">socketTimeout</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1816671340%2FProperties%2F1948863552" anchor-label="socketType" id="1816671340%2FProperties%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="socket-type.html"><span>socket</span><wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1816671340%2FProperties%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="socket-type.html">socketType</a><span class="token operator">: </span><a href="../../../common/com.pedro.common.socket.base/-socket-type/index.html">SocketType</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="1051962143%2FFunctions%2F1948863552" anchor-label="addCertificates" id="1051962143%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="add-certificates.html"><span>add</span><wbr><span><span>Certificates</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1051962143%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="add-certificates.html"><span class="token function">addCertificates</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">certificates<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/javax/net/ssl/TrustManager.html">TrustManager</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2088675716%2FFunctions%2F1948863552" anchor-label="clearCache" id="2088675716%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clear-cache.html"><span>clear</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2088675716%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clear-cache.html"><span class="token function">clearCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1840753848%2FFunctions%2F1948863552" anchor-label="connect" id="1840753848%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="connect.html"><span><span>connect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1840753848%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="connect.html"><span class="token function">connect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div><div class="symbol monospace"><span class="token keyword">fun </span><a href="connect.html"><span class="token function">connect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">url<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">isRetry<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-196963331%2FFunctions%2F1948863552" anchor-label="disconnect" id="-196963331%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="disconnect.html"><span><span>disconnect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-196963331%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="disconnect.html"><span class="token function">disconnect</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1149732860%2FFunctions%2F1948863552" anchor-label="getBitrateExponentialFactor" id="-1149732860%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-bitrate-exponential-factor.html"><span>get</span><wbr><span>Bitrate</span><wbr><span>Exponential</span><wbr><span><span>Factor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1149732860%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-bitrate-exponential-factor.html"><span class="token function">getBitrateExponentialFactor</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></div><div class="brief "><p class="paragraph">Get the exponential factor used to calculate the bitrate. Default 1f</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-260204722%2FFunctions%2F1948863552" anchor-label="getItemsInCache" id="-260204722%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-items-in-cache.html"><span>get</span><wbr><span>Items</span><wbr><span>In</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-260204722%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-items-in-cache.html"><span class="token function">getItemsInCache</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="119869586%2FFunctions%2F1948863552" anchor-label="handleMessages" id="119869586%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="handle-messages.html"><span>handle</span><wbr><span><span>Messages</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="119869586%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">suspend </span><span class="token keyword">fun </span><a href="handle-messages.html"><span class="token function">handleMessages</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">socket<span class="token operator">: </span><a href="../../../common/com.pedro.common.socket.base/-udp-stream-socket/index.html">UdpStreamSocket</a><span class="token punctuation">, </span></span><span class="parameter ">host<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span></span><span class="parameter ">port<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">dtlsTransport<span class="token operator">: </span><a href="../../com.pedro.whip.dtls/-dtls-transport/index.html">DtlsTransport</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1471999183%2FFunctions%2F1948863552" anchor-label="hasCongestion" id="-1471999183%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="has-congestion.html"><span>has</span><wbr><span><span>Congestion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1471999183%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-overloads/index.html"><span class="token annotation builtin">JvmOverloads</span></a></div></div><span class="token keyword">fun </span><a href="has-congestion.html"><span class="token function">hasCongestion</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">percentUsed<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a><span class="token operator"> = </span><span class="token constant">20.0f</span></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1267742031%2FFunctions%2F1948863552" anchor-label="reConnect" id="1267742031%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="re-connect.html"><span>re</span><wbr><span><span>Connect</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1267742031%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.jvm/-jvm-overloads/index.html"><span class="token annotation builtin">JvmOverloads</span></a></div></div><span class="token keyword">fun </span><a href="re-connect.html"><span class="token function">reConnect</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">delay<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a><span class="token punctuation">, </span></span><span class="parameter ">backupUrl<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="405692821%2FFunctions%2F1948863552" anchor-label="resetBytesSend" id="405692821%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-bytes-send.html"><span>reset</span><wbr><span>Bytes</span><wbr><span><span>Send</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="405692821%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-bytes-send.html"><span class="token function">resetBytesSend</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1481459286%2FFunctions%2F1948863552" anchor-label="resetDroppedAudioFrames" id="1481459286%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-dropped-audio-frames.html"><span>reset</span><wbr><span>Dropped</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1481459286%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-dropped-audio-frames.html"><span class="token function">resetDroppedAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="401930513%2FFunctions%2F1948863552" anchor-label="resetDroppedVideoFrames" id="401930513%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-dropped-video-frames.html"><span>reset</span><wbr><span>Dropped</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="401930513%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-dropped-video-frames.html"><span class="token function">resetDroppedVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-770202716%2FFunctions%2F1948863552" anchor-label="resetSentAudioFrames" id="-770202716%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-sent-audio-frames.html"><span>reset</span><wbr><span>Sent</span><wbr><span>Audio</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-770202716%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-sent-audio-frames.html"><span class="token function">resetSentAudioFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1849731489%2FFunctions%2F1948863552" anchor-label="resetSentVideoFrames" id="-1849731489%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="reset-sent-video-frames.html"><span>reset</span><wbr><span>Sent</span><wbr><span>Video</span><wbr><span><span>Frames</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1849731489%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="reset-sent-video-frames.html"><span class="token function">resetSentVideoFrames</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1308446801%2FFunctions%2F1948863552" anchor-label="resizeCache" id="1308446801%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="resize-cache.html"><span>resize</span><wbr><span><span>Cache</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1308446801%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="resize-cache.html"><span class="token function">resizeCache</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">newSize<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1939898461%2FFunctions%2F1948863552" anchor-label="sendAudio" id="-1939898461%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="send-audio.html"><span>send</span><wbr><span><span>Audio</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1939898461%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="send-audio.html"><span class="token function">sendAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">audioBuffer<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">info<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/media/MediaCodec.BufferInfo.html">MediaCodec.BufferInfo</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-2012846520%2FFunctions%2F1948863552" anchor-label="sendVideo" id="-2012846520%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="send-video.html"><span>send</span><wbr><span><span>Video</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-2012846520%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="send-video.html"><span class="token function">sendVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">videoBuffer<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">info<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/media/MediaCodec.BufferInfo.html">MediaCodec.BufferInfo</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="310297359%2FFunctions%2F1948863552" anchor-label="setAudioCodec" id="310297359%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-audio-codec.html"><span>set</span><wbr><span>Audio</span><wbr><span><span>Codec</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="310297359%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-audio-codec.html"><span class="token function">setAudioCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">audioCodec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-audio-codec/index.html">AudioCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1233364721%2FFunctions%2F1948863552" anchor-label="setAudioInfo" id="-1233364721%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-audio-info.html"><span>set</span><wbr><span>Audio</span><wbr><span><span>Info</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1233364721%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-audio-info.html"><span class="token function">setAudioInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">isStereo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-7294047%2FFunctions%2F1948863552" anchor-label="setAuthorization" id="-7294047%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-authorization.html"><span>set</span><wbr><span><span>Authorization</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-7294047%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-authorization.html"><span class="token function">setAuthorization</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">token<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="70688265%2FFunctions%2F1948863552" anchor-label="setBitrateExponentialFactor" id="70688265%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-bitrate-exponential-factor.html"><span>set</span><wbr><span>Bitrate</span><wbr><span>Exponential</span><wbr><span><span>Factor</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="70688265%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-bitrate-exponential-factor.html"><span class="token function">setBitrateExponentialFactor</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">factor<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-float/index.html">Float</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="278834498%2FFunctions%2F1948863552" anchor-label="setCheckServerAlive" id="278834498%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-check-server-alive.html"><span>set</span><wbr><span>Check</span><wbr><span>Server</span><wbr><span><span>Alive</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="278834498%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-check-server-alive.html"><span class="token function">setCheckServerAlive</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enabled<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Check periodically if server is alive using Echo protocol.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1550730049%2FFunctions%2F1948863552" anchor-label="setDelay" id="1550730049%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-delay.html"><span>set</span><wbr><span><span>Delay</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1550730049%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-delay.html"><span class="token function">setDelay</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">millis<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-long/index.html">Long</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1280208661%2FFunctions%2F1948863552" anchor-label="setLogs" id="1280208661%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-logs.html"><span>set</span><wbr><span><span>Logs</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1280208661%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-logs.html"><span class="token function">setLogs</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">enable<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1886184618%2FFunctions%2F1948863552" anchor-label="setOnlyAudio" id="-1886184618%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-only-audio.html"><span>set</span><wbr><span>Only</span><wbr><span><span>Audio</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1886184618%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-only-audio.html"><span class="token function">setOnlyAudio</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyAudio<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before connect</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1687821551%2FFunctions%2F1948863552" anchor-label="setOnlyVideo" id="-1687821551%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-only-video.html"><span>set</span><wbr><span>Only</span><wbr><span><span>Video</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1687821551%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-only-video.html"><span class="token function">setOnlyVideo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">onlyVideo<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Must be called before connect</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1310280045%2FFunctions%2F1948863552" anchor-label="setReTries" id="-1310280045%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-re-tries.html"><span>set</span><wbr><span>Re</span><wbr><span><span>Tries</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1310280045%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-re-tries.html"><span class="token function">setReTries</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reTries<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="687862063%2FFunctions%2F1948863552" anchor-label="setVideoCodec" id="687862063%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-video-codec.html"><span>set</span><wbr><span>Video</span><wbr><span><span>Codec</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="687862063%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-video-codec.html"><span class="token function">setVideoCodec</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">videoCodec<span class="token operator">: </span><a href="../../../common/com.pedro.common/-video-codec/index.html">VideoCodec</a></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1617913438%2FFunctions%2F1948863552" anchor-label="setVideoInfo" id="-1617913438%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="set-video-info.html"><span>set</span><wbr><span>Video</span><wbr><span><span>Info</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1617913438%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-video-info.html"><span class="token function">setVideoInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token punctuation">, </span></span><span class="parameter ">pps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token operator">?</span><span class="token punctuation">, </span></span><span class="parameter ">vps<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/java/nio/ByteBuffer.html">ByteBuffer</a><span class="token operator">?</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2071903672%2FFunctions%2F1948863552" anchor-label="shouldRetry" id="2071903672%2FFunctions%2F1948863552" data-filterable-set=":whip/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":whip/release" data-filterable-set=":whip/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="should-retry.html"><span>should</span><wbr><span><span>Retry</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2071903672%2FFunctions%2F1948863552"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":whip/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="should-retry.html"><span class="token function">shouldRetry</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">reason<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
