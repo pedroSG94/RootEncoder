@@ -96,6 +96,8 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         private set
     var isAutoExposureEnabled: Boolean = false
         private set
+    var isExposureLockEnabled: Boolean = false
+        private set
     var isAutoWhiteBalanceEnabled: Boolean = true
         private set
     var isRunning: Boolean = false
@@ -462,6 +464,30 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         isAutoExposureEnabled = false
     }
 
+    /**
+     * Lock auto exposure to the current value. The camera will stop adjusting exposure
+     * automatically (useful to avoid exposure changes produced by faces or lighting changes).
+     * @return true if success, false if fail (not supported or called before start camera)
+     */
+    fun enableExposureLock(): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val available = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_LOCK_AVAILABLE) ?: return false
+            if (!available) return false
+        }
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_LOCK, true)
+        isExposureLockEnabled = applyRequest(builderInputSurface)
+        return isExposureLockEnabled
+    }
+
+    fun disableExposureLock() {
+        val builderInputSurface = this.builderInputSurface ?: return
+        builderInputSurface.set(CaptureRequest.CONTROL_AE_LOCK, false)
+        applyRequest(builderInputSurface)
+        isExposureLockEnabled = false
+    }
+
     fun enableVideoStabilization(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
@@ -718,9 +744,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         this.faceDetectorCallback = faceDetectorCallback
         faceDetectionEnabled = true
         faceDetectionMode = fd.toList().max()
-        if (faceDetectionEnabled) {
-            builderInputSurface.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, faceDetectionMode)
-        }
+        builderInputSurface.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, faceDetectionMode)
         applyRequest(builderInputSurface)
         return true
     }
@@ -735,11 +759,14 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             faceDetectorCallback = null
             faceDetectionEnabled = false
             faceDetectionMode = 0
-            builderInputSurface?.let { applyRequest(it) }
+            builderInputSurface?.let {
+                it.set(CaptureRequest.STATISTICS_FACE_DETECT_MODE, CaptureRequest.STATISTICS_FACE_DETECT_MODE_OFF)
+                applyRequest(it)
+            }
         }
     }
 
-    fun isFaceDetectionEnabled() = faceDetectorCallback != null
+    fun isFaceDetectionEnabled() = faceDetectionEnabled
 
     fun setCameraCallbacks(cameraCallbacks: CameraCallbacks?) {
         this.cameraCallbacks = cameraCallbacks

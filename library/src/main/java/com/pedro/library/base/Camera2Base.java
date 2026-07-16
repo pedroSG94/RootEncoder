@@ -189,6 +189,23 @@ public abstract class Camera2Base {
         return cameraManager.isAutoExposureEnabled();
     }
 
+    /**
+     * Lock auto exposure to the current value. The camera will stop adjusting exposure
+     * automatically (useful to avoid exposure changes produced by faces or lighting changes).
+     * @return true if success, false if fail (not supported or called before start camera)
+     */
+    public boolean enableExposureLock() {
+        return cameraManager.enableExposureLock();
+    }
+
+    public void disableExposureLock() {
+        cameraManager.disableExposureLock();
+    }
+
+    public boolean isExposureLockEnabled() {
+        return cameraManager.isExposureLockEnabled();
+    }
+
     public void setDynamicFps(boolean enabled) {
         cameraManager.setDynamicFps(enabled);
     }

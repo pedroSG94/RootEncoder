@@ -220,6 +220,21 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun isAutoExposureEnabled() = camera.isAutoExposureEnabled
 
+  /**
+   * Lock auto exposure to the current value. The camera will stop adjusting exposure
+   * automatically (useful to avoid exposure changes produced by faces or lighting changes).
+   * @return true if success, false if fail (not supported or called before start camera)
+   */
+  fun enableExposureLock(): Boolean {
+    return if (isRunning()) camera.enableExposureLock() else false
+  }
+
+  fun disableExposureLock() {
+    if (isRunning()) camera.disableExposureLock()
+  }
+
+  fun isExposureLockEnabled() = camera.isExposureLockEnabled
+
   @JvmOverloads
   fun addImageListener(
     format: Int,
