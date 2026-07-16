@@ -58,9 +58,9 @@ allprojects {
   }
 }
 dependencies {
-  implementation "com.github.pedroSG94.RootEncoder:library:2.7.5"
+  implementation "com.github.pedroSG94.RootEncoder:library:2.8.0"
   //Optional, allow use CameraXSource and CameraUvcSource 
-  implementation "com.github.pedroSG94.RootEncoder:extra-sources:2.7.5"
+  implementation "com.github.pedroSG94.RootEncoder:extra-sources:2.8.0"
 }
 
 ```
@@ -108,7 +108,7 @@ dependencies {
 
 ### RTMP:
 
-- [X] Get upload bandwidth used.
+- [x] Get upload bandwidth used.
 - [x] RTSP auth (adobe and llnw).
 - [x] AV1, H265 ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)), H264, AAC and G711 support.
 - [x] RTMPS (under TLS)
@@ -118,7 +118,7 @@ dependencies {
 
 ### RTSP:
 
-- [X] Get upload bandwidth used.
+- [x] Get upload bandwidth used.
 - [x] RTMP auth (basic and digest).
 - [x] AV1, H264, H265, AAC, G711 and OPUS support.
 - [x] TCP/UDP.
@@ -126,25 +126,26 @@ dependencies {
 
 ### SRT:
 
-- [X] Get upload bandwidth used.
-- [X] H264, H265, AAC and OPUS support.
-- [X] Resend lost packets
-- [X] Encrypt (AES128, AES192 and AES256)
+- [x] Get upload bandwidth used.
+- [x] H264, H265, AAC and OPUS support.
+- [x] Resend lost packets
+- [x] Encrypt (AES128, AES192 and AES256)
 - [ ] SRT auth.
 
 https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 
 ### UDP:
 
-- [X] Get upload bandwidth used.
-- [X] H264, H265, AAC and OPUS support.
-- [X] Unicast, Multicast and Broadcast support.
-- [X] MPEG2-TS support.
+- [x] Get upload bandwidth used.
+- [x] H264, H265, AAC and OPUS support.
+- [x] Unicast, Multicast and Broadcast support.
+- [x] MPEG2-TS support.
 
 ### WHIP (beta):
 
-- [X] Get upload bandwidth used.
-- [X] H264, H265, AV1, G711 and OPUS support.
+- [x] Get upload bandwidth used.
+- [x] H264, H265, AV1, G711 and OPUS support.
+- [x] WHIP auth (bearer token).
 
 ## Other related projects:
 

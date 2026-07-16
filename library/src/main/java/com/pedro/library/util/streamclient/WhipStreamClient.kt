@@ -135,7 +135,7 @@ class WhipStreamClient(
   }
 
   override fun setSocketTimeout(timeout: Long) {
-    TODO("Not yet implemented")
+    whipClient.socketTimeout = timeout
   }
 
   override fun setDelay(millis: Long) {
