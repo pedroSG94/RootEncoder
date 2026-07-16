@@ -5,6 +5,7 @@ module:common
 com.pedro.common
 com.pedro.common.av1
 com.pedro.common.base
+com.pedro.common.config
 com.pedro.common.frame
 com.pedro.common.nal
 com.pedro.common.socket.base
@@ -45,6 +46,7 @@ com.pedro.library.util
 com.pedro.library.util.streamclient
 com.pedro.library.view
 com.pedro.library.view.preview
+com.pedro.library.whip
 module:rtmp
 com.pedro.rtmp.amf
 com.pedro.rtmp.amf.v0
@@ -87,3 +89,9 @@ com.pedro.srt.utils
 module:udp
 com.pedro.udp
 com.pedro.udp.utils
+module:whip
+com.pedro.whip
+com.pedro.whip.dtls
+com.pedro.whip.utils
+com.pedro.whip.webrtc
+com.pedro.whip.webrtc.stun
