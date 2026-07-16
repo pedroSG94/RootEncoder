@@ -19,7 +19,7 @@ junit = "4.13.2"
 mockito = "6.3.0"
 uvcandroid = "1.0.13"
 media3 = "1.10.1"
-bouncycastle = "1.85.1"
+bouncycastle = "1.84"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
