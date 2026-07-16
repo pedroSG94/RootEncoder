@@ -33,6 +33,7 @@ import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
 import java.io.IOException
+import java.net.DatagramSocket
 import java.nio.ByteBuffer
 import java.util.regex.Pattern
 
@@ -308,5 +309,56 @@ open class CommandsManager {
 
   fun updateTimestamp() {
     timeStamp = TimeUtils.getCurrentTimeNano()
+  }
+
+  fun findFreeClientPorts(): Boolean {
+    return runCatching {
+      val freePorts = findFreeUdpPortPairs()
+      videoClientPorts[0] = freePorts[0]
+      videoClientPorts[1] = freePorts[1]
+      audioClientPorts[0] = freePorts[2]
+      audioClientPorts[1] = freePorts[3]
+      true
+    }.getOrDefault(false)
+  }
+
+  fun findFreeServerPorts(): Boolean {
+    return runCatching {
+      val freePorts = findFreeUdpPortPairs()
+      videoServerPorts[0] = freePorts[0]
+      videoServerPorts[1] = freePorts[1]
+      audioServerPorts[0] = freePorts[2]
+      audioServerPorts[1] = freePorts[3]
+      true
+    }.getOrDefault(false)
+  }
+
+  @Throws(IOException::class)
+  private fun findFreeUdpPortPairs(): IntArray {
+    val reservedSockets = mutableListOf<DatagramSocket>()
+    try {
+      val videoPort = reservePortPair(reservedSockets)
+      val audioPort = reservePortPair(reservedSockets)
+      return intArrayOf(videoPort, videoPort + 1, audioPort, audioPort + 1)
+    } finally {
+      reservedSockets.forEach { runCatching { it.close() } }
+    }
+  }
+
+  //RTP must use an even port and RTCP the next odd port (RFC 3550)
+  @Throws(IOException::class)
+  private fun reservePortPair(reservedSockets: MutableList<DatagramSocket>): Int {
+    repeat(100) {
+      val seed = DatagramSocket(0)
+      val candidate = seed.localPort.let { if (it % 2 == 0) it else it + 1 }
+      seed.close()
+      if (candidate >= 65535) return@repeat
+      try {
+        reservedSockets.add(DatagramSocket(candidate))
+        reservedSockets.add(DatagramSocket(candidate + 1))
+        return candidate
+      } catch (_: IOException) { }
+    }
+    throw IOException("No free UDP port pair available")
   }
 }
