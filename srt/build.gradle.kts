@@ -17,6 +17,10 @@ android {
             isMinifyEnabled = false
         }
     }
+    testOptions {
+        //allow use android classes like Log or SystemClock in integration tests (return 0 instead of crash)
+        unitTests.isReturnDefaultValues = true
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17

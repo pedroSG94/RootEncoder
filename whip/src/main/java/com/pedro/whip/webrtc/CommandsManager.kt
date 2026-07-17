@@ -3,6 +3,7 @@ package com.pedro.whip.webrtc
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
+import com.pedro.common.addressToString
 import com.pedro.common.VideoCodec
 import com.pedro.common.nextBytes
 import com.pedro.common.socket.base.SocketType
@@ -42,6 +43,8 @@ class CommandsManager {
         private set
     var path: String? = null
         private set
+    private val urlHost: String
+        get() = host?.let { if (it.contains(":")) "[$it]" else it } ?: ""
     var token: String? = null
         private set
     private var shouldSendAuth = false
@@ -135,7 +138,7 @@ class CommandsManager {
         val googleStunHost = "stun.l.google.com"
         val googleStunPort = 19302
         val startPort = 5000
-        val hosts = Network.getNetworks(onlyV4 = true).mapNotNull { it.hostAddress }
+        val hosts = Network.getNetworks(onlyV4 = false).map { it.addressToString() }
         return when (gatheringMode) {
           GatheringMode.LOCAL -> getLocalCandidates(hosts, startPort)
           GatheringMode.ALL -> {
@@ -178,7 +181,7 @@ class CommandsManager {
         )
         this.certificate = certificate
         localSdpInfo = SdpInfo(uFrag, uPass, certificate.fingerprint, listOf())
-        val uri = "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
+        val uri = "${if (tlsEnabled) "https" else "http"}://$urlHost:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             put("Content-Type", "application/sdp")
             if (!token.isNullOrEmpty() && sendAuth) put("Authorization", "Bearer $token")
@@ -198,8 +201,8 @@ class CommandsManager {
     fun writeDelete(): RequestResponse {
         val uri = sessionUrl?.let {
             if (it.startsWith("http", true)) it
-            else "${if (tlsEnabled) "https" else "http"}://$host:$port/${it.removePrefix("/")}"
-        } ?: "${if (tlsEnabled) "https" else "http"}://$host:$port/$path"
+            else "${if (tlsEnabled) "https" else "http"}://$urlHost:$port/${it.removePrefix("/")}"
+        } ?: "${if (tlsEnabled) "https" else "http"}://$urlHost:$port/$path"
         val headers = mutableMapOf<String, String>().apply {
             if (!token.isNullOrEmpty() && shouldSendAuth) put("Authorization", "Bearer $token")
         }
@@ -244,9 +247,7 @@ class CommandsManager {
             val isSuccess = result.header.type == HeaderType.SUCCESS
             if (isSuccess) {
                 val xorMappedAddress = result.attributes.find { it.type == AttributeType.XOR_MAPPED_ADDRESS }?.value!!
-                val value = StunAttributeValueParser.readXorMappedAddress(xorMappedAddress, result.header.id)
-                val publicHost = value.split(":")[0]
-                val publicPort = value.split(":")[1].toInt()
+                val (publicHost, publicPort) = StunAttributeValueParser.readXorMappedAddress(xorMappedAddress, result.header.id)
                 val type = CandidateType.SRFLX
                 val priority = calculatePriority(type, 65535L, 1)
                 candidates.add(Candidate(

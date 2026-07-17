@@ -44,7 +44,7 @@ class UrlParser private constructor(
   init {
     val url = uri.toString()
     scheme = uri.scheme
-    host = uri.host
+    host = uri.host.removeSurrounding("[", "]")
     port = if (uri.port < 0) null else uri.port
     path = uri.path.removePrefix("/")
     if (uri.query != null) {
@@ -79,17 +79,22 @@ class UrlParser private constructor(
 
   fun getStreamName(): String = getFullPath().removePrefix(getAppName()).removePrefix("/").removePrefix("?")
 
+  /**
+   * Host ready to be concatenated in a url. IPv6 hosts need to be enclosed in brackets
+   */
+  fun getHostForUrl(): String = if (host.contains(":")) "[$host]" else host
+
   fun getTcUrl(): String {
     val port = if (port != null) ":$port" else ""
     val appName = if (getAppName().isNotEmpty()) "/${getAppName()}" else ""
-    return "$scheme://$host${port}${appName}"
+    return "$scheme://${getHostForUrl()}${port}${appName}"
   }
 
   fun getFullPath(): String {
     val fullPath = "$path${if (query == null) "" else "?$query"}".removePrefix("?")
     if (fullPath.isEmpty()) {
       val port = if (port != null) ":$port" else ""
-      return url.removePrefix("$scheme://$host$port").removePrefix("/")
+      return url.removePrefix("$scheme://${getHostForUrl()}$port").removePrefix("/")
     }
     return fullPath
   }

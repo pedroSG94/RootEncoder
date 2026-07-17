@@ -38,6 +38,7 @@ import java.io.UnsupportedEncodingException
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.MessageDigest
+import java.net.InetAddress
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.util.concurrent.BlockingQueue
@@ -342,4 +343,11 @@ fun ByteBuffer.put(buffer: ByteBuffer, offset: Int, length: Int) {
   buffer.limit(offset + length)
   this.put(buffer)
   buffer.limit(limit)
+}
+
+/**
+ * Numeric IP as text, without reverse DNS lookup and without the IPv6 scope id (fe80::1%wlan0 -> fe80::1)
+ */
+fun InetAddress.addressToString(): String {
+  return (hostAddress ?: hostName).substringBefore("%")
 }

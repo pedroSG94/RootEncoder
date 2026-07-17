@@ -262,6 +262,50 @@ class UrlParserTest {
   }
 
   @Test
+  fun testIpv6Urls() {
+    val url = "rtmp://[::1]:1935/live/stream"
+    val urlParser = UrlParser.parse(url, arrayOf("rtmp"))
+    assertEquals("rtmp", urlParser.scheme)
+    assertEquals("::1", urlParser.host)
+    assertEquals(1935, urlParser.port)
+    assertEquals("live", urlParser.getAppName())
+    assertEquals("stream", urlParser.getStreamName())
+    assertEquals("rtmp://[::1]:1935/live", urlParser.getTcUrl())
+
+    val url1 = "rtsp://[2001:db8::1]/live/test"
+    val urlParser1 = UrlParser.parse(url1, arrayOf("rtsp"))
+    assertEquals("rtsp", urlParser1.scheme)
+    assertEquals("2001:db8::1", urlParser1.host)
+    assertEquals(null, urlParser1.port)
+    assertEquals("live/test", urlParser1.getFullPath())
+
+    val url2 = "srt://[2001:db8::aa:1]:9000?streamid=test/fake"
+    val urlParser2 = UrlParser.parse(url2, arrayOf("srt"))
+    assertEquals("srt", urlParser2.scheme)
+    assertEquals("2001:db8::aa:1", urlParser2.host)
+    assertEquals(9000, urlParser2.port)
+    assertEquals("test/fake", urlParser2.getQuery("streamid"))
+
+    val url3 = "rtmp://[::1]:1234?live"
+    val urlParser3 = UrlParser.parse(url3, arrayOf("rtmp"))
+    assertEquals("::1", urlParser3.host)
+    assertEquals(1234, urlParser3.port)
+    assertEquals("live", urlParser3.getAppName())
+    assertEquals("rtmp://[::1]:1234/live", urlParser3.getTcUrl())
+
+    val url4 = "udp://[ff0e::1]:5000"
+    val urlParser4 = UrlParser.parse(url4, arrayOf("udp"))
+    assertEquals("ff0e::1", urlParser4.host)
+    assertEquals(5000, urlParser4.port)
+
+    val url5 = "http://[::1]:8889/publish/stream"
+    val urlParser5 = UrlParser.parse(url5, arrayOf("http"))
+    assertEquals("::1", urlParser5.host)
+    assertEquals(8889, urlParser5.port)
+    assertEquals("publish/stream", urlParser5.getFullPath())
+  }
+
+  @Test
   fun testUrl2() {
     val urlParser = UrlParser.parse(
       "srt://push.domain.com:1105?streamid=#!::h=push.domain.com,r=/live/stream,m=publish&live=asd",

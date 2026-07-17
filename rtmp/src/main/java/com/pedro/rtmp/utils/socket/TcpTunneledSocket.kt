@@ -108,7 +108,8 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   private fun configureSocket(path: String, secured: Boolean): HttpURLConnection {
     val schema = if (secured) "https" else "http"
-    val url = URL("$schema://$host:$port/$path")
+    val urlHost = if (host.contains(":")) "[$host]" else host
+    val url = URL("$schema://$urlHost:$port/$path")
     val socket = if (secured) {
       url.openConnection() as HttpsURLConnection
     } else {

@@ -18,10 +18,9 @@
 
 package com.pedro.whip.webrtc.stun
 
+import com.pedro.common.addressToString
 import com.pedro.common.readUInt16
-import com.pedro.common.readUInt32
 import com.pedro.common.readUntil
-import com.pedro.common.toByteArray
 import com.pedro.common.toUInt16
 import com.pedro.common.toUInt32
 import com.pedro.common.xorBytes
@@ -29,7 +28,6 @@ import com.pedro.whip.dtls.CryptoUtils
 import com.pedro.whip.utils.Constants
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.math.BigInteger
 import java.net.InetAddress
 import java.util.zip.CRC32
 
@@ -44,13 +42,14 @@ object StunAttributeValueParser {
   }
 
   fun createXorMappedAddress(
-    id: ByteArray, host: String, port: Int, isIpv4: Boolean
+    id: ByteArray, host: String, port: Int
   ): ByteArray {
+    val address = InetAddress.getByName(host)
+    val isIpv4 = address.address.size == 4
     val output = ByteArrayOutputStream()
     output.write(0)
     output.write(if (isIpv4) 0x01 else 0x02)
     output.write(port.toUInt16().xorBytes(Constants.MAGIC_COOKIE.toUInt32()))
-    val address = InetAddress.getByName(host)
     if (isIpv4) {
       output.write(address.address.xorBytes(Constants.MAGIC_COOKIE.toUInt32()))
     } else {
@@ -60,7 +59,7 @@ object StunAttributeValueParser {
     return output.toByteArray()
   }
 
-  fun readXorMappedAddress(bytes: ByteArray, id: ByteArray): String {
+  fun readXorMappedAddress(bytes: ByteArray, id: ByteArray): Pair<String, Int> {
     val input = ByteArrayInputStream(bytes)
     input.read()
     val isIpv4 = input.read() == 0x01
@@ -70,7 +69,7 @@ object StunAttributeValueParser {
     input.readUntil(hostXor)
     val host = hostXor.xorBytes(xor)
     val address = InetAddress.getByAddress(host)
-    return "${address.hostAddress}:$port"
+    return Pair(address.addressToString(), port)
   }
 
   fun createMessageIntegrity(bytes: ByteArray, password: String): ByteArray {
