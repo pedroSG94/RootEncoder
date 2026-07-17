@@ -29,8 +29,8 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.math.abs
 import kotlin.time.Duration.Companion.microseconds
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Created by pedro on 17/7/26.
@@ -40,9 +40,13 @@ import kotlin.time.Duration.Companion.milliseconds
  * Consumed regions are restored to silence, so if no data is provided silence is streamed.
  *
  * @param bufferCapacityMs capacity of the synthetic buffer in milliseconds.
+ * @param latencyMs extra buffering applied to [setBuffer] data to absorb producer jitter.
+ * Higher values avoid dropped data and glitches with irregular producers at the cost of latency.
+ * The delay is compensated in the frame timestamps, so it produces no av desync.
  */
 class BufferAudioSource(
-  private val bufferCapacityMs: Int = 1000
+  private val bufferCapacityMs: Int = 1000,
+  private val latencyMs: Int = 100
 ): AudioSource(), GetMicrophoneData {
 
   private var running = false
@@ -57,7 +61,11 @@ class BufferAudioSource(
   private var frameSize = 2
   private var consumedBytes = 0L
   private var producerBaseTs = -1L
-  private var consumedBytesAtBase = 0L
+  private var baseAbsPosition = 0L
+  private var loopStartTime = 0L
+  private var marginBytes = 0L
+  private var marginUs = 0L
+  private var lastEndPosition = -1L //absolute stream position where the last timestamped write ended
   private val lock = Any()
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
@@ -73,6 +81,9 @@ class BufferAudioSource(
       queuedBytes = 0
       consumedBytes = 0
       producerBaseTs = -1
+      lastEndPosition = -1
+      marginBytes = minOf(usToBytes(latencyMs * 1000L), (buffer.size - chunkSize).toLong())
+      marginUs = marginBytes * 1_000_000L / bytesPerSecond
     }
     return true
   }
@@ -86,11 +97,16 @@ class BufferAudioSource(
       queuedBytes = 0
       consumedBytes = 0
       producerBaseTs = -1
+      lastEndPosition = -1
+      loopStartTime = TimeUtils.getCurrentTimeMicro()
     }
     running = true
     job = CoroutineScope(Dispatchers.IO).launch {
       val chunk = ByteArray(chunkSize)
-      val startTime = TimeUtils.getCurrentTimeMicro()
+      //start emitting one margin late. Combined with the timestamp shift below, the first frame
+      //keeps pts ~0 (no negative pts clamped by the encoder) and av sync is preserved
+      delay(marginUs.microseconds)
+      val startTime = loopStartTime + marginUs
       var count = 0L
       while (running) {
         synchronized(lock) {
@@ -106,7 +122,8 @@ class BufferAudioSource(
             writeIndex = readIndex
           }
         }
-        getMicrophoneData.inputPCMData(Frame(chunk, 0, chunk.size, TimeUtils.getCurrentTimeMicro()))
+        //timestamp shifted back by the jitter margin so the content keeps its real time (no av desync)
+        getMicrophoneData.inputPCMData(Frame(chunk, 0, chunk.size, TimeUtils.getCurrentTimeMicro() - marginUs))
         count++
         val nextFrameTime = startTime + count * sleepTime
         delay((nextFrameTime - TimeUtils.getCurrentTimeMicro()).microseconds)
@@ -123,6 +140,10 @@ class BufferAudioSource(
   fun setBuffer(pcmBuffer: ByteArray, offset: Int = 0, size: Int = pcmBuffer.size): Int {
     synchronized(lock) {
       if (buffer.isEmpty()) return 0
+      if (queuedBytes == 0) { //prime the jitter margin with silence so producer jitter never underruns
+        queuedBytes = minOf(streamPosition() - consumedBytes, buffer.size.toLong()).toInt()
+        writeIndex = (readIndex + queuedBytes) % buffer.size
+      }
       val toWrite = minOf(size, buffer.size - queuedBytes)
       var written = 0
       while (written < toWrite) {
@@ -152,9 +173,16 @@ class BufferAudioSource(
       if (buffer.isEmpty()) return 0
       if (producerBaseTs < 0) {
         producerBaseTs = timestampMicro
-        consumedBytesAtBase = consumedBytes
+        baseAbsPosition = streamPosition()
+        lastEndPosition = -1
       }
-      var position = usToBytes(timestampMicro - producerBaseTs) - (consumedBytes - consumedBytesAtBase)
+      var targetPosition = baseAbsPosition + usToBytes(timestampMicro - producerBaseTs)
+      //snap contiguous buffers to the end of the previous one to avoid sample sized
+      //gaps/overlaps produced by timestamp rounding and jitter
+      if (lastEndPosition >= 0 && abs(targetPosition - lastEndPosition) <= chunkSize) {
+        targetPosition = lastEndPosition
+      }
+      var position = targetPosition - consumedBytes
       var srcOffset = offset
       var toWrite = size
       if (position < 0) { //data partially or fully in the past, discard the late part
@@ -173,6 +201,7 @@ class BufferAudioSource(
         index = (index + length) % buffer.size
         written += length
       }
+      lastEndPosition = consumedBytes + position + toWrite
       queuedBytes = maxOf(queuedBytes, position.toInt() + toWrite)
       writeIndex = (readIndex + queuedBytes) % buffer.size
       return written
@@ -182,6 +211,13 @@ class BufferAudioSource(
   private fun usToBytes(timeMicro: Long): Long {
     val bytes = timeMicro * bytesPerSecond / 1_000_000L
     return bytes - bytes % frameSize
+  }
+
+  //absolute stream position matching the current clock time. The reader consumes one margin
+  //behind it, so data placed here is played one margin later with its original timestamp
+  private fun streamPosition(): Long {
+    if (loopStartTime <= 0) return consumedBytes
+    return maxOf(usToBytes(TimeUtils.getCurrentTimeMicro() - loopStartTime), consumedBytes)
   }
 
   override fun stop() {
