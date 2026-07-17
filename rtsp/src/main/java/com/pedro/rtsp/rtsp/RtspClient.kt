@@ -248,6 +248,12 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             }
             rtspSender.setVideoInfo(commandsManager.sps!!, commandsManager.pps, commandsManager.vps)
           }
+          if (commandsManager.protocol == Protocol.UDP && !commandsManager.findFreeClientPorts()) {
+            onMainThread {
+              connectChecker.onConnectionFailed("Error configure stream, no free UDP ports")
+            }
+            return@launch
+          }
           val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, socketTimeout, tlsHostVerification, certificates)
           this@RtspClient.socket = socket
           socket.connect()
