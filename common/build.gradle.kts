@@ -12,11 +12,6 @@ android {
         minSdk = 16
         lint.targetSdk = 37
     }
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-        }
-    }
     testOptions {
         unitTests.isReturnDefaultValues = true
     }

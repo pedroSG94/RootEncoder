@@ -28,7 +28,6 @@ import android.view.Surface;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.encoder.BuildConfig;
 import com.pedro.encoder.utils.gl.GlUtil;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -199,7 +198,7 @@ public class SurfaceManager {
       eglDisplay = EGL14.EGL_NO_DISPLAY;
       eglContext = EGL14.EGL_NO_CONTEXT;
       eglSurface = EGL14.EGL_NO_SURFACE;
-    } else if (BuildConfig.DEBUG) {
+    } else if (GlUtil.debugMode) {
       Log.e(TAG, "GL already released");
     }
     isReady.set(false);

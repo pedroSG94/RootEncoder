@@ -27,8 +27,6 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.encoder.BuildConfig;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -119,7 +117,7 @@ public class GlUtil {
   }
 
   public static void checkGlError(String op) {
-    if (!BuildConfig.DEBUG) return;
+    if (!debugMode) return;
     int error = GLES20.glGetError();
     if (error != GLES20.GL_NO_ERROR) {
       throw new RuntimeException(op + ". GL error: " + error);
@@ -127,7 +125,7 @@ public class GlUtil {
   }
 
   public static void checkEglError(String msg) {
-    if (!BuildConfig.DEBUG) return;
+    if (!debugMode) return;
     int error = EGL14.eglGetError();
     if (error != EGL14.EGL_SUCCESS) {
       throw new RuntimeException(msg + ". EGL error: " + error);
@@ -171,4 +169,6 @@ public class GlUtil {
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
     GLES20.glUseProgram(0);
   }
+
+  public static boolean debugMode = false;
 }
