@@ -17,16 +17,17 @@
 package com.pedro.srt.mpeg2ts
 
 import com.pedro.common.TimeUtils
-import com.pedro.srt.Utils
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.mpeg2ts.service.Mpeg2TsService
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.chunkPackets
 import kotlinx.coroutines.test.runTest
+import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Before
 import org.junit.Test
+import org.mockito.MockedStatic
 import org.mockito.Mockito
 import java.nio.ByteBuffer
 
@@ -37,48 +38,50 @@ import java.nio.ByteBuffer
 class PesTest {
 
   private val service = Mpeg2TsService()
-  private val timeUtilsMock = Mockito.mockStatic(TimeUtils::class.java)
+  private lateinit var timeUtilsMock: MockedStatic<TimeUtils>
   private val chunkSize = (Constants.MTU - SrtPacket.headerSize) / MpegTsPacketizer.packetSize
 
   @Before
   fun setup() {
+    timeUtilsMock = Mockito.mockStatic(TimeUtils::class.java)
     timeUtilsMock.`when`<Long>(TimeUtils::getCurrentTimeMicro).thenReturn(700000)
+  }
+
+  @After
+  fun teardown() {
+    timeUtilsMock.close()
   }
 
   @Test
   fun `GIVEN a fake aac buffer WHEN create a mpegts packet with pes packet THEN get the expected buffer`() = runTest {
-    Utils.useStatics(listOf(timeUtilsMock)) {
-      val data = ByteBuffer.wrap(
-        ByteArray(188) { 0xAA.toByte() }
-      )
-      val expected = ByteBuffer.wrap(
-        byteArrayOf(71, 65, 0, 48, 7, 80, 0, 0, 123, 12, 126, 0, 0, 0, 1, -64, 0, -60, -127, -128, 5, 33, 0, 7, -40, 97, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, 71, 1, 0, 49, -99, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86)
-      )
-      val psiManager = PsiManager(service)
-      val mpegTsPacketizer = MpegTsPacketizer(psiManager)
-      val pes = Pes(256, true, PesType.AUDIO, 1400000, data)
-      val buffer = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize)[0]
-      assertArrayEquals(expected.array(), buffer)
-    }
+    val data = ByteBuffer.wrap(
+      ByteArray(188) { 0xAA.toByte() }
+    )
+    val expected = ByteBuffer.wrap(
+      byteArrayOf(71, 65, 0, 48, 7, 80, 0, 0, 123, 12, 126, 0, 0, 0, 1, -64, 0, -60, -127, -128, 5, 33, 0, 7, -40, 97, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, 71, 1, 0, 49, -99, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86, -86)
+    )
+    val psiManager = PsiManager(service)
+    val mpegTsPacketizer = MpegTsPacketizer(psiManager)
+    val pes = Pes(256, true, PesType.AUDIO, 1400000, data)
+    val buffer = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize)[0]
+    assertArrayEquals(expected.array(), buffer)
   }
 
   @Test
   fun `GIVEN a fake aac buffer small WHEN create a mpegts packet with pes packet THEN get the expected buffer`() = runTest {
-    Utils.useStatics(listOf(timeUtilsMock)) {
-      val data = ByteBuffer.wrap(
-        ByteArray(10) { 0xAA.toByte() }
-      )
-      val expected = ByteBuffer.wrap(
-        byteArrayOf(71, 65, 0, 48, -97, 80, 0, 0, 123, 12, 126, 0) + //ts header + adaptation field (len 159, flags, pcr)
-            ByteArray(152) { 0xFF.toByte() } + //adaptation field stuffing
-            byteArrayOf(0, 0, 1, -64, 0, 18, -127, -128, 5, 33, 0, 7, -40, 97) + //pes header
-            ByteArray(10) { 0xAA.toByte() } //payload
-      )
-      val psiManager = PsiManager(service)
-      val mpegTsPacketizer = MpegTsPacketizer(psiManager)
-      val pes = Pes(256, true, PesType.AUDIO, 1400000, data)
-      val buffer = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize)[0]
-      assertArrayEquals(expected.array(), buffer)
-    }
+    val data = ByteBuffer.wrap(
+      ByteArray(10) { 0xAA.toByte() }
+    )
+    val expected = ByteBuffer.wrap(
+      byteArrayOf(71, 65, 0, 48, -97, 80, 0, 0, 123, 12, 126, 0) + //ts header + adaptation field (len 159, flags, pcr)
+          ByteArray(152) { 0xFF.toByte() } + //adaptation field stuffing
+          byteArrayOf(0, 0, 1, -64, 0, 18, -127, -128, 5, 33, 0, 7, -40, 97) + //pes header
+          ByteArray(10) { 0xAA.toByte() } //payload
+    )
+    val psiManager = PsiManager(service)
+    val mpegTsPacketizer = MpegTsPacketizer(psiManager)
+    val pes = Pes(256, true, PesType.AUDIO, 1400000, data)
+    val buffer = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize)[0]
+    assertArrayEquals(expected.array(), buffer)
   }
 }

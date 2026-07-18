@@ -62,6 +62,22 @@ class HandshakeTest {
   }
 
   @Test
+  fun `GIVEN a handshake packet with ip WHEN write and read it THEN get the same address`() {
+    val handshakeV4 = Handshake(ipAddress = "192.168.0.1")
+    handshakeV4.write(2500, 0x40)
+    val packetV4 = Handshake()
+    packetV4.read(ByteArrayInputStream(handshakeV4.getData()))
+    assertEquals("192.168.0.1", packetV4.ipAddress)
+
+    val handshakeV6 = Handshake(ipAddress = "2001:db8::aa:1")
+    handshakeV6.write(2500, 0x40)
+    val packetV6 = Handshake()
+    packetV6.read(ByteArrayInputStream(handshakeV6.getData()))
+    //Inet6Address.hostAddress returns the address without zeros compression
+    assertEquals("2001:db8:0:0:0:0:aa:1", packetV6.ipAddress)
+  }
+
+  @Test
   fun `GIVEN a buffer WHEN read buffer as handshake packet THEN get expected handshake packet`() {
     val buffer = byteArrayOf(-128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 5, -36, 0, 0, 32, 0, 0, 0, 0, 1, 45, 116, -9, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
     val expectedPacket = Handshake()

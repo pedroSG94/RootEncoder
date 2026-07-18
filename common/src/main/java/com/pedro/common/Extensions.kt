@@ -38,6 +38,7 @@ import java.io.UnsupportedEncodingException
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.security.MessageDigest
+import java.net.InetAddress
 import java.security.NoSuchAlgorithmException
 import java.security.SecureRandom
 import java.util.concurrent.BlockingQueue
@@ -143,13 +144,6 @@ fun newSingleThreadExecutor(queue: LinkedBlockingQueue<Runnable>): ExecutorServi
   return ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue)
 }
 
-fun getSuspendContext(): Continuation<Unit> {
-  return object : Continuation<Unit> {
-    override val context = Dispatchers.IO
-    override fun resumeWith(result: Result<Unit>) {}
-  }
-}
-
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 fun <T> CameraCharacteristics.secureGet(key: CameraCharacteristics.Key<T>): T? {
   return try { get(key) } catch (e: IllegalArgumentException) { null }
@@ -158,12 +152,6 @@ fun <T> CameraCharacteristics.secureGet(key: CameraCharacteristics.Key<T>): T? {
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 fun <T> CaptureRequest.Builder.secureGet(key: CaptureRequest.Key<T>): T? {
   return try { get(key) } catch (e: IllegalArgumentException) { null }
-}
-
-fun String.getIndexes(char: Char): Array<Int> {
-  val indexes = mutableListOf<Int>()
-  forEachIndexed { index, c -> if (c == char) indexes.add(index) }
-  return indexes.toTypedArray()
 }
 
 fun Throwable.validMessage(): String {
@@ -342,4 +330,11 @@ fun ByteBuffer.put(buffer: ByteBuffer, offset: Int, length: Int) {
   buffer.limit(offset + length)
   this.put(buffer)
   buffer.limit(limit)
+}
+
+/**
+ * Numeric IP as text, without reverse DNS lookup and without the IPv6 scope id (fe80::1%wlan0 -> fe80::1)
+ */
+fun InetAddress.addressToString(): String {
+  return (hostAddress ?: hostName).substringBefore("%")
 }

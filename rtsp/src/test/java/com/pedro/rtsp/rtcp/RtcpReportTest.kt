@@ -21,7 +21,6 @@ import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.socket.base.UdpStreamSocket
-import com.pedro.rtsp.Utils
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
@@ -34,6 +33,7 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.argumentCaptor
@@ -51,74 +51,71 @@ class RtcpReportTest {
   @Mock
   private lateinit var tcpSocket: TcpStreamSocket
 
-  private val timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
+  private lateinit var timeUtilsMocked: MockedStatic<TimeUtils>
   private var fakeTime = 7502849023L
 
   @Before
   fun setup() {
+    timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
     timeUtilsMocked.`when`<Long>(TimeUtils::getCurrentTimeMillis).then { fakeTime }
   }
 
   @After
   fun teardown() {
-    fakeTime = 7502849023L
+    timeUtilsMocked.close()
   }
 
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp tcp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
-    Utils.useStatics(listOf(timeUtilsMocked)) {
-      val rtpTracks = RtpTracks()
-      val senderReportTcp = BaseSenderReport.getInstance(rtpTracks, SocketType.JAVA, Protocol.TCP, "127.0.0.1",
-        StreamSocket.DEFAULT_TIMEOUT, 0, 1, 2, 3)
-      senderReportTcp.setSocket(tcpSocket)
-      senderReportTcp.setSSRC(0, 1)
-      val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackVideo)
-      val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackAudio)
+    val rtpTracks = RtpTracks()
+    val senderReportTcp = BaseSenderReport.getInstance(rtpTracks, SocketType.JAVA, Protocol.TCP, "127.0.0.1",
+      StreamSocket.DEFAULT_TIMEOUT, 0, 1, 2, 3)
+    senderReportTcp.setSocket(tcpSocket)
+    senderReportTcp.setSSRC(0, 1)
+    val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackVideo)
+    val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackAudio)
 
-      (0..10).forEach { value ->
-        val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportTcp.update(frame)
-      }
-      val resultValue = argumentCaptor<ByteArray>()
-      withContext(Dispatchers.IO) {
-        verify(tcpSocket, times((2))).write(resultValue.capture())
-      }
-      fakeTime += 3_000 //wait until next interval
-      (0..10).forEach { value ->
-        val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportTcp.update(frame)
-      }
-      withContext(Dispatchers.IO) {
-        verify(tcpSocket, times((4))).write(resultValue.capture())
-      }
+    (0..10).forEach { value ->
+      val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
+      senderReportTcp.update(frame)
+    }
+    val resultValue = argumentCaptor<ByteArray>()
+    withContext(Dispatchers.IO) {
+      verify(tcpSocket, times((2))).write(resultValue.capture())
+    }
+    fakeTime += 3_000 //wait until next interval
+    (0..10).forEach { value ->
+      val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
+      senderReportTcp.update(frame)
+    }
+    withContext(Dispatchers.IO) {
+      verify(tcpSocket, times((4))).write(resultValue.capture())
     }
   }
 
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp udp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
-    Utils.useStatics(listOf(timeUtilsMocked)) {
-      val rtpTracks = RtpTracks()
-      val senderReportUdp = SenderReportUdp(rtpTracks, udpSocket, udpSocket)
-      senderReportUdp.setSocket(tcpSocket)
-      senderReportUdp.setSSRC(0, 1)
-      val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackVideo)
-      val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackAudio)
-      (0..10).forEach { value ->
-        val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportUdp.update(frame)
-      }
-      val resultValue = argumentCaptor<ByteArray>()
-      withContext(Dispatchers.IO) {
-        verify(udpSocket, times((2))).write(resultValue.capture())
-      }
-      fakeTime += 3_000 //wait until next interval
-      (0..10).forEach { value ->
-        val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
-        senderReportUdp.update(frame)
-      }
-      withContext(Dispatchers.IO) {
-        verify(udpSocket, times((4))).write(resultValue.capture())
-      }
+    val rtpTracks = RtpTracks()
+    val senderReportUdp = SenderReportUdp(rtpTracks, udpSocket, udpSocket)
+    senderReportUdp.setSocket(tcpSocket)
+    senderReportUdp.setSSRC(0, 1)
+    val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackVideo)
+    val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackAudio)
+    (0..10).forEach { value ->
+      val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
+      senderReportUdp.update(frame)
+    }
+    val resultValue = argumentCaptor<ByteArray>()
+    withContext(Dispatchers.IO) {
+      verify(udpSocket, times((2))).write(resultValue.capture())
+    }
+    fakeTime += 3_000 //wait until next interval
+    (0..10).forEach { value ->
+      val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
+      senderReportUdp.update(frame)
+    }
+    withContext(Dispatchers.IO) {
+      verify(udpSocket, times((4))).write(resultValue.capture())
     }
   }
 }

@@ -37,7 +37,7 @@ class UdpStreamSocketKtor(
     override suspend fun connect() {
         val builder = aSocket(selectorManager).udp()
         val localAddress = if (sourcePort == null) null else {
-            val localAddress = InetSocketAddress(sourceHost ?: "0.0.0.0", sourcePort)
+            val localAddress = InetSocketAddress(sourceHost ?: "::", sourcePort)
             this.localAddress = localAddress
             localAddress
         }
@@ -96,7 +96,7 @@ class UdpStreamSocketKtor(
         val length = datagram.packet.remaining.toInt()
         val data = datagram.packet.readByteArray()
         val address = datagram.address as? InetSocketAddress
-        return UdpPacket(data, length, address?.hostname, address?.port)
+        return UdpPacket(data, length, address?.hostname?.substringBefore("%"), address?.port)
     }
 
     override suspend fun setRemoteAddress(host: String, port: Int) {
@@ -104,7 +104,7 @@ class UdpStreamSocketKtor(
     }
 
     override suspend fun getLocalHost(): String {
-        return localAddress?.hostname ?: "0.0.0.0"
+        return localAddress?.hostname ?: "::"
     }
 
     override suspend fun getLocalPort(): Int {

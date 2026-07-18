@@ -51,6 +51,8 @@ class CommandsManager {
   var messageNumber = 1
   var MTU = Constants.MTU
   var socketId = 0
+  //own socket id, must be unique per connection or the server can discard the handshake as duplicated
+  private var localSocketId = generateSocketId()
   var startTS = 0L //microSeconds
   var audioDisabled = false
   var videoDisabled = false
@@ -78,6 +80,7 @@ class CommandsManager {
 
   fun loadStartTs() {
     startTS = TimeUtils.getCurrentTimeMicro()
+    localSocketId = generateSocketId()
   }
 
   fun getTs(): Int {
@@ -88,6 +91,7 @@ class CommandsManager {
   suspend fun writeHandshake(socket: SrtSocket?, handshake: Handshake = Handshake()) {
     writeSync.withLock {
       handshake.initialPacketSequence = sequenceNumber
+      handshake.srtSocketId = localSocketId
       handshake.ipAddress = host
       handshake.write(getTs(), 0)
       Log.i(TAG, handshake.toString())
@@ -200,5 +204,9 @@ class CommandsManager {
 
   private fun generateInitialSequence(): Int {
     return Random.nextInt(0, Int.MAX_VALUE)
+  }
+
+  private fun generateSocketId(): Int {
+    return Random.nextInt(1, Int.MAX_VALUE)
   }
 }

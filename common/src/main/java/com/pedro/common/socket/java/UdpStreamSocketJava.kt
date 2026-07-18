@@ -1,5 +1,6 @@
 package com.pedro.common.socket.java
 
+import com.pedro.common.addressToString
 import com.pedro.common.socket.base.UdpPacket
 import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.socket.base.UdpType
@@ -98,7 +99,7 @@ class UdpStreamSocketJava(
         val buffer = ByteArray(packetSize)
         val udpPacket = DatagramPacket(buffer, buffer.size)
         socket?.receive(udpPacket)
-        return UdpPacket(udpPacket.data, udpPacket.length, udpPacket.address.hostName, udpPacket.port)
+        return UdpPacket(udpPacket.data, udpPacket.length, udpPacket.address.addressToString(), udpPacket.port)
     }
 
     override suspend fun setRemoteAddress(host: String, port: Int) {
@@ -107,7 +108,7 @@ class UdpStreamSocketJava(
     }
 
     override suspend fun getLocalHost(): String {
-        return sourceHost ?: "0.0.0.0"
+        return socket?.localAddress?.addressToString() ?: sourceHost ?: "::"
     }
 
     override suspend fun getLocalPort(): Int {

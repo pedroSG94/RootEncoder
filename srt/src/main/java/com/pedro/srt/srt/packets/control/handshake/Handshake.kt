@@ -19,6 +19,7 @@ package com.pedro.srt.srt.packets.control.handshake
 import com.pedro.common.readUInt16
 import com.pedro.common.readUInt32
 import com.pedro.common.readUInt32LittleEndian
+import com.pedro.common.toUInt32
 import com.pedro.common.writeUInt16
 import com.pedro.common.writeUInt32
 import com.pedro.srt.srt.packets.ControlPacket
@@ -136,9 +137,16 @@ data class Handshake(
   }
 
   private fun readAddress(input: InputStream): String {
-    val ip = input.readUInt32LittleEndian()
-    repeat(3) { input.readUInt32LittleEndian() }
-    return "${(ip ushr 24) and 0xFF}.${(ip ushr 16) and 0xFF}.${(ip ushr 8) and 0xFF}.${ip and 0xFF}"
+    //4 words of 32 bits, each word in little endian like in writeAddress. IPv4 only use the first word
+    val words = List(4) { input.readUInt32LittleEndian() }
+    return if (words[1] == 0 && words[2] == 0 && words[3] == 0) { //ipv4
+      val ip = words[0]
+      "${(ip ushr 24) and 0xFF}.${(ip ushr 16) and 0xFF}.${(ip ushr 8) and 0xFF}.${ip and 0xFF}"
+    } else { //ipv6
+      val bytes = ByteArray(16)
+      words.forEachIndexed { index, word -> word.toUInt32().copyInto(bytes, index * 4) }
+      InetAddress.getByAddress(bytes).hostAddress ?: "::"
+    }
   }
 
   fun isErrorType(): Boolean {

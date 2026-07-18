@@ -50,6 +50,8 @@ open class CommandsManager {
     private set
   var path: String? = null
     private set
+  private val urlHost: String
+    get() = host?.let { if (it.contains(":")) "[$it]" else it } ?: ""
   var sps: ByteBuffer? = null
     private set
   var pps: ByteBuffer? = null
@@ -172,11 +174,14 @@ open class CommandsManager {
         AudioCodec.OPUS -> createOpusBody(rtpTracks.trackAudio)
       }
     }
+    val isIpv6 = host?.contains(":") == true
+    val addressType = if (isIpv6) "IP6" else "IP4"
+    val localhost = if (isIpv6) "::1" else "127.0.0.1"
     return "v=0\r\n" +
-        "o=- $timeStamp $timeStamp IN IP4 127.0.0.1\r\n" +
+        "o=- $timeStamp $timeStamp IN $addressType $localhost\r\n" +
         "s=Unnamed\r\n" +
         "i=N/A\r\n" +
-        "c=IN IP4 $host\r\n" +
+        "c=IN $addressType $host\r\n" +
         "t=0 0\r\n" +
         "a=recvonly\r\n" +
         videoBody + audioBody
@@ -201,7 +206,7 @@ open class CommandsManager {
 
   //Commands
   fun createOptions(): String {
-    val uri = "rtsp://$host:$port$path"
+    val uri = "rtsp://$urlHost:$port$path"
     val options = "OPTIONS $uri RTSP/1.0\r\n" + addHeaders(Method.OPTIONS, uri) + "\r\n"
     Log.i(TAG, options)
     return options
@@ -214,7 +219,7 @@ open class CommandsManager {
     } else {
       "TCP;unicast;interleaved=${2 * track}-${2 * track + 1};mode=record"
     }
-    val uri = "rtsp://$host:$port$path/streamid=$track"
+    val uri = "rtsp://$urlHost:$port$path/streamid=$track"
     val setup = "SETUP $uri RTSP/1.0\r\n" +
         "Transport: RTP/AVP/$params\r\n" +
         addHeaders(Method.SETUP, uri) + "\r\n"
@@ -223,7 +228,7 @@ open class CommandsManager {
   }
 
   fun createRecord(): String {
-    val uri = "rtsp://$host:$port$path"
+    val uri = "rtsp://$urlHost:$port$path"
     val record = "RECORD $uri RTSP/1.0\r\n" +
         "Range: npt=0.000-\r\n" + addHeaders(Method.RECORD, uri) + "\r\n"
     Log.i(TAG, record)
@@ -232,7 +237,7 @@ open class CommandsManager {
 
   fun createAnnounce(): String {
     val body = createBody()
-    val uri = "rtsp://$host:$port$path"
+    val uri = "rtsp://$urlHost:$port$path"
     val announce = "ANNOUNCE $uri RTSP/1.0\r\n" +
         "Content-Type: application/sdp\r\n" +
         addHeaders(Method.ANNOUNCE, uri) +
@@ -254,7 +259,7 @@ open class CommandsManager {
   }
 
   fun createTeardown(): String {
-    val uri = "rtsp://$host:$port$path"
+    val uri = "rtsp://$urlHost:$port$path"
     val teardown = "TEARDOWN $uri RTSP/1.0\r\n" + addHeaders(Method.TEARDOWN, uri) + "\r\n"
     Log.i(TAG, teardown)
     return teardown
