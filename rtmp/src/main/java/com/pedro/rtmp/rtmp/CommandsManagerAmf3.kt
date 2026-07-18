@@ -118,6 +118,9 @@ class CommandsManagerAmf3: CommandsManager() {
       amfEcmaArray.setProperty("stereo", isStereo)
     }
     amfEcmaArray.setProperty("filesize", 0.0)
+    customMetadata.forEach { (key, value) ->
+      amfEcmaArray.setProperty(key, value)
+    }
     metadata.addData(amfEcmaArray)
 
     metadata.writeHeader(socket)

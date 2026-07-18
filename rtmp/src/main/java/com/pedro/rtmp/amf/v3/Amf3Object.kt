@@ -16,6 +16,7 @@
 
 package com.pedro.rtmp.amf.v3
 
+import com.pedro.rtmp.amf.v0.AmfNull
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -35,43 +36,37 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
     return null
   }
 
-  open fun setProperty(name: String, data: String) {
-    val key = Amf3String(name)
-    val value = Amf3String(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
+  open fun setProperty(name: String, data: String)  = putProperty(name, Amf3String(data))
+
+  open fun setProperty(name: String, data: Boolean)  = putProperty(name, if (data) Amf3True() else Amf3False())
+
+  open fun setProperty(name: String, data: Amf3Data) = putProperty(name, data)
+
+  open fun setProperty(name: String) = putProperty(name, Amf3Null())
+
+  open fun setProperty(name: String, data: Double) = putProperty(name, Amf3Double(data))
+
+  open fun setProperty(name: String, data: Any) {
+    val newValue = when (data) {
+      is String -> Amf3String(data)
+      is Int -> Amf3Integer(data)
+      is Double -> Amf3Double(data)
+      is Float -> Amf3Double(data.toDouble())
+      is Boolean -> if (data) Amf3True() else Amf3False()
+      is Amf3Data -> data
+      else -> throw IllegalArgumentException("Unsupported value type: ${data::class.java.name}")
+    }
+    putProperty(name, newValue)
   }
 
-  open fun setProperty(name: String, data: Boolean) {
+  private fun putProperty(name: String, value: Amf3Data) {
     val key = Amf3String(name)
-    val value = if (data) Amf3True() else Amf3False()
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
-
-  open fun setProperty(name: String, data: Amf3Data) {
-    val key = Amf3String(name)
-    properties[key] = data
-    bodySize += key.getSize()
-    bodySize += data.getSize() + 1
-  }
-
-  open fun setProperty(name: String) {
-    val key = Amf3String(name)
-    val value = Amf3Null()
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
-  }
-
-  open fun setProperty(name: String, data: Double) {
-    val key = Amf3String(name)
-    val value = Amf3Double(data)
-    properties[key] = value
-    bodySize += key.getSize()
-    bodySize += value.getSize() + 1
+    val previous = properties.put(key, value)
+    bodySize += if (previous != null) {
+      value.getSize() - previous.getSize()
+    } else {
+      key.getSize() + value.getSize() + 1
+    }
   }
 
 
