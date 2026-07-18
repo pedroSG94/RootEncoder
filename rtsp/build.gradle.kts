@@ -21,7 +21,6 @@ android {
     buildConfig = true
   }
   testOptions {
-    //allow use android classes like Log or SystemClock in integration tests (return 0 instead of crash)
     unitTests.isReturnDefaultValues = true
   }
   compileOptions {

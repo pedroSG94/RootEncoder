@@ -144,13 +144,6 @@ fun newSingleThreadExecutor(queue: LinkedBlockingQueue<Runnable>): ExecutorServi
   return ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, queue)
 }
 
-fun getSuspendContext(): Continuation<Unit> {
-  return object : Continuation<Unit> {
-    override val context = Dispatchers.IO
-    override fun resumeWith(result: Result<Unit>) {}
-  }
-}
-
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 fun <T> CameraCharacteristics.secureGet(key: CameraCharacteristics.Key<T>): T? {
   return try { get(key) } catch (e: IllegalArgumentException) { null }
@@ -159,12 +152,6 @@ fun <T> CameraCharacteristics.secureGet(key: CameraCharacteristics.Key<T>): T? {
 @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
 fun <T> CaptureRequest.Builder.secureGet(key: CaptureRequest.Key<T>): T? {
   return try { get(key) } catch (e: IllegalArgumentException) { null }
-}
-
-fun String.getIndexes(char: Char): Array<Int> {
-  val indexes = mutableListOf<Int>()
-  forEachIndexed { index, c -> if (c == char) indexes.add(index) }
-  return indexes.toTypedArray()
 }
 
 fun Throwable.validMessage(): String {
