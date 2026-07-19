@@ -38,6 +38,7 @@ abstract class Command(var name: String = "", var commandId: Int, private val ti
   }
 
   abstract fun getStreamId(): Int
+  abstract fun getObjectEncoding(): Int
   abstract fun getDescription(): String
   abstract fun getCode(): String
 

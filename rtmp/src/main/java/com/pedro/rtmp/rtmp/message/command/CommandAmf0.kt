@@ -53,6 +53,10 @@ class CommandAmf0(name: String = "", commandId: Int = 0, private val timestamp: 
     return (data[1] as AmfNumber).value.toInt()
   }
 
+  override fun getObjectEncoding(): Int {
+    return ((data[1] as? AmfObject)?.getProperty("objectEncoding") as? AmfNumber)?.value?.toInt() ?: 0
+  }
+
   override fun getDescription(): String {
     return ((data[1] as AmfObject).getProperty("description") as AmfString).value
   }

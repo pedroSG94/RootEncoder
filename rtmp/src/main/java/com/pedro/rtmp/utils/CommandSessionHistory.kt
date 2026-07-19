@@ -46,4 +46,11 @@ class CommandSessionHistory {
     commandHistory.clear()
     headerHistory.clear()
   }
+
+  fun copyFrom(other: CommandSessionHistory) {
+    commandHistory.clear()
+    headerHistory.clear()
+    commandHistory.putAll(other.commandHistory)
+    headerHistory.putAll(other.headerHistory)
+  }
 }

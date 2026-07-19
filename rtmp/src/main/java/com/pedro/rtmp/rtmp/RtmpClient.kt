@@ -141,8 +141,9 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
     if (!isStreaming) {
       commandsManager = when (amfVersion) {
         AmfVersion.VERSION_0 -> CommandsManagerAmf0()
-        AmfVersion.VERSION_3 -> TODO("Not yet implemented")
+        AmfVersion.VERSION_3 -> CommandsManagerAmf3()
       }
+      rtmpSender.commandsManager = commandsManager
     }
   }
 
@@ -436,6 +437,14 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
           "_result" -> {
             when (commandName) {
               "connect" -> {
+                if (commandsManager is CommandsManagerAmf3) {
+                  val objectEncoding = command.getObjectEncoding()
+                  if (objectEncoding != 3) {
+                    Log.e(TAG, "Server doesn't support AMF3, falling to AMF0")
+                    commandsManager = commandsManager.copyInto(CommandsManagerAmf0())
+                    rtmpSender.commandsManager = commandsManager
+                  }
+                }
                 if (commandsManager.onAuth) {
                   onMainThread { connectChecker.onAuthSuccess() }
                   commandsManager.onAuth = false

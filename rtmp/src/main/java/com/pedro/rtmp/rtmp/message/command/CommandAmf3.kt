@@ -57,6 +57,14 @@ class CommandAmf3(name: String = "", commandId: Int = 0, private val timestamp: 
     header.messageLength = bodySize
   }
 
+  override fun getObjectEncoding(): Int {
+    return if (isAmf3) {
+      ((dataAmf3[infoIndex] as? Amf3Object)?.getProperty("objectEncoding") as? Amf3Double)?.value?.toInt() ?: 0
+    } else {
+      ((dataAmf0[infoIndex] as? AmfObject)?.getProperty("objectEncoding") as? AmfNumber)?.value?.toInt() ?: 0
+    }
+  }
+
   override fun getStreamId(): Int {
     return if (isAmf3) {
       (dataAmf3[infoIndex] as Amf3Double).value.toInt()

@@ -242,4 +242,38 @@ abstract class CommandsManager {
     lastAcknowledgementSequence = 0
     bytesRead = 0
   }
+
+  fun copyInto(commandsManager: CommandsManager): CommandsManager {
+    commandsManager.sessionHistory.copyFrom(sessionHistory)
+    commandsManager.timestamp = timestamp
+    commandsManager.commandId = commandId
+    commandsManager.streamId = streamId
+    commandsManager.host = host
+    commandsManager.port = port
+    commandsManager.appName = appName
+    commandsManager.streamName = streamName
+    commandsManager.tcUrl = tcUrl
+    commandsManager.flashVersion = flashVersion
+    commandsManager.user = user
+    commandsManager.password = password
+    commandsManager.onAuth = onAuth
+    commandsManager.startTs = startTs
+    commandsManager.config.readChunkSize = config.readChunkSize
+    commandsManager.config.writeChunkSize = config.writeChunkSize
+    commandsManager.config.acknowledgementWindowSize = config.acknowledgementWindowSize
+    commandsManager.audioDisabled = audioDisabled
+    commandsManager.videoDisabled = videoDisabled
+    commandsManager.customAmfObject = customAmfObject
+    commandsManager.customMetadata = customMetadata
+    commandsManager.bytesRead = bytesRead
+    commandsManager.lastAcknowledgementSequence = lastAcknowledgementSequence
+    commandsManager.width = width
+    commandsManager.height = height
+    commandsManager.fps = fps
+    commandsManager.sampleRate = sampleRate
+    commandsManager.isStereo = isStereo
+    commandsManager.videoCodec = videoCodec
+    commandsManager.audioCodec = audioCodec
+    return commandsManager
+  }
 }

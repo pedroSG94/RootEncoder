@@ -43,7 +43,7 @@ import java.nio.ByteBuffer
  */
 class RtmpSender(
   connectChecker: ConnectChecker,
-  private val commandsManager: CommandsManager
+  var commandsManager: CommandsManager
 ): BaseSender(connectChecker, "RtmpSender") {
 
   private var audioPacket: BasePacket = AacPacket()
