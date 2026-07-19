@@ -37,11 +37,9 @@ class CommandAmf0(name: String = "", commandId: Int = 0, private val timestamp: 
 
   init {
     val amfString = AmfString(name)
-    data.add(amfString)
     bodySize += amfString.getSize() + 1
     val amfNumber = AmfNumber(commandId.toDouble())
     bodySize += amfNumber.getSize() + 1
-    data.add(amfNumber)
     header.messageLength = bodySize
   }
 
@@ -52,39 +50,45 @@ class CommandAmf0(name: String = "", commandId: Int = 0, private val timestamp: 
   }
 
   override fun getStreamId(): Int {
-    return (data[3] as AmfNumber).value.toInt()
+    return (data[1] as AmfNumber).value.toInt()
   }
 
   override fun getDescription(): String {
-    return ((data[3] as AmfObject).getProperty("description") as AmfString).value
+    return ((data[1] as AmfObject).getProperty("description") as AmfString).value
   }
 
   override fun getCode(): String {
-    return ((data[3] as AmfObject).getProperty("code") as AmfString).value
+    return ((data[1] as AmfObject).getProperty("code") as AmfString).value
   }
 
   override fun readBody(input: InputStream) {
     data.clear()
-    var bytesRead = 0
-    while (bytesRead < header.messageLength) {
+    bodySize = 0
+
+    val name = AmfData.getAmfData(input) as AmfString
+    bodySize += name.getSize() + 1
+    this.name = name.value
+    val commandId = AmfData.getAmfData(input) as AmfNumber
+    bodySize += commandId.getSize() + 1
+    this.commandId = commandId.value.toInt()
+
+    while (bodySize < header.messageLength) {
       val amfData = AmfData.getAmfData(input)
-      bytesRead += amfData.getSize() + 1
+      bodySize += amfData.getSize() + 1
       data.add(amfData)
     }
-    if (data.isNotEmpty()) {
-      if (data[0] is AmfString) {
-        name = (data[0] as AmfString).value
-      }
-      if (data.size >= 2 && data[1] is AmfNumber) {
-        commandId = (data[1] as AmfNumber).value.toInt()
-      }
-    }
-    bodySize = bytesRead
     header.messageLength = bodySize
   }
 
   override fun storeBody(): ByteArray {
     val byteArrayOutputStream = ByteArrayOutputStream()
+    val amfString = AmfString(name)
+    amfString.writeHeader(byteArrayOutputStream)
+    amfString.writeBody(byteArrayOutputStream)
+    val amfNumber = AmfNumber(commandId.toDouble())
+    amfNumber.writeHeader(byteArrayOutputStream)
+    amfNumber.writeBody(byteArrayOutputStream)
+
     data.forEach {
       it.writeHeader(byteArrayOutputStream)
       it.writeBody(byteArrayOutputStream)

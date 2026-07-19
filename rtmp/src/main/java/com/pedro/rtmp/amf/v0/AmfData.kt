@@ -31,8 +31,11 @@ abstract class AmfData {
      * Read unknown AmfData and convert it to specific class
      */
     @Throws(IOException::class)
-    fun getAmfData(input: InputStream): AmfData {
-      val amfData = when (val type = getMarkType(input.read())) {
+    fun getAmfData(input: InputStream) = getAmfData(input.read(), input)
+
+    @Throws(IOException::class)
+    fun getAmfData(type: Int, input: InputStream): AmfData {
+      val amfData = when (val type = getMarkType(type)) {
         AmfType.NUMBER -> AmfNumber()
         AmfType.BOOLEAN -> AmfBoolean()
         AmfType.STRING -> AmfString()
