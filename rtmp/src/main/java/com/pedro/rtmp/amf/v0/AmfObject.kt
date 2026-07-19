@@ -60,7 +60,7 @@ open class AmfObject(private val properties: LinkedHashMap<AmfString, AmfData> =
   open fun setProperty(name: String, data: AmfData) = putProperty(name, data)
 
   open fun setProperty(name: String, data: Any) {
-    val newValue= when (data) {
+    val newValue = when (data) {
       is String -> AmfString(data)
       is Int -> AmfNumber(data.toDouble())
       is Long -> AmfNumber(data.toDouble())

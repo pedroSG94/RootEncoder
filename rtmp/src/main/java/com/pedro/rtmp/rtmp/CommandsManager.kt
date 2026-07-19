@@ -62,6 +62,7 @@ abstract class CommandsManager {
   var audioDisabled = false
   var videoDisabled = false
   var customAmfObject: Map<String, Any> = emptyMap()
+  var customMetadata: Map<String, Any> = emptyMap()
   private var bytesRead = 0
   private var lastAcknowledgementSequence = 0
 
