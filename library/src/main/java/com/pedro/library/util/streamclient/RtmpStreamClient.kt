@@ -213,6 +213,10 @@ class RtmpStreamClient(
     rtmpClient.setCustomAmfObject(amfObject)
   }
 
+  fun setCustomMetadata(metadata: Map<String, Any>) {
+    rtmpClient.setCustomMetadata(metadata)
+  }
+
   /**
    * Should notify onConnectionFailed if read packet from the server failed
    */

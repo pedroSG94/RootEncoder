@@ -22,7 +22,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 29/04/21.
  */
-class Amf3Integer: Amf3Data() {
+class Amf3Integer(private val value: Int = 0): Amf3Data() {
 
   override fun readBody(input: InputStream) {
     TODO("Not yet implemented")
