@@ -14,61 +14,49 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v0
+package com.pedro.rtmp.amf
 
 import com.pedro.common.readUInt32
+import com.pedro.common.readUntil
 import com.pedro.common.writeUInt32
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Created by pedro on 20/04/21.
+ * Created by pedro on 19/07/22.
  *
- * A list of any amf packets that start with an UInt32 to indicate number of items
+ * A string encoded in UTF-8 where 4 first bytes indicate string size
  */
-class AmfStrictArray(val items: MutableList<AmfData> = mutableListOf()): AmfData() {
+open class AmfLongString(var value: String = ""): AmfData() {
 
-  private var bodySize = 0
-
-  init {
-    bodySize += 4
-    items.forEach {
-      bodySize += it.getSize() + 1
-    }
-  }
+  private var bodySize: Int = value.toByteArray(Charsets.UTF_8).size + 4
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    items.clear()
-    bodySize = 0
-    //get number of items as UInt32
-    val length = input.readUInt32()
+    //read value size as UInt32
+    bodySize = input.readUInt32()
+    //read value in UTF-8
+    val bytes = ByteArray(bodySize)
     bodySize += 4
-    //read items
-    for (i in 0 until length) {
-      val amfData = getAmfData(input)
-      bodySize += amfData.getSize() + 1
-      items.add(amfData)
-    }
+    input.readUntil(bytes)
+    value = String(bytes, Charsets.UTF_8)
   }
 
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    //write number of items in the list as UInt32
-    output.writeUInt32(items.size)
-    //write items
-    items.forEach {
-      it.writeHeader(output)
-      it.writeBody(output)
-    }
+    val bytes = value.toByteArray(Charsets.UTF_8)
+    //write value size as UInt32. Value size not included
+    output.writeUInt32(bodySize - 4)
+    //write value bytes in UTF-8
+    output.write(bytes)
   }
 
-  override fun getType(): AmfType = AmfType.STRICT_ARRAY
+  override fun getType(): AmfType = AmfType.LONG_STRING
 
   override fun getSize(): Int = bodySize
 
   override fun toString(): String {
-    return "AmfStrictArray items: ${items.toTypedArray().contentToString()}"
+    return "AmfLongString value: $value"
   }
 }

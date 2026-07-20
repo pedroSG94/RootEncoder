@@ -14,27 +14,40 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v3
+package com.pedro.rtmp.amf
 
+import com.pedro.common.readUntil
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Created by pedro on 29/04/21.
+ * Created by pedro on 20/04/21.
+ *
+ * Packet used to indicate end of AmfObject and AmfEcmaArray.
+ * This is a final sequence of 3 bytes.
  */
-class Amf3Array(val items: MutableList<Amf3Data> = mutableListOf()): Amf3Data() {
+class AmfObjectEnd(var found: Boolean = false): AmfData() {
 
+  private val endSequence = byteArrayOf(0x00, 0x00, getType().mark)
+
+  @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
+    val bytes = ByteArray(getSize())
+    input.readUntil(bytes)
+    found = bytes contentEquals endSequence
   }
 
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    TODO("Not yet implemented")
+    output.write(endSequence)
   }
 
-  override fun getType(): Amf3Type = Amf3Type.ARRAY
+  override fun getType(): AmfType = AmfType.OBJECT_END
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
+  override fun getSize(): Int = endSequence.size
+
+  override fun toString(): String {
+    return "AmfObjectEnd"
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v0
+package com.pedro.rtmp.amf
 
 import org.w3c.dom.Document
 import org.xml.sax.InputSource

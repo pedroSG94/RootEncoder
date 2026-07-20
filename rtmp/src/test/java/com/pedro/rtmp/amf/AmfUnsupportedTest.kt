@@ -16,8 +16,6 @@
 
 package com.pedro.rtmp.amf
 
-import com.pedro.rtmp.amf.v0.AmfData
-import com.pedro.rtmp.amf.v0.AmfUnsupported
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

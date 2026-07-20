@@ -14,25 +14,34 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v3
+package com.pedro.rtmp.amf
 
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Created by pedro on 29/04/21.
+ * Created by pedro on 19/07/22.
+ *
+ * Contain an empty body
  */
-class Amf3True: Amf3Data() {
+class AmfUnsupported: AmfData() {
 
+  @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     //no body to read
   }
 
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
     //no body to write
   }
 
-  override fun getType(): Amf3Type = Amf3Type.TRUE
+  override fun getType(): AmfType = AmfType.UNSUPPORTED
 
   override fun getSize(): Int = 0
+
+  override fun toString(): String {
+    return "AmfUnsupported"
+  }
 }

@@ -17,44 +17,49 @@
 package com.pedro.rtmp.rtmp
 
 import android.util.Log
+import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
-import com.pedro.rtmp.amf.v3.Amf3Array
-import com.pedro.rtmp.amf.v3.Amf3Data
-import com.pedro.rtmp.amf.v3.Amf3Dictionary
-import com.pedro.rtmp.amf.v3.Amf3Null
-import com.pedro.rtmp.amf.v3.Amf3Object
-import com.pedro.rtmp.amf.v3.Amf3String
+import com.pedro.rtmp.amf.AmfData
+import com.pedro.rtmp.amf.AmfEcmaArray
+import com.pedro.rtmp.amf.AmfNull
+import com.pedro.rtmp.amf.AmfObject
+import com.pedro.rtmp.amf.AmfStrictArray
+import com.pedro.rtmp.amf.AmfString
 import com.pedro.rtmp.flv.audio.AudioFormat
 import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
-import com.pedro.rtmp.rtmp.message.command.CommandAmf3
-import com.pedro.rtmp.rtmp.message.data.DataAmf3
+import com.pedro.rtmp.rtmp.message.Command
+import com.pedro.rtmp.rtmp.message.Data
 import com.pedro.rtmp.utils.socket.RtmpSocket
 
-class CommandsManagerAmf3: CommandsManager() {
+class CommandsManagerImp: CommandsManager() {
   override suspend fun sendConnectImp(auth: String, socket: RtmpSocket) {
-    val connect = CommandAmf3("connect", ++commandId, getCurrentTimestamp(), streamId,
+    val connect = Command("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
-    val connectInfo = Amf3Object()
+    val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
     connectInfo.setProperty("flashVer", flashVersion)
     connectInfo.setProperty("tcUrl", tcUrl + auth)
+    val list = mutableListOf<AmfData>()
     if (!videoDisabled) {
-      if (videoCodec == VideoCodec.H265) {
-        val list = mutableListOf<Amf3Data>()
-        list.add(Amf3String("hvc1"))
-        val array = Amf3Array(list)
-        connectInfo.setProperty("fourCcList", array)
-      } else if (videoCodec == VideoCodec.AV1) {
-        val list = mutableListOf<Amf3Data>()
-        list.add(Amf3String("av01"))
-        val array = Amf3Array(list)
-        connectInfo.setProperty("fourCcList", array)
-      }
+      if (videoCodec == VideoCodec.H265) list.add(AmfString("hvc1"))
+      else if (videoCodec == VideoCodec.AV1) list.add(AmfString("av01"))
     }
-    connectInfo.setProperty("objectEncoding", 3.0)
+    if (!audioDisabled) {
+      if (audioCodec == AudioCodec.OPUS) list.add(AmfString("Opus"))
+    }
+    if (list.isNotEmpty()) {
+      val array = AmfStrictArray(list)
+      connectInfo.setProperty("fourCcList", array)
+    }
+    connectInfo.setProperty("objectEncoding", 0.0)
+
+    // Inject other custom AMF fields as-is
+    customAmfObject.forEach { (key, value) ->
+      connectInfo.setProperty(key, value)
+    }
     connect.addData(connectInfo)
 
     connect.writeHeader(socket)
@@ -64,29 +69,29 @@ class CommandsManagerAmf3: CommandsManager() {
   }
 
   override suspend fun createStreamImp(socket: RtmpSocket) {
-    val releaseStream = CommandAmf3("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
+    val releaseStream = Command("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    releaseStream.addData(Amf3Null())
-    releaseStream.addData(Amf3String(streamName))
+    releaseStream.addData(AmfNull())
+    releaseStream.addData(AmfString(streamName))
 
     releaseStream.writeHeader(socket)
     releaseStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "releaseStream")
     Log.i(TAG, "send $releaseStream")
 
-    val fcPublish = CommandAmf3("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
+    val fcPublish = Command("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    fcPublish.addData(Amf3Null())
-    fcPublish.addData(Amf3String(streamName))
+    fcPublish.addData(AmfNull())
+    fcPublish.addData(AmfString(streamName))
 
     fcPublish.writeHeader(socket)
     fcPublish.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "FCPublish")
     Log.i(TAG, "send $fcPublish")
 
-    val createStream = CommandAmf3("createStream", ++commandId, getCurrentTimestamp(), streamId,
+    val createStream = Command("createStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
-    createStream.addData(Amf3Null())
+    createStream.addData(AmfNull())
 
     createStream.writeHeader(socket)
     createStream.writeBody(socket, config.writeChunkSize)
@@ -96,22 +101,30 @@ class CommandsManagerAmf3: CommandsManager() {
 
   override suspend fun sendMetadataImp(socket: RtmpSocket) {
     val name = "@setDataFrame"
-    val metadata = DataAmf3(name, getCurrentTimestamp(), streamId)
-    metadata.addData(Amf3String("onMetaData"))
-    val amfEcmaArray = Amf3Dictionary()
+    val metadata = Data(name, getCurrentTimestamp(), streamId)
+    metadata.addData(AmfString("onMetaData"))
+    val amfEcmaArray = AmfEcmaArray()
     amfEcmaArray.setProperty("duration", 0.0)
     if (!videoDisabled) {
       amfEcmaArray.setProperty("width", width.toDouble())
       amfEcmaArray.setProperty("height", height.toDouble())
       //few servers don't support it even if it is in the standard rtmp enhanced
-      //val codecValue = if (videoCodec == VideoCodec.H265) VideoFormat.HEVC.value else VideoFormat.AVC.value
-      //amfEcmaArray.setProperty("videocodecid", codecValue.toDouble())
-      amfEcmaArray.setProperty("videocodecid", VideoFormat.AVC.value.toDouble())
+      val codecValue = when (videoCodec) {
+        VideoCodec.H264 -> VideoFormat.AVC.value
+        VideoCodec.H265 -> VideoFormat.HEVC.value
+        VideoCodec.AV1 -> VideoFormat.AV1.value
+      }
+      amfEcmaArray.setProperty("videocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("framerate", fps.toDouble())
       amfEcmaArray.setProperty("videodatarate", 0.0)
     }
     if (!audioDisabled) {
-      amfEcmaArray.setProperty("audiocodecid", AudioFormat.AAC.value.toDouble())
+      val codecValue = when (audioCodec) {
+        AudioCodec.G711 -> AudioFormat.G711_A.value
+        AudioCodec.AAC -> AudioFormat.AAC.value
+        AudioCodec.OPUS -> AudioFormat.OPUS.value
+      }
+      amfEcmaArray.setProperty("audiocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("audiosamplerate", sampleRate.toDouble())
       amfEcmaArray.setProperty("audiosamplesize", 16.0)
       amfEcmaArray.setProperty("audiodatarate", 0.0)
@@ -130,11 +143,11 @@ class CommandsManagerAmf3: CommandsManager() {
 
   override suspend fun sendPublishImp(socket: RtmpSocket) {
     val name = "publish"
-    val publish = CommandAmf3(name, ++commandId, getCurrentTimestamp(), streamId,
+    val publish = Command(name, ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    publish.addData(Amf3Null())
-    publish.addData(Amf3String(streamName))
-    publish.addData(Amf3String("live"))
+    publish.addData(AmfNull())
+    publish.addData(AmfString(streamName))
+    publish.addData(AmfString("live"))
 
     publish.writeHeader(socket)
     publish.writeBody(socket, config.writeChunkSize)
@@ -144,8 +157,8 @@ class CommandsManagerAmf3: CommandsManager() {
 
   override suspend fun sendCloseImp(socket: RtmpSocket) {
     val name = "closeStream"
-    val closeStream = CommandAmf3(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    closeStream.addData(Amf3Null())
+    val closeStream = Command(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
+    closeStream.addData(AmfNull())
 
     closeStream.writeHeader(socket)
     closeStream.writeBody(socket, config.writeChunkSize)

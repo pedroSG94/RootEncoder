@@ -207,6 +207,10 @@ fun ByteArray.toUInt32(): Int {
   return this[0].toInt() and 0xff shl 24 or (this[1].toInt() and 0xff shl 16) or (this[2].toInt() and 0xff shl 8) or (this[3].toInt() and 0xff)
 }
 
+fun ByteArray.toUInt64(): Long {
+  return (this[0].toLong() and 0xff shl 56) or (this[1].toLong() and 0xff shl 48) or (this[2].toLong() and 0xff shl 40) or (this[3].toLong() and 0xff shl 32) or (this[4].toLong() and 0xff shl 24) or (this[5].toLong() and 0xff shl 16) or (this[6].toLong() and 0xff shl 8) or (this[7].toLong() and 0xff)
+}
+
 fun ByteArray.toUInt32LittleEndian(): Int {
   return Integer.reverseBytes(toUInt32())
 }

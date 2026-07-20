@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v0
+package com.pedro.rtmp.amf
 
 import com.pedro.common.readUInt32
 import com.pedro.common.writeUInt32

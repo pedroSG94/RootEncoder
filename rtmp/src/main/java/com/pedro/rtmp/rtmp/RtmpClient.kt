@@ -31,7 +31,6 @@ import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
-import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.rtmp.message.Abort
 import com.pedro.rtmp.rtmp.message.Acknowledgement
 import com.pedro.rtmp.rtmp.message.Aggregate
@@ -39,11 +38,10 @@ import com.pedro.rtmp.rtmp.message.MessageType
 import com.pedro.rtmp.rtmp.message.SetChunkSize
 import com.pedro.rtmp.rtmp.message.SetPeerBandwidth
 import com.pedro.rtmp.rtmp.message.WindowAcknowledgementSize
-import com.pedro.rtmp.rtmp.message.command.Command
+import com.pedro.rtmp.rtmp.message.Command
 import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
-import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import com.pedro.rtmp.utils.socket.TcpSocket
 import com.pedro.rtmp.utils.socket.TcpTunneledSocket
@@ -78,7 +76,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var scopePing = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
   private var jobRetry: Job? = null
-  private var commandsManager: CommandsManager = CommandsManagerAmf0()
+  private val commandsManager = CommandsManagerImp()
   private val rtmpSender = RtmpSender(connectChecker, commandsManager)
 
   @Volatile
@@ -135,15 +133,6 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   fun setAudioCodec(audioCodec: AudioCodec) {
     if (!isStreaming) {
       commandsManager.audioCodec = audioCodec
-    }
-  }
-
-  fun setAmfVersion(amfVersion: AmfVersion) {
-    if (!isStreaming) {
-      commandsManager = when (amfVersion) {
-        AmfVersion.VERSION_0 -> CommandsManagerAmf0()
-        AmfVersion.VERSION_3 -> TODO("Not yet implemented")
-      }
     }
   }
 

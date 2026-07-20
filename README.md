@@ -114,7 +114,6 @@ dependencies {
 - [x] RTMPS (under TLS)
 - [x] RTMPT and RTMPTS (tunneled and tunneled under TLS)
 - [x] AMF0
-- [ ] AMF3
 
 ### RTSP:
 
