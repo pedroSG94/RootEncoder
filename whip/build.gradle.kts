@@ -6,7 +6,8 @@ plugins {
 
 android {
   namespace = "com.pedro.whip"
-  compileSdk = 37
+  //noinspection GradleDependency
+  compileSdk = 35
 
   defaultConfig {
     minSdk = 16
