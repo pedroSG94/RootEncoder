@@ -107,18 +107,15 @@ abstract class AsyncBaseRecordController : RecordController {
     if (videoBuffer.remaining() < header.size) return false
     videoBuffer.duplicate().get(header, 0, header.size)
     return when (videoCodec) {
-      VideoCodec.AV1 -> {
-        //TODO find the way to check it
-        false
-      }
       VideoCodec.H264 if (header[4].toInt() and 0x1F) == RtpConstants.IDR -> {  //h264
         true
       }
-      else -> { //h265
+      VideoCodec.H265 -> {
         (videoCodec == VideoCodec.H265
             && ((header[4].toInt() shr 1) and 0x3f) == RtpConstants.IDR_W_DLP
             || ((header[4].toInt() shr 1) and 0x3f) == RtpConstants.IDR_N_LP)
       }
+      else -> false //vp8, vp9, av1
     }
   }
 

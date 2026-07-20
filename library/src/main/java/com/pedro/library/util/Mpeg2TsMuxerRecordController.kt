@@ -91,7 +91,7 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
         throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
       }
     }
-    if (getVideoCodec() == VideoCodec.AV1) {
+    if (getVideoCodec() == VideoCodec.AV1 || getVideoCodec() == VideoCodec.VP8 || getVideoCodec() == VideoCodec.VP9) {
       throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
     }
     audioPacket.setLimitSize(limitSize)
