@@ -14,27 +14,34 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v3
+package com.pedro.rtmp.amf
 
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Created by pedro on 29/04/21.
+ * Created by pedro on 19/07/22.
+ *
+ * Contain an empty body
  */
-class Amf3Dictionary(private val properties: HashMap<Amf3String, Amf3Data> = LinkedHashMap()): Amf3Object(properties) {
+class AmfUnsupported: AmfData() {
 
+  @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
+    //no body to read
   }
 
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    TODO("Not yet implemented")
+    //no body to write
   }
 
-  override fun getType(): Amf3Type = Amf3Type.DICTIONARY
+  override fun getType(): AmfType = AmfType.UNSUPPORTED
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
+  override fun getSize(): Int = 0
+
+  override fun toString(): String {
+    return "AmfUnsupported"
   }
 }

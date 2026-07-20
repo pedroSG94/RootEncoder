@@ -17,15 +17,11 @@
 package com.pedro.rtmp.rtmp.message
 
 import com.pedro.rtmp.rtmp.chunk.ChunkType
-import com.pedro.rtmp.rtmp.message.command.CommandAmf0
-import com.pedro.rtmp.rtmp.message.command.CommandAmf3
+import com.pedro.rtmp.rtmp.message.command.CommandAmf
 import com.pedro.rtmp.rtmp.message.control.UserControl
-import com.pedro.rtmp.rtmp.message.data.DataAmf0
-import com.pedro.rtmp.rtmp.message.data.DataAmf3
-import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf0
-import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf3
+import com.pedro.rtmp.rtmp.message.data.DataAmf
+import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf
 import com.pedro.rtmp.utils.CommandSessionHistory
-import com.pedro.rtmp.utils.RtmpConfig
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -61,12 +57,9 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
         MessageType.SET_PEER_BANDWIDTH -> SetPeerBandwidth()
         MessageType.AUDIO -> Audio()
         MessageType.VIDEO -> Video()
-        MessageType.DATA_AMF3 -> DataAmf3()
-        MessageType.SHARED_OBJECT_AMF3 -> SharedObjectAmf3()
-        MessageType.COMMAND_AMF3 -> CommandAmf3()
-        MessageType.DATA_AMF0 -> DataAmf0()
-        MessageType.SHARED_OBJECT_AMF0 -> SharedObjectAmf0()
-        MessageType.COMMAND_AMF0 -> CommandAmf0()
+        MessageType.DATA_AMF0 -> DataAmf()
+        MessageType.SHARED_OBJECT_AMF0 -> SharedObjectAmf()
+        MessageType.COMMAND_AMF0 -> CommandAmf()
         MessageType.AGGREGATE -> Aggregate()
         else -> throw IOException("Unimplemented message type: ${header.messageType}")
       }

@@ -14,46 +14,35 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v0
+package com.pedro.rtmp.amf
 
-import com.pedro.common.TimeUtils
-import com.pedro.common.readUntil
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.ByteBuffer
 
 /**
- * Created by pedro on 19/07/22.
+ * Created by pedro on 20/04/21.
  *
- * milliseconds from 1st Jan 1970 in UTC time zone.
- * timeZone value is a reserved value that should be 0x0000
+ * Only 1 byte of size where 0 is false and another value is true
  */
-class AmfDate(var date: Double = TimeUtils.getCurrentTimeMillis().toDouble()): AmfData() {
+class AmfBoolean(var value: Boolean = false): AmfData() {
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    val bytes = ByteArray(getSize() - 2)
-    input.readUntil(bytes)
-    val value = ByteBuffer.wrap(bytes).long
-    date = Double.Companion.fromBits(value)
-    val timeZone = byteArrayOf(0x00, 0x00)
-    input.readUntil(timeZone)
+    val b = input.read()
+    this.value = b != 0
   }
 
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    val byteBuffer = ByteBuffer.allocate(getSize() - 2).putLong(date.toRawBits())
-    output.write(byteBuffer.array())
-    val timeZone = byteArrayOf(0x00, 0x00)
-    output.write(timeZone)
+    output.write(if (value) 1 else 0)
   }
 
-  override fun getType(): AmfType = AmfType.DATE
+  override fun getType(): AmfType = AmfType.BOOLEAN
 
-  override fun getSize(): Int = 10
+  override fun getSize(): Int = 1
 
   override fun toString(): String {
-    return "AmfDate value: $date"
+    return "AmfBoolean value: $value"
   }
 }

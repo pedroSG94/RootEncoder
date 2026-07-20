@@ -14,23 +14,34 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v0
+package com.pedro.rtmp.amf
+
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
 
 /**
  * Created by pedro on 20/04/21.
+ *
+ * Contain an empty body
  */
-enum class AmfType(val mark: Byte) {
-  NUMBER(0x00), BOOLEAN(0x01), STRING(0x02), OBJECT(0x03),
-  NULL(0x05), UNDEFINED(0x06), ECMA_ARRAY(0x08), OBJECT_END(0x09),
-  STRICT_ARRAY(0x0A), DATE(0x0B), LONG_STRING(0x0C), UNSUPPORTED(0x0D),
-  XML_DOCUMENT(0x0F),
-  /**
-   * Not implemented
-   */
-  REFERENCE(0x07), TYPED_OBJECT(0x10), AVM_PLUS_OBJECT(0x11),
+class AmfNull: AmfData() {
 
-  /**
-   * reserved, not supported
-   */
-  MOVIE_CLIP(0x04), RECORD_SET(0x0E),
+  @Throws(IOException::class)
+  override fun readBody(input: InputStream) {
+    //no body to read
+  }
+
+  @Throws(IOException::class)
+  override fun writeBody(output: OutputStream) {
+    //no body to write
+  }
+
+  override fun getType(): AmfType = AmfType.NULL
+
+  override fun getSize(): Int = 0
+
+  override fun toString(): String {
+    return "AmfNull"
+  }
 }

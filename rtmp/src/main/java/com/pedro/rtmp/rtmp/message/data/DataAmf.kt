@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.rtmp.message.command
+package com.pedro.rtmp.rtmp.message.data
 
-import com.pedro.rtmp.amf.v0.AmfData
-import com.pedro.rtmp.amf.v0.AmfNumber
-import com.pedro.rtmp.amf.v0.AmfObject
-import com.pedro.rtmp.amf.v0.AmfString
+import com.pedro.rtmp.amf.AmfData
+import com.pedro.rtmp.amf.AmfString
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
@@ -30,18 +28,17 @@ import java.io.InputStream
 /**
  * Created by pedro on 21/04/21.
  */
-class CommandAmf0(name: String = "", commandId: Int = 0, private val timestamp: Int = 0, private val streamId: Int = 0, basicHeader: BasicHeader =
-    BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark)): Command(name, commandId, timestamp, streamId, basicHeader = basicHeader) {
+class DataAmf(private var name: String = "", timeStamp: Int = 0, streamId: Int = 0, basicHeader: BasicHeader = BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark)) :
+    Data(timeStamp, streamId, basicHeader) {
 
   private val data: MutableList<AmfData> = mutableListOf()
 
   init {
     val amfString = AmfString(name)
-    data.add(amfString)
     bodySize += amfString.getSize() + 1
-    val amfNumber = AmfNumber(commandId.toDouble())
-    bodySize += amfNumber.getSize() + 1
-    data.add(amfNumber)
+    data.forEach {
+      bodySize += it.getSize() + 1
+    }
     header.messageLength = bodySize
   }
 
@@ -51,40 +48,26 @@ class CommandAmf0(name: String = "", commandId: Int = 0, private val timestamp: 
     header.messageLength = bodySize
   }
 
-  override fun getStreamId(): Int {
-    return (data[3] as AmfNumber).value.toInt()
-  }
-
-  override fun getDescription(): String {
-    return ((data[3] as AmfObject).getProperty("description") as AmfString).value
-  }
-
-  override fun getCode(): String {
-    return ((data[3] as AmfObject).getProperty("code") as AmfString).value
-  }
-
   override fun readBody(input: InputStream) {
     data.clear()
-    var bytesRead = 0
-    while (bytesRead < header.messageLength) {
+    bodySize = 0
+    val amfString = AmfString()
+    amfString.readHeader(input)
+    amfString.readBody(input)
+    name = amfString.value
+    bodySize += amfString.getSize() + 1
+    while (bodySize < header.messageLength) {
       val amfData = AmfData.getAmfData(input)
-      bytesRead += amfData.getSize() + 1
       data.add(amfData)
+      bodySize += amfData.getSize() + 1
     }
-    if (data.isNotEmpty()) {
-      if (data[0] is AmfString) {
-        name = (data[0] as AmfString).value
-      }
-      if (data.size >= 2 && data[1] is AmfNumber) {
-        commandId = (data[1] as AmfNumber).value.toInt()
-      }
-    }
-    bodySize = bytesRead
-    header.messageLength = bodySize
   }
 
   override fun storeBody(): ByteArray {
     val byteArrayOutputStream = ByteArrayOutputStream()
+    val amfString = AmfString(name)
+    amfString.writeHeader(byteArrayOutputStream)
+    amfString.writeBody(byteArrayOutputStream)
     data.forEach {
       it.writeHeader(byteArrayOutputStream)
       it.writeBody(byteArrayOutputStream)
@@ -92,9 +75,9 @@ class CommandAmf0(name: String = "", commandId: Int = 0, private val timestamp: 
     return byteArrayOutputStream.toByteArray()
   }
 
-  override fun getType(): MessageType = MessageType.COMMAND_AMF0
+  override fun getType(): MessageType = MessageType.DATA_AMF0
 
   override fun toString(): String {
-    return "Command(name='$name', transactionId=$commandId, timeStamp=$timestamp, streamId=$streamId, data=$data, bodySize=$bodySize)"
+    return "Data(name='$name', data=$data, bodySize=$bodySize)"
   }
 }

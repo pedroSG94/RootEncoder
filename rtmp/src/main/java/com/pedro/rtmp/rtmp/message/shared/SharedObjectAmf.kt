@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v3
+package com.pedro.rtmp.rtmp.message.shared
 
-import java.io.InputStream
-import java.io.OutputStream
+import com.pedro.rtmp.rtmp.message.MessageType
 
 /**
- * Created by pedro on 29/04/21.
+ * Created by pedro on 21/04/21.
  */
-class Amf3True: Amf3Data() {
-
-  override fun readBody(input: InputStream) {
-    //no body to read
-  }
-
-  override fun writeBody(output: OutputStream) {
-    //no body to write
-  }
-
-  override fun getType(): Amf3Type = Amf3Type.TRUE
-
-  override fun getSize(): Int = 0
+class SharedObjectAmf: SharedObject() {
+  override fun getType(): MessageType = MessageType.SHARED_OBJECT_AMF0
 }

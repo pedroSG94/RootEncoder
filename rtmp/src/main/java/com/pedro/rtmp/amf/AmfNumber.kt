@@ -14,34 +14,40 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v0
+package com.pedro.rtmp.amf
 
+import com.pedro.common.readUntil
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.nio.ByteBuffer
 
 /**
  * Created by pedro on 20/04/21.
  *
- * Contain an empty body
+ * A number in 8 bytes IEEE-754 double precision floating point value
  */
-class AmfNull: AmfData() {
+class AmfNumber(var value: Double = 0.0): AmfData() {
 
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
-    //no body to read
+    val bytes = ByteArray(getSize())
+    input.readUntil(bytes)
+    val value = ByteBuffer.wrap(bytes).long
+    this.value = Double.fromBits(value)
   }
 
   @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    //no body to write
+    val byteBuffer = ByteBuffer.allocate(getSize()).putLong(value.toRawBits())
+    output.write(byteBuffer.array())
   }
 
-  override fun getType(): AmfType = AmfType.NULL
+  override fun getType(): AmfType = AmfType.NUMBER
 
-  override fun getSize(): Int = 0
+  override fun getSize(): Int = 8
 
   override fun toString(): String {
-    return "AmfNull"
+    return "AmfNumber value: $value"
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.pedro.rtmp.amf.v3
+package com.pedro.rtmp.amf
 
 import java.io.IOException
 import java.io.InputStream
@@ -23,7 +23,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 20/04/21.
  */
-abstract class Amf3Data {
+abstract class AmfData {
 
   companion object {
 
@@ -31,32 +31,34 @@ abstract class Amf3Data {
      * Read unknown AmfData and convert it to specific class
      */
     @Throws(IOException::class)
-    fun getAmf3Data(input: InputStream): Amf3Data {
-      val amf3Data = when (val type = getMark3Type(input.read())) {
-        Amf3Type.DOUBLE -> Amf3Double()
-        Amf3Type.INTEGER -> Amf3Integer()
-        Amf3Type.STRING -> Amf3String()
-        Amf3Type.OBJECT -> Amf3Object()
-        Amf3Type.NULL -> Amf3Null()
-        Amf3Type.UNDEFINED -> Amf3Undefined()
-        Amf3Type.ARRAY -> Amf3Array()
-        Amf3Type.DICTIONARY -> Amf3Dictionary()
-        Amf3Type.TRUE -> Amf3True()
-        Amf3Type.FALSE -> Amf3False()
-        else -> throw IOException("Unimplemented AMF3 data type: ${type.name}")
+    fun getAmfData(input: InputStream): AmfData {
+      val amfData = when (val type = getMarkType(input.read())) {
+        AmfType.NUMBER -> AmfNumber()
+        AmfType.BOOLEAN -> AmfBoolean()
+        AmfType.STRING -> AmfString()
+        AmfType.OBJECT -> AmfObject()
+        AmfType.NULL -> AmfNull()
+        AmfType.UNDEFINED -> AmfUndefined()
+        AmfType.ECMA_ARRAY -> AmfEcmaArray()
+        AmfType.STRICT_ARRAY -> AmfStrictArray()
+        AmfType.DATE -> AmfDate()
+        AmfType.LONG_STRING -> AmfLongString()
+        AmfType.UNSUPPORTED -> AmfUnsupported()
+        AmfType.XML_DOCUMENT -> AmfXmlDocument()
+        else -> throw IOException("Unimplemented AMF data type: ${type.name}")
       }
-      amf3Data.readBody(input)
-      return amf3Data
+      amfData.readBody(input)
+      return amfData
     }
 
-    fun getMark3Type(type: Int): Amf3Type {
-      return Amf3Type.entries.find { it.mark.toInt() == type } ?: Amf3Type.STRING
+    fun getMarkType(type: Int): AmfType {
+      return AmfType.entries.find { it.mark.toInt() == type } ?: throw IOException("Unimplemented AMF data type: $type")
     }
   }
 
   @Throws(IOException::class)
-  fun readHeader(input: InputStream): Amf3Type {
-    return getMark3Type(input.read())
+  fun readHeader(input: InputStream): AmfType {
+    return getMarkType(input.read())
   }
 
   @Throws(IOException::class)
@@ -70,7 +72,7 @@ abstract class Amf3Data {
   @Throws(IOException::class)
   abstract fun writeBody(output: OutputStream)
 
-  abstract fun getType(): Amf3Type
+  abstract fun getType(): AmfType
 
   //Body size without header type
   abstract fun getSize(): Int
