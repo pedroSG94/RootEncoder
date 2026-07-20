@@ -27,6 +27,8 @@ import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
 import com.pedro.rtmp.flv.video.packet.H265Packet
+import com.pedro.rtmp.flv.video.packet.Vp8Packet
+import com.pedro.rtmp.flv.video.packet.Vp9Packet
 import java.io.ByteArrayOutputStream
 import java.io.FileDescriptor
 import java.io.FileOutputStream
@@ -66,7 +68,8 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
             VideoCodec.H264 -> H264Packet()
             VideoCodec.H265 -> H265Packet()
             VideoCodec.AV1 -> Av1Packet()
-            else -> throw IllegalArgumentException("Unsupported codec: ${getVideoCodec().name}")
+            VideoCodec.VP8 -> Vp8Packet()
+            VideoCodec.VP9 -> Vp9Packet()
         }
         outputStream?.let {
             try {
@@ -151,6 +154,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                             Log.e(TAG, "manual av1 extraction failed")
                         }
                     }
+                    is Vp8Packet, is Vp9Packet -> sendInfo = true
                     else -> {
                         Log.e(TAG, "Unsupported codec: ${videoPacket?.javaClass?.name ?: "null"}")
                     }
@@ -195,7 +199,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                        sendInfo = true
                    }
                }
-           }
+            }
             is Av1Packet -> {
                 val bufferInfo = videoFormat.getByteBuffer("csd-0")
                 if (bufferInfo != null && bufferInfo.remaining() > 4) {
@@ -203,6 +207,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                     sendInfo = true
                 }
             }
+            is Vp8Packet, is Vp9Packet -> sendInfo = true
         }
         if (sendInfo && recordStatus == RecordController.Status.STARTED) {
             myRequestKeyFrame = null
