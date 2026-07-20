@@ -36,9 +36,6 @@ class DataAmf(private var name: String = "", timeStamp: Int = 0, streamId: Int =
   init {
     val amfString = AmfString(name)
     bodySize += amfString.getSize() + 1
-    data.forEach {
-      bodySize += it.getSize() + 1
-    }
     header.messageLength = bodySize
   }
 
