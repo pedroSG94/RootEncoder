@@ -30,6 +30,7 @@ import java.io.OutputStream
 open class Amf3String(var value: String = ""): Amf3Data() {
 
   private var bodySize: Int
+  private var reference = -1
 
   init {
     val length = value.toByteArray(Charsets.UTF_8).size
@@ -39,9 +40,15 @@ open class Amf3String(var value: String = ""): Amf3Data() {
   @Throws(IOException::class)
   override fun readBody(input: InputStream) {
     val u29 = input.readUInt29()
-    if (u29 and 0x01 == 0) throw IOException("AMF3 string references are not supported")
     val length = u29 ushr 1
-    bodySize = length + length.getUInt29Size()
+    if (u29 and 0x01 == 0) { //reference
+      reference = length
+      value = ""
+      bodySize = length.getUInt29Size()
+      return
+    }
+    reference = -1
+    bodySize = length + u29.getUInt29Size()
     val bytes = ByteArray(length)
     input.readUntil(bytes)
     value = String(bytes, Charsets.UTF_8)
