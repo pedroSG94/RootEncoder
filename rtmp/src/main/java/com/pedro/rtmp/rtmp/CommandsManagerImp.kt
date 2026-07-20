@@ -30,13 +30,13 @@ import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.rtmp.chunk.ChunkStreamId
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.BasicHeader
-import com.pedro.rtmp.rtmp.message.command.CommandAmf
-import com.pedro.rtmp.rtmp.message.data.DataAmf
+import com.pedro.rtmp.rtmp.message.Command
+import com.pedro.rtmp.rtmp.message.Data
 import com.pedro.rtmp.utils.socket.RtmpSocket
 
-class CommandsManagerAmf: CommandsManager() {
+class CommandsManagerImp: CommandsManager() {
   override suspend fun sendConnectImp(auth: String, socket: RtmpSocket) {
-    val connect = CommandAmf("connect", ++commandId, getCurrentTimestamp(), streamId,
+    val connect = Command("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = AmfObject()
     connectInfo.setProperty("app", appName + auth)
@@ -69,7 +69,7 @@ class CommandsManagerAmf: CommandsManager() {
   }
 
   override suspend fun createStreamImp(socket: RtmpSocket) {
-    val releaseStream = CommandAmf("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
+    val releaseStream = Command("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     releaseStream.addData(AmfNull())
     releaseStream.addData(AmfString(streamName))
@@ -79,7 +79,7 @@ class CommandsManagerAmf: CommandsManager() {
     sessionHistory.setPacket(commandId, "releaseStream")
     Log.i(TAG, "send $releaseStream")
 
-    val fcPublish = CommandAmf("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
+    val fcPublish = Command("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     fcPublish.addData(AmfNull())
     fcPublish.addData(AmfString(streamName))
@@ -89,7 +89,7 @@ class CommandsManagerAmf: CommandsManager() {
     sessionHistory.setPacket(commandId, "FCPublish")
     Log.i(TAG, "send $fcPublish")
 
-    val createStream = CommandAmf("createStream", ++commandId, getCurrentTimestamp(), streamId,
+    val createStream = Command("createStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     createStream.addData(AmfNull())
 
@@ -101,7 +101,7 @@ class CommandsManagerAmf: CommandsManager() {
 
   override suspend fun sendMetadataImp(socket: RtmpSocket) {
     val name = "@setDataFrame"
-    val metadata = DataAmf(name, getCurrentTimestamp(), streamId)
+    val metadata = Data(name, getCurrentTimestamp(), streamId)
     metadata.addData(AmfString("onMetaData"))
     val amfEcmaArray = AmfEcmaArray()
     amfEcmaArray.setProperty("duration", 0.0)
@@ -143,7 +143,7 @@ class CommandsManagerAmf: CommandsManager() {
 
   override suspend fun sendPublishImp(socket: RtmpSocket) {
     val name = "publish"
-    val publish = CommandAmf(name, ++commandId, getCurrentTimestamp(), streamId,
+    val publish = Command(name, ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     publish.addData(AmfNull())
     publish.addData(AmfString(streamName))
@@ -157,7 +157,7 @@ class CommandsManagerAmf: CommandsManager() {
 
   override suspend fun sendCloseImp(socket: RtmpSocket) {
     val name = "closeStream"
-    val closeStream = CommandAmf(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
+    val closeStream = Command(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
     closeStream.addData(AmfNull())
 
     closeStream.writeHeader(socket)

@@ -38,7 +38,7 @@ import com.pedro.rtmp.rtmp.message.MessageType
 import com.pedro.rtmp.rtmp.message.SetChunkSize
 import com.pedro.rtmp.rtmp.message.SetPeerBandwidth
 import com.pedro.rtmp.rtmp.message.WindowAcknowledgementSize
-import com.pedro.rtmp.rtmp.message.command.Command
+import com.pedro.rtmp.rtmp.message.Command
 import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
@@ -76,7 +76,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   private var scopePing = CoroutineScope(Dispatchers.IO)
   private var job: Job? = null
   private var jobRetry: Job? = null
-  private val commandsManager = CommandsManagerAmf()
+  private val commandsManager = CommandsManagerImp()
   private val rtmpSender = RtmpSender(connectChecker, commandsManager)
 
   @Volatile

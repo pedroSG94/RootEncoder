@@ -17,10 +17,7 @@
 package com.pedro.rtmp.rtmp.message
 
 import com.pedro.rtmp.rtmp.chunk.ChunkType
-import com.pedro.rtmp.rtmp.message.command.CommandAmf
 import com.pedro.rtmp.rtmp.message.control.UserControl
-import com.pedro.rtmp.rtmp.message.data.DataAmf
-import com.pedro.rtmp.rtmp.message.shared.SharedObjectAmf
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.ByteArrayInputStream
@@ -57,9 +54,9 @@ abstract class RtmpMessage(basicHeader: BasicHeader) {
         MessageType.SET_PEER_BANDWIDTH -> SetPeerBandwidth()
         MessageType.AUDIO -> Audio()
         MessageType.VIDEO -> Video()
-        MessageType.DATA_AMF0 -> DataAmf()
-        MessageType.SHARED_OBJECT_AMF0 -> SharedObjectAmf()
-        MessageType.COMMAND_AMF0 -> CommandAmf()
+        MessageType.DATA_AMF0 -> Data()
+        MessageType.SHARED_OBJECT_AMF0 -> SharedObject()
+        MessageType.COMMAND_AMF0 -> Command()
         MessageType.AGGREGATE -> Aggregate()
         else -> throw IOException("Unimplemented message type: ${header.messageType}")
       }

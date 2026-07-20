@@ -19,7 +19,6 @@ package com.pedro.rtmp.rtmp.message
 import com.pedro.rtmp.FakeRtmpSocket
 import com.pedro.rtmp.amf.AmfNumber
 import com.pedro.rtmp.amf.AmfString
-import com.pedro.rtmp.rtmp.message.data.DataAmf
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.RtmpConfig
 import kotlinx.coroutines.test.runTest
@@ -46,21 +45,21 @@ class DataTest {
   fun `GIVEN a buffer WHEN read rtmp message THEN get expected data amf0 packet`() = runTest {
     val buffer = byteArrayOf(3, 0, 0, 0, 0, 0, 25, 18, 0, 0, 0, 0, 2, 0, 4, 116, 101, 115, 116, 2, 0, 6, 114, 97, 110, 100, 111, 109, 0, 64, 52, 0, 0, 0, 0, 0, 0)
     socket.setInputBytes(buffer)
-    val dataAmf0 = DataAmf("test")
-    dataAmf0.addData(AmfString("random"))
-    dataAmf0.addData(AmfNumber(20.0))
+    val data = Data("test")
+    data.addData(AmfString("random"))
+    data.addData(AmfNumber(20.0))
 
     val message = RtmpMessage.getRtmpMessage(socket, RtmpConfig.DEFAULT_CHUNK_SIZE, commandSessionHistory)
 
-    assertTrue(message is DataAmf)
-    assertEquals(dataAmf0.toString(), (message as DataAmf).toString())
+    assertTrue(message is Data)
+    assertEquals(data.toString(), (message as Data).toString())
   }
 
   @Test
   fun `GIVEN a data amf0 packet WHEN write into a buffer THEN get expected buffer`() = runTest {
     val expectedBuffer = byteArrayOf(3, 0, 0, 0, 0, 0, 25, 18, 0, 0, 0, 0, 2, 0, 4, 116, 101, 115, 116, 2, 0, 6, 114, 97, 110, 100, 111, 109, 0, 64, 52, 0, 0, 0, 0, 0, 0)
 
-    val dataAmf0 = DataAmf("test")
+    val dataAmf0 = Data("test")
     dataAmf0.addData(AmfString("random"))
     dataAmf0.addData(AmfNumber(20.0))
 
