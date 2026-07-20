@@ -179,6 +179,16 @@ fun MediaFormat.getLongSafe(name: String): Long? {
   return try { getLong(name) } catch (e: Exception) { null }
 }
 
+fun Int.getUInt29Size(): Int {
+  val v = this and 0x1FFFFFFF
+  return when {
+    v < 0x80 -> 1
+    v < 0x4000 -> 2
+    v < 0x200000 -> 3
+    else -> 4
+  }
+}
+
 fun Int.toUInt16(): ByteArray = byteArrayOf((this ushr 8).toByte(), this.toByte())
 
 fun Int.toUInt24(): ByteArray {
@@ -244,6 +254,24 @@ fun InputStream.readUInt32(): Int {
 }
 
 @Throws(IOException::class)
+fun InputStream.readUInt29(): Int {
+  var result = 0
+  var bytesRead = 0
+  while (bytesRead < 3) {
+    val b = read()
+    bytesRead++
+    if (b and 0x80 != 0) {
+      result = (result shl 7) or (b and 0x7F)
+    } else {
+      result = (result shl 7) or b
+      return if (result >= 0x10000000) result - 0x20000000 else result
+    }
+  }
+  result = (result shl 8) or read()
+  return if (result >= 0x10000000) result - 0x20000000 else result
+}
+
+@Throws(IOException::class)
 fun InputStream.readUInt24(): Int {
   val data = ByteArray(3)
   readUntil(data)
@@ -263,6 +291,28 @@ fun InputStream.readUInt32LittleEndian(): Int {
 
 fun OutputStream.writeUInt32(value: Int) {
   write(value.toUInt32())
+}
+
+fun OutputStream.writeUInt29(value: Int) {
+  val u29 = value and 0x1FFFFFFF
+  when {
+    u29 < 0x80 -> write(u29)
+    u29 < 0x4000 -> {
+      write((u29 shr 7) or 0x80)
+      write(u29 and 0x7F)
+    }
+    u29 < 0x200000 -> {
+      write((u29 shr 14) or 0x80)
+      write(((u29 shr 7) and 0x7F) or 0x80)
+      write(u29 and 0x7F)
+    }
+    else -> {
+      write((u29 shr 22) or 0x80)
+      write(((u29 shr 15) and 0x7F) or 0x80)
+      write(((u29 shr 8) and 0x7F) or 0x80)
+      write(u29 and 0xFF)
+    }
+  }
 }
 
 fun OutputStream.writeUInt24(value: Int) {

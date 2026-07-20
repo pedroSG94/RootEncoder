@@ -41,6 +41,7 @@ abstract class Amf3Data {
         Amf3Type.UNDEFINED -> Amf3Undefined()
         Amf3Type.ARRAY -> Amf3Array()
         Amf3Type.DICTIONARY -> Amf3Dictionary()
+        Amf3Type.XML_DOC -> Amf3XmlDocument()
         Amf3Type.TRUE -> Amf3True()
         Amf3Type.FALSE -> Amf3False()
         else -> throw IOException("Unimplemented AMF3 data type: ${type.name}")

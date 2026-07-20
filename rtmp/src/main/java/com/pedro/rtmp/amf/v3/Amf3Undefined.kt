@@ -25,11 +25,11 @@ import java.io.OutputStream
 class Amf3Undefined: Amf3Data() {
 
   override fun readBody(input: InputStream) {
-    //no body to read
+    //nothing to read
   }
 
   override fun writeBody(output: OutputStream) {
-    //no body to write
+    //nothing to write
   }
 
   override fun getType(): Amf3Type = Amf3Type.UNDEFINED

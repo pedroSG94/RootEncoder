@@ -16,25 +16,27 @@
 
 package com.pedro.rtmp.amf.v3
 
+import com.pedro.common.getUInt29Size
+import com.pedro.common.readUInt29
+import com.pedro.common.writeUInt29
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
  * Created by pedro on 29/04/21.
  */
-class Amf3Integer(private val value: Int = 0): Amf3Data() {
+class Amf3Integer(private var value: Int = 0): Amf3Data() {
+
 
   override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
+    this.value = input.readUInt29()
   }
 
   override fun writeBody(output: OutputStream) {
-    TODO("Not yet implemented")
+    output.writeUInt29(value)
   }
 
   override fun getType(): Amf3Type = Amf3Type.INTEGER
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
+  override fun getSize(): Int = value.getUInt29Size()
 }

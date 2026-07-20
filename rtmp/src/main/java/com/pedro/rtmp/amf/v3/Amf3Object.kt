@@ -16,7 +16,6 @@
 
 package com.pedro.rtmp.amf.v3
 
-import com.pedro.rtmp.amf.v0.AmfNull
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -26,6 +25,13 @@ import java.io.OutputStream
 open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = LinkedHashMap()): Amf3Data() {
 
   protected var bodySize = 0
+
+  init {
+    properties.forEach {
+      bodySize += it.key.getSize()
+      bodySize += it.value.getSize() + 1
+    }
+  }
 
   fun getProperty(name: String): Amf3Data? {
     properties.forEach {
@@ -80,7 +86,5 @@ open class Amf3Object(private val properties: HashMap<Amf3String, Amf3Data> = Li
 
   override fun getType(): Amf3Type = Amf3Type.OBJECT
 
-  override fun getSize(): Int {
-    TODO("Not yet implemented")
-  }
+  override fun getSize(): Int = bodySize
 }
