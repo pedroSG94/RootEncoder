@@ -16,25 +16,91 @@
 
 package com.pedro.rtmp.amf.v3
 
+import com.pedro.common.getUInt29Size
+import com.pedro.common.readUInt29
+import com.pedro.common.writeUInt29
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
  * Created by pedro on 29/04/21.
+ *
+ * AMF3 arrays have an associative part (name/value pairs, empty string terminated)
+ * followed by a dense part of U29A-value items. References can't be resolved without
+ * payload scope, so they are rejected.
  */
 class Amf3Array(val items: MutableList<Amf3Data> = mutableListOf()): Amf3Data() {
 
-  override fun readBody(input: InputStream) {
-    TODO("Not yet implemented")
+  private val associative = LinkedHashMap<Amf3String, Amf3Data>()
+  private var referenceSize = -1
+
+  fun getProperty(name: String): Amf3Data? {
+    associative.forEach {
+      if (it.key.value == name) {
+        return it.value
+      }
+    }
+    return null
   }
 
+  fun setProperty(name: String, data: Amf3Data) {
+    val existingKey = associative.keys.find { it.value == name }
+    if (existingKey != null) associative[existingKey] = data
+    else associative[Amf3String(name)] = data
+  }
+
+  @Throws(IOException::class)
+  override fun readBody(input: InputStream) {
+    items.clear()
+    associative.clear()
+    val u29 = input.readUInt29()
+    if (u29 and 0x01 == 0) { //reference to a previous array of this payload, no tables to resolve it
+      referenceSize = u29.getUInt29Size()
+      return
+    }
+    referenceSize = -1
+    val denseCount = u29 ushr 1
+    while (true) {
+      val key = Amf3String()
+      key.readBody(input)
+      if (key.isReference) throw IOException("AMF3 string reference as array key is not supported")
+      if (key.value.isEmpty()) break
+      associative[key] = getAmf3Data(input)
+    }
+    repeat(denseCount) {
+      items.add(getAmf3Data(input))
+    }
+  }
+
+  @Throws(IOException::class)
   override fun writeBody(output: OutputStream) {
-    TODO("Not yet implemented")
+    output.writeUInt29((items.size shl 1) or 1)
+    associative.forEach { (key, value) ->
+      key.writeBody(output)
+      value.writeHeader(output)
+      value.writeBody(output)
+    }
+    output.write(0x01) //empty string, end of associative part
+    items.forEach {
+      it.writeHeader(output)
+      it.writeBody(output)
+    }
   }
 
   override fun getType(): Amf3Type = Amf3Type.ARRAY
 
   override fun getSize(): Int {
-    TODO("Not yet implemented")
+    if (referenceSize != -1) return referenceSize
+    var size = ((items.size shl 1) or 1).getUInt29Size() + 1
+    associative.forEach { (key, value) ->
+      size += key.getSize() + value.getSize() + 1
+    }
+    items.forEach { size += it.getSize() + 1 }
+    return size
+  }
+
+  override fun toString(): String {
+    return "Amf3Array(items=$items, associative=${associative.entries.joinToString { "${it.key.value}=${it.value}" }})"
   }
 }

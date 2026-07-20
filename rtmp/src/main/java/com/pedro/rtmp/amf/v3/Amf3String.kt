@@ -31,6 +31,8 @@ open class Amf3String(var value: String = ""): Amf3Data() {
 
   private var bodySize: Int
   private var reference = -1
+  val isReference: Boolean
+    get() = reference != -1
 
   init {
     val length = value.toByteArray(Charsets.UTF_8).size
@@ -44,7 +46,7 @@ open class Amf3String(var value: String = ""): Amf3Data() {
     if (u29 and 0x01 == 0) { //reference
       reference = length
       value = ""
-      bodySize = length.getUInt29Size()
+      bodySize = u29.getUInt29Size()
       return
     }
     reference = -1

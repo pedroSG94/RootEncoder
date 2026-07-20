@@ -25,7 +25,7 @@ import java.io.OutputStream
 /**
  * Created by pedro on 29/04/21.
  */
-class Amf3Integer(private var value: Int = 0): Amf3Data() {
+class Amf3Integer(var value: Int = 0): Amf3Data() {
 
 
   override fun readBody(input: InputStream) {

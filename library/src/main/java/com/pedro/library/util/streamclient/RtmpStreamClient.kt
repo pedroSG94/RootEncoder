@@ -17,6 +17,7 @@
 package com.pedro.library.util.streamclient
 
 import com.pedro.common.socket.base.SocketType
+import com.pedro.rtmp.amf.AmfVersion
 import com.pedro.rtmp.rtmp.RtmpClient
 import javax.net.ssl.TrustManager
 
@@ -222,5 +223,9 @@ class RtmpStreamClient(
    */
   fun shouldFailOnRead(enabled: Boolean) {
     rtmpClient.shouldFailOnRead = enabled
+  }
+
+  fun setAmfVersion(version: AmfVersion) {
+    rtmpClient.setAmfVersion(AmfVersion.VERSION_3)
   }
 }

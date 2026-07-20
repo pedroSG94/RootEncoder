@@ -21,10 +21,10 @@ import com.pedro.common.AudioCodec
 import com.pedro.common.VideoCodec
 import com.pedro.rtmp.amf.v0.AmfData
 import com.pedro.rtmp.amf.v0.AmfEcmaArray
+import com.pedro.rtmp.amf.v0.AmfNull
 import com.pedro.rtmp.amf.v0.AmfObject
 import com.pedro.rtmp.amf.v0.AmfStrictArray
 import com.pedro.rtmp.amf.v0.AmfString
-import com.pedro.rtmp.amf.v3.Amf3Null
 import com.pedro.rtmp.amf.v3.Amf3String
 import com.pedro.rtmp.flv.audio.AudioFormat
 import com.pedro.rtmp.flv.video.VideoFormat
@@ -75,7 +75,7 @@ class CommandsManagerAmf3: CommandsManager() {
   override suspend fun createStreamImp(socket: RtmpSocket) {
     val releaseStream = CommandAmf3("releaseStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    releaseStream.addData(Amf3Null())
+    releaseStream.addData(AmfNull())
     releaseStream.addData(Amf3String(streamName))
 
     releaseStream.writeHeader(socket)
@@ -85,7 +85,7 @@ class CommandsManagerAmf3: CommandsManager() {
 
     val fcPublish = CommandAmf3("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    fcPublish.addData(Amf3Null())
+    fcPublish.addData(AmfNull())
     fcPublish.addData(Amf3String(streamName))
 
     fcPublish.writeHeader(socket)
@@ -95,7 +95,7 @@ class CommandsManagerAmf3: CommandsManager() {
 
     val createStream = CommandAmf3("createStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
-    createStream.addData(Amf3Null())
+    createStream.addData(AmfNull())
 
     createStream.writeHeader(socket)
     createStream.writeBody(socket, config.writeChunkSize)
@@ -149,7 +149,7 @@ class CommandsManagerAmf3: CommandsManager() {
     val name = "publish"
     val publish = CommandAmf3(name, ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    publish.addData(Amf3Null())
+    publish.addData(AmfNull())
     publish.addData(Amf3String(streamName))
     publish.addData(Amf3String("live"))
 
@@ -162,7 +162,7 @@ class CommandsManagerAmf3: CommandsManager() {
   override suspend fun sendCloseImp(socket: RtmpSocket) {
     val name = "closeStream"
     val closeStream = CommandAmf3(name, ++commandId, getCurrentTimestamp(), streamId, BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
-    closeStream.addData(Amf3Null())
+    closeStream.addData(AmfNull())
 
     closeStream.writeHeader(socket)
     closeStream.writeBody(socket, config.writeChunkSize)

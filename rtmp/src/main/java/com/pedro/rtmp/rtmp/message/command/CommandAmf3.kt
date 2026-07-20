@@ -57,6 +57,12 @@ class CommandAmf3(name: String = "", commandId: Int = 0, private val timestamp: 
     header.messageLength = bodySize
   }
 
+  fun addData(amfData: AmfData) {
+    dataAmf0.add(amfData)
+    bodySize += amfData.getSize() + 1
+    header.messageLength = bodySize
+  }
+
   override fun getObjectEncoding(): Int {
     return if (isAmf3) {
       ((dataAmf3[infoIndex] as? Amf3Object)?.getProperty("objectEncoding") as? Amf3Double)?.value?.toInt() ?: 0
@@ -138,7 +144,10 @@ class CommandAmf3(name: String = "", commandId: Int = 0, private val timestamp: 
     val amfNumber = AmfNumber(commandId.toDouble())
     amfNumber.writeHeader(byteArrayOutputStream)
     amfNumber.writeBody(byteArrayOutputStream)
-
+    dataAmf0.forEach {
+      it.writeHeader(byteArrayOutputStream)
+      it.writeBody(byteArrayOutputStream)
+    }
     dataAmf3.forEach {
       byteArrayOutputStream.write(0x11)
       it.writeHeader(byteArrayOutputStream)
