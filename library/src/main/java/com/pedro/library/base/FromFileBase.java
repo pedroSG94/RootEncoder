@@ -798,23 +798,13 @@ public abstract class FromFileBase {
   public void setVideoCodec(VideoCodec codec) {
     setVideoCodecImp(codec);
     recordController.setVideoCodec(codec);
-    String type = switch (codec) {
-      case H264 -> CodecUtil.H264_MIME;
-      case H265 -> CodecUtil.H265_MIME;
-      case AV1 -> CodecUtil.AV1_MIME;
-    };
-    videoEncoder.setType(type);
+    videoEncoder.setType(codec.getMime());
   }
 
   public void setAudioCodec(AudioCodec codec) {
     setAudioCodecImp(codec);
     recordController.setAudioCodec(codec);
-    String type = switch (codec) {
-      case G711 -> CodecUtil.G711_MIME;
-      case AAC -> CodecUtil.AAC_MIME;
-      case OPUS -> CodecUtil.OPUS_MIME;
-    };
-    audioEncoder.setType(type);
+    audioEncoder.setType(codec.getMime());
   }
 
   protected abstract void setVideoCodecImp(VideoCodec codec);

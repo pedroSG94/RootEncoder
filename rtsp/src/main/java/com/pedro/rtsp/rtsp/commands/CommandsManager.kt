@@ -29,6 +29,8 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createG711Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH264Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
+import com.pedro.rtsp.rtsp.commands.SdpBody.createVp8Body
+import com.pedro.rtsp.rtsp.commands.SdpBody.createVp9Body
 import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
 import com.pedro.rtsp.utils.getData
@@ -101,6 +103,7 @@ open class CommandsManager {
       VideoCodec.H264 -> sps != null && pps != null
       VideoCodec.H265 -> sps != null && pps != null && vps != null
       VideoCodec.AV1 -> sps != null
+      VideoCodec.VP8, VideoCodec.VP9 -> true
     }
   }
 
@@ -155,15 +158,11 @@ open class CommandsManager {
     var videoBody = ""
     if (!videoDisabled) {
       videoBody = when (videoCodec) {
-        VideoCodec.H264 -> {
-          createH264Body(rtpTracks.trackVideo, spsString, ppsString)
-        }
-        VideoCodec.H265 -> {
-          createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
-        }
-        VideoCodec.AV1 -> {
-          createAV1Body(rtpTracks.trackVideo)
-        }
+        VideoCodec.H264 -> createH264Body(rtpTracks.trackVideo, spsString, ppsString)
+        VideoCodec.H265 -> createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
+        VideoCodec.VP8 -> createVp8Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
+        VideoCodec.VP9 -> createVp9Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
+        VideoCodec.AV1 -> createAV1Body(rtpTracks.trackVideo)
       }
     }
     var audioBody = ""

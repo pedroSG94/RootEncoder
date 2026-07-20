@@ -61,6 +61,7 @@ class WhipSender(
                 H265Packet(commandsManager.rtpTracks.trackVideo).apply { sendVideoInfo(sps, pps, vps) }
             }
             VideoCodec.AV1 -> Av1Packet(commandsManager.rtpTracks.trackVideo)
+            else -> throw IllegalArgumentException("Unsupported codec: ${commandsManager.videoCodec.name}")
         }
     }
 

@@ -30,6 +30,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.TimeUtils;
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.TimestampMode;
@@ -76,7 +77,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
     typeError = CodecUtil.CodecTypeError.VIDEO_CODEC;
-    type = CodecUtil.H264_MIME;
+    type = VideoCodec.H264.getMime();
     TAG = "VideoEncoder";
   }
 
@@ -333,7 +334,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   private boolean sendSPSandPPS(MediaFormat mediaFormat) {
     //AV1
-    if (type.equals(CodecUtil.AV1_MIME)) {
+    if (type.equals(VideoCodec.AV1.getMime())) {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       //we need an av1ConfigurationRecord with sequenceObu to work
       if (bufferInfo != null && bufferInfo.remaining() > 4) {
@@ -341,8 +342,12 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         getVideoData.onVideoInfo(oldSps, null, null);
         return true;
       }
+    } else if (type.equals(VideoCodec.VP8.getMime()) || type.equals(VideoCodec.VP9.getMime())) {
+      //Only used to call onVideoInfo to keep same logic in all codecs.
+      getVideoData.onVideoInfo(ByteBuffer.allocate(0), null, null);
+      return true;
       //H265
-    } else if (type.equals(CodecUtil.H265_MIME)) {
+    } else if (type.equals(VideoCodec.H265.getMime())) {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
       if (bufferInfo != null) {
         List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate());
@@ -441,7 +446,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       forceKey = false;
       requestKeyframe();
     }
-    if (!spsPpsSetted && type.equals(CodecUtil.H264_MIME)) {
+    if (!spsPpsSetted && type.equals(VideoCodec.H264.getMime())) {
       Log.i(TAG, "formatChanged not called, doing manual sps/pps extraction...");
       Pair<ByteBuffer, ByteBuffer> buffers = VideoEncoderHelper.decodeSpsPpsFromBuffer(byteBuffer.duplicate(), bufferInfo.size);
       if (buffers != null) {
@@ -454,7 +459,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       } else {
         Log.e(TAG, "manual sps/pps extraction failed");
       }
-    } else if (!spsPpsSetted && type.equals(CodecUtil.H265_MIME)) {
+    } else if (!spsPpsSetted && type.equals(VideoCodec.H265.getMime())) {
       Log.i(TAG, "formatChanged not called, doing manual vps/sps/pps extraction...");
       List<ByteBuffer> byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(byteBuffer.duplicate());
       if (byteBufferList.size() == 3) {
@@ -467,7 +472,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       } else {
         Log.e(TAG, "manual vps/sps/pps extraction failed");
       }
-    } else if (!spsPpsSetted && type.equals(CodecUtil.AV1_MIME)) {
+    } else if (!spsPpsSetted && (type.equals(VideoCodec.VP8.getMime()) || type.equals(VideoCodec.VP9.getMime()))) {
+      //Only used to call onVideoInfo to keep same logic in all codecs.
+      getVideoData.onVideoInfo(ByteBuffer.allocate(0), null, null);
+      spsPpsSetted = true;
+    } else if (!spsPpsSetted && type.equals(VideoCodec.AV1.getMime())) {
       Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
       ByteBuffer obuSequence = VideoEncoderHelper.extractObuSequence(byteBuffer.duplicate(), bufferInfo);
       if (obuSequence != null) {

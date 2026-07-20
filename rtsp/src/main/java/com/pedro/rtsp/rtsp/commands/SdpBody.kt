@@ -108,4 +108,14 @@ object SdpBody {
         "a=fmtp:$payload packetization-mode=1; sprop-sps=$sps; sprop-pps=$pps; sprop-vps=$vps\r\n" +
         identifier
   }
+
+  fun createVp8Body(trackVideo: Int, sps: String, pps: String, vps: String, secured: Boolean = false): String {
+    return ""
+  }
+
+  fun createVp9Body(trackVideo: Int, sps: String, pps: String, vps: String, secured: Boolean = false): String {
+    return ""
+  }
+
+
 }

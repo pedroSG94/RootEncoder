@@ -113,6 +113,8 @@ class CommandsManagerImp: CommandsManager() {
         VideoCodec.H264 -> VideoFormat.AVC.value
         VideoCodec.H265 -> VideoFormat.HEVC.value
         VideoCodec.AV1 -> VideoFormat.AV1.value
+        VideoCodec.VP8 -> VideoFormat.VP8.value
+        VideoCodec.VP9 -> VideoFormat.VP9.value
       }
       amfEcmaArray.setProperty("videocodecid", codecValue.toDouble())
       amfEcmaArray.setProperty("framerate", fps.toDouble())

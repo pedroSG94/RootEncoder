@@ -16,6 +16,6 @@
 
 package com.pedro.common
 
-enum class AudioCodec {
-  G711, AAC, OPUS
+enum class AudioCodec(val mime: String) {
+  G711("audio/g711-alaw"), AAC("audio/mp4a-latm"), OPUS("audio/opus")
 }

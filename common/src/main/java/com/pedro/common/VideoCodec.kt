@@ -16,6 +16,8 @@
 
 package com.pedro.common
 
-enum class VideoCodec {
-    H264, H265, AV1
+enum class VideoCodec(val mime: String) {
+    H264("video/avc"), H265("video/hevc"),
+    VP8("video/x-vnd.on2.vp8"), VP9("video/x-vnd.on2.vp9"),
+    AV1("video/av01")
 }

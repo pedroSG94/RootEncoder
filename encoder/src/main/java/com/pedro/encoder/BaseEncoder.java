@@ -27,6 +27,7 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.common.TimeUtils;
 import com.pedro.encoder.audio.G711Codec;
 import com.pedro.encoder.utils.CodecUtil;
@@ -97,7 +98,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   }
 
   protected void setCallback() {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !type.equals(CodecUtil.G711_MIME)) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !type.equals(AudioCodec.G711.getMime())) {
       handlerThread = new HandlerThread(TAG);
       handlerThread.start();
       handler = new Handler(handlerThread.getLooper());
@@ -108,8 +109,8 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   private void initCodec() {
     running = true;
-    if (!type.equals(CodecUtil.G711_MIME)) codec.start();
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || type.equals(CodecUtil.G711_MIME)) {
+    if (!type.equals(AudioCodec.G711.getMime())) codec.start();
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || type.equals(AudioCodec.G711.getMime())) {
       executorService = Executors.newSingleThreadExecutor();
       executorService.submit(() -> {
         while (running) {
@@ -204,7 +205,7 @@ public abstract class BaseEncoder implements EncoderCallback {
   protected abstract MediaCodecInfo chooseEncoder(String mime);
 
   protected void getDataFromEncoder() throws IllegalStateException {
-    if (type.equals(CodecUtil.G711_MIME)) {
+    if (type.equals(AudioCodec.G711.getMime())) {
       processG711();
       return;
     }

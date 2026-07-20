@@ -639,13 +639,8 @@ abstract class StreamBase(
   fun setVideoCodec(codec: VideoCodec) {
     setVideoCodecImp(codec)
     recordController.setVideoCodec(codec)
-    val type = when (codec) {
-      VideoCodec.H264 -> CodecUtil.H264_MIME
-      VideoCodec.H265 -> CodecUtil.H265_MIME
-      VideoCodec.AV1 -> CodecUtil.AV1_MIME
-    }
-    videoEncoder.type = type
-    videoEncoderRecord.type = type
+    videoEncoder.type = codec.mime
+    videoEncoderRecord.type = codec.mime
   }
 
   /**
@@ -655,12 +650,7 @@ abstract class StreamBase(
   fun setAudioCodec(codec: AudioCodec) {
     setAudioCodecImp(codec)
     recordController.setAudioCodec(codec)
-    val type = when (codec) {
-      AudioCodec.G711 -> CodecUtil.G711_MIME
-      AudioCodec.AAC -> CodecUtil.AAC_MIME
-      AudioCodec.OPUS -> CodecUtil.OPUS_MIME
-    }
-    audioEncoder.type = type
+    audioEncoder.type = codec.mime
   }
 
   protected abstract fun setVideoCodecImp(codec: VideoCodec)

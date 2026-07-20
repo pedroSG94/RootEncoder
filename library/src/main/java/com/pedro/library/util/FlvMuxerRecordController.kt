@@ -66,6 +66,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
             VideoCodec.H264 -> H264Packet()
             VideoCodec.H265 -> H265Packet()
             VideoCodec.AV1 -> Av1Packet()
+            else -> throw IllegalArgumentException("Unsupported codec: ${getVideoCodec().name}")
         }
         outputStream?.let {
             try {
@@ -240,6 +241,8 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
         val videoCodecValue = when (getVideoCodec()) {
             VideoCodec.H264 -> VideoFormat.AVC.value
             VideoCodec.H265 -> VideoFormat.HEVC.value
+            VideoCodec.VP8 -> VideoFormat.VP8.value
+            VideoCodec.VP9 -> VideoFormat.VP9.value
             VideoCodec.AV1 -> VideoFormat.AV1.value
         }
         info.setProperty("videocodecid", videoCodecValue.toDouble())
