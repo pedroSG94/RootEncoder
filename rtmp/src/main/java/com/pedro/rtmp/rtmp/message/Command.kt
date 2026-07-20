@@ -23,11 +23,9 @@ class Command(var name: String = "", var commandId: Int = 0, private val timeSta
     header.messageStreamId = streamId
 
     val amfString = AmfString(name)
-    data.add(amfString)
     bodySize += amfString.getSize() + 1
     val amfNumber = AmfNumber(commandId.toDouble())
     bodySize += amfNumber.getSize() + 1
-    data.add(amfNumber)
     header.messageLength = bodySize
   }
 
@@ -38,39 +36,47 @@ class Command(var name: String = "", var commandId: Int = 0, private val timeSta
   }
 
   fun getStreamId(): Int {
-    return (data[3] as AmfNumber).value.toInt()
+    return (data[1] as AmfNumber).value.toInt()
   }
 
-  fun getDescription(): String {
-    return ((data[3] as AmfObject).getProperty("description") as AmfString).value
-  }
+  fun getDescription() = getProperty("description")
 
-  fun getCode(): String {
-    return ((data[3] as AmfObject).getProperty("code") as AmfString).value
+  fun getCode() = getProperty("code")
+
+  private fun getProperty(key: String): String {
+    return data.filterIsInstance<AmfObject>().firstNotNullOfOrNull {
+      it.getProperty(key) as? AmfString
+    }?.value ?: ""
   }
 
   override fun readBody(input: InputStream) {
     data.clear()
-    var bytesRead = 0
-    while (bytesRead < header.messageLength) {
+    bodySize = 0
+
+    val nameData = AmfData.getAmfData(input)
+    if (nameData is AmfString) name = nameData.value
+    bodySize += nameData.getSize() + 1
+    if (bodySize >= header.messageLength) return
+    val commandData = AmfData.getAmfData(input)
+    if (commandData is AmfNumber) commandId = commandData.value.toInt()
+    bodySize += commandData.getSize() + 1
+
+    while (bodySize < header.messageLength) {
       val amfData = AmfData.getAmfData(input)
-      bytesRead += amfData.getSize() + 1
       data.add(amfData)
+      bodySize += amfData.getSize() + 1
     }
-    if (data.isNotEmpty()) {
-      if (data[0] is AmfString) {
-        name = (data[0] as AmfString).value
-      }
-      if (data.size >= 2 && data[1] is AmfNumber) {
-        commandId = (data[1] as AmfNumber).value.toInt()
-      }
-    }
-    bodySize = bytesRead
     header.messageLength = bodySize
   }
 
   override fun storeBody(): ByteArray {
     val byteArrayOutputStream = ByteArrayOutputStream()
+    val amfString = AmfString(name)
+    amfString.writeHeader(byteArrayOutputStream)
+    amfString.writeBody(byteArrayOutputStream)
+    val amfNumber = AmfNumber(commandId.toDouble())
+    amfNumber.writeHeader(byteArrayOutputStream)
+    amfNumber.writeBody(byteArrayOutputStream)
     data.forEach {
       it.writeHeader(byteArrayOutputStream)
       it.writeBody(byteArrayOutputStream)

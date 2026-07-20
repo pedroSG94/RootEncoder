@@ -18,6 +18,7 @@ package com.pedro.rtmp.rtmp.message
 
 import com.pedro.rtmp.rtmp.chunk.ChunkType
 import com.pedro.rtmp.rtmp.message.control.UserControl
+import com.pedro.rtmp.rtmp.message.shared.SharedObject
 import com.pedro.rtmp.utils.CommandSessionHistory
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import java.io.ByteArrayInputStream
