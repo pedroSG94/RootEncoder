@@ -17,7 +17,7 @@ import java.nio.ByteBuffer
 class Vp9Packet: BasePacket() {
 
   private val TAG = "Vp9Packet"
-  private val header = ByteArray(8)
+  private val header = ByteArray(5)
   //first time we need send video config
   private var configSend = false
 
@@ -38,21 +38,15 @@ class Vp9Packet: BasePacket() {
     }
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val ts = mediaFrame.info.timestamp / 1000
-    //header is 8 bytes length:
+    //header is 5 bytes length:
     //mark first byte as extended header (0b10000000)
     //4 bits data type, 4 bits packet type
-    //4 bytes extended codec type (in this case hevc)
-    //3 bytes CompositionTime, the cts.
+    //4 bytes extended codec type (in this case vp09)
     val codec = VideoFormat.VP9.value // { "v", "p", "0", "9" }
     header[1] = (codec shr 24).toByte()
     header[2] = (codec shr 16).toByte()
     header[3] = (codec shr 8).toByte()
     header[4] = codec.toByte()
-    val cts = 0
-    val ctsLength = 3
-    header[5] = (cts shr 16).toByte()
-    header[6] = (cts shr 8).toByte()
-    header[7] = cts.toByte()
 
     var buffer: ByteArray
     if (!configSend) {
@@ -60,9 +54,9 @@ class Vp9Packet: BasePacket() {
       header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or VideoFourCCPacketType.SEQUENCE_START.value).toByte()
 
       val config = VideoSpecificConfigVp9(videoInfo.toByteArray())
-      buffer = ByteArray(config.size + header.size - ctsLength)
-      config.write(buffer, header.size - ctsLength)
-      System.arraycopy(header, 0, buffer, 0, header.size - ctsLength)
+      buffer = ByteArray(config.size + header.size)
+      config.write(buffer, header.size)
+      System.arraycopy(header, 0, buffer, 0, header.size)
       callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
       configSend = true
     }
