@@ -23,7 +23,7 @@ class VideoSpecificConfigVp8 {
       0x01, 0x00, 0x00, 0x00,   // version = 1, flags = 0
       0x00,                     // profile = 0
       0x00,                     // level = 0
-      0x80.toByte(),            // bitDepth 8 | chroma 4:2:0 | fullRange 0
+      0x82.toByte(),            // bitDepth 8 | chroma 4:2:0 | fullRange 0
       0x02,                     // colourPrimaries = 2
       0x02,                     // transferCharacteristics = 2
       0x02,                     // matrixCoefficients = 2

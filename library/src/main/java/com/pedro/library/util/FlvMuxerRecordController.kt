@@ -154,7 +154,16 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                             Log.e(TAG, "manual av1 extraction failed")
                         }
                     }
-                    is Vp8Packet, is Vp9Packet -> sendInfo = true
+                    is Vp8Packet -> sendInfo = true
+                    is Vp9Packet -> {
+                        val header = VideoEncoderHelper.extractVp9BitStreamHeader(buffer.duplicate(), info)
+                        if (header != null) {
+                            (videoPacket as Vp9Packet).sendVideoInfo(header)
+                            sendInfo = true
+                        } else {
+                            Log.e(TAG, "manual vp9 extraction failed")
+                        }
+                    }
                     else -> {
                         Log.e(TAG, "Unsupported codec: ${videoPacket?.javaClass?.name ?: "null"}")
                     }

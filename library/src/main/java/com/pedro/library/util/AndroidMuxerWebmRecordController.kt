@@ -65,8 +65,11 @@ class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    if (getAudioCodec() != AudioCodec.AAC) {
+    if (getAudioCodec() != AudioCodec.OPUS) {
       throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
+    }
+    if (getVideoCodec() != VideoCodec.VP8 && getVideoCodec() != VideoCodec.VP9) {
+      throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
     }
     mediaMuxer = MediaMuxer(fd, outputFormat)
     if (tracks == RecordTracks.AUDIO && audioFormat != null) init()

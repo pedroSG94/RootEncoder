@@ -44,8 +44,14 @@ class CommandsManagerImp: CommandsManager() {
     connectInfo.setProperty("tcUrl", tcUrl + auth)
     val list = mutableListOf<AmfData>()
     if (!videoDisabled) {
-      if (videoCodec == VideoCodec.H265) list.add(AmfString("hvc1"))
-      else if (videoCodec == VideoCodec.AV1) list.add(AmfString("av01"))
+      val codec = when (videoCodec) {
+        VideoCodec.H265 -> "hvc1"
+        VideoCodec.VP8 -> "vp08"
+        VideoCodec.VP9 -> "vp09"
+        VideoCodec.AV1 -> "av01"
+        else -> ""
+      }
+      if (codec.isNotEmpty()) list.add(AmfString(codec))
     }
     if (!audioDisabled) {
       if (audioCodec == AudioCodec.OPUS) list.add(AmfString("Opus"))
