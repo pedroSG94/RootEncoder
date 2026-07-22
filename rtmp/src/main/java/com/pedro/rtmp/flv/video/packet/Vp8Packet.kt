@@ -27,7 +27,7 @@ class Vp8Packet: BasePacket() {
     //4 bits data type, 4 bits packet type
     //4 bytes extended codec type (in this case hevc)
     //3 bytes CompositionTime, the cts.
-    val codec = VideoFormat.VP8.value // { "h", "v", "c", "1" }
+    val codec = VideoFormat.VP8.value // { "v", "p", "0", "8" }
     header[1] = (codec shr 24).toByte()
     header[2] = (codec shr 16).toByte()
     header[3] = (codec shr 8).toByte()
@@ -53,7 +53,7 @@ class Vp8Packet: BasePacket() {
 
     fixedBuffer.rewind()
     buffer = ByteArray(header.size + fixedBuffer.remaining())
-
+    fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     val nalType = if (mediaFrame.info.isKeyFrame) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
     header[0] = (0b10000000 or (nalType shl 4) or VideoFourCCPacketType.CODED_FRAMES.value).toByte()
     System.arraycopy(header, 0, buffer, 0, header.size)

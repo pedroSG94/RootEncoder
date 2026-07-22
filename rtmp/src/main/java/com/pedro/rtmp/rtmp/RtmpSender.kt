@@ -66,7 +66,7 @@ class RtmpSender(
         H264Packet().apply { sendVideoInfo(sps, pps) }
       }
       VideoCodec.VP8 -> Vp8Packet()
-      VideoCodec.VP9 -> Vp9Packet()
+      VideoCodec.VP9 -> Vp9Packet().apply { sendVideoInfo(sps) }
     }
   }
 

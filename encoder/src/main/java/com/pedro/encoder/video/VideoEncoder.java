@@ -343,9 +343,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         return true;
       }
     } else if (type.equals(VideoCodec.VP8.getMime()) || type.equals(VideoCodec.VP9.getMime())) {
-      //Only used to call onVideoInfo to keep same logic in all codecs.
-      getVideoData.onVideoInfo(ByteBuffer.allocate(0), null, null);
-      return true;
+      //Only parse using keyframes.
+      return false;
       //H265
     } else if (type.equals(VideoCodec.H265.getMime())) {
       ByteBuffer bufferInfo = mediaFormat.getByteBuffer("csd-0");
@@ -472,10 +471,24 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       } else {
         Log.e(TAG, "manual vps/sps/pps extraction failed");
       }
-    } else if (!spsPpsSetted && (type.equals(VideoCodec.VP8.getMime()) || type.equals(VideoCodec.VP9.getMime()))) {
-      //Only used to call onVideoInfo to keep same logic in all codecs.
-      getVideoData.onVideoInfo(ByteBuffer.allocate(0), null, null);
-      spsPpsSetted = true;
+    } else if (!spsPpsSetted && (type.equals(VideoCodec.VP8.getMime()))) {
+      ByteBuffer header = VideoEncoderHelper.extractVp8Header(byteBuffer.duplicate(), bufferInfo);
+      if (header != null) {
+        oldSps = header;
+        getVideoData.onVideoInfo(header, null, null);
+        spsPpsSetted = true;
+      } else {
+        Log.e(TAG, "manual vp8 extraction failed");
+      }
+    } else if (!spsPpsSetted && type.equals(VideoCodec.VP9.getMime())) {
+      ByteBuffer header = VideoEncoderHelper.extractVp9BitStreamHeader(byteBuffer.duplicate(), bufferInfo);
+      if (header != null) {
+        oldSps = header;
+        getVideoData.onVideoInfo(header, null, null);
+        spsPpsSetted = true;
+      } else {
+        Log.e(TAG, "manual vp9 extraction failed");
+      }
     } else if (!spsPpsSetted && type.equals(VideoCodec.AV1.getMime())) {
       Log.i(TAG, "formatChanged not called, doing manual av1 extraction...");
       ByteBuffer obuSequence = VideoEncoderHelper.extractObuSequence(byteBuffer.duplicate(), bufferInfo);
