@@ -70,13 +70,12 @@ import kotlin.math.roundToInt
  * https://github.com/google/grafika
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
+class Camera2ApiManager(context: Context) {
     private val TAG = "Camera2ApiManager"
 
     private var cameraDevice: CameraDevice? = null
     private var surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() }) //input surfaceEncoder from videoEncoder
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-    private var cameraHandler: Handler? = null
     private var cameraCaptureSession: CameraCaptureSession? = null
     var isPrepared: Boolean = false
         private set
@@ -153,7 +152,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         isPrepared = true
     }
 
-    private fun startPreview(cameraDevice: CameraDevice) {
+    private fun startPreview(cameraDevice: CameraDevice, handler: Handler) {
         try {
             val listSurfaces = mutableListOf<Surface>()
             listSurfaces.add(surfaceEncoder)
@@ -168,7 +167,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                         it.setRepeatingRequest(
                             captureRequest,
                             if (faceDetectionEnabled || frameCapturedCallback != null || customCaptureCompletedCallback != null) cb else null,
-                            cameraHandler
+                            handler
                         )
                     } catch (_: IllegalStateException) {
                         reOpenCamera(cameraId)
@@ -182,7 +181,7 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
                     cameraCallbacks?.onCameraError("Configuration failed")
                     Log.e(TAG, "Configuration failed")
                 },
-                cameraHandler
+                handler
             )
         } catch (_: IllegalStateException) {
             reOpenCamera(cameraId)
@@ -807,9 +806,37 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         if (isPrepared) {
             val cameraHandlerThread = HandlerThread("$TAG Id = $cameraId")
             cameraHandlerThread.start()
-            cameraHandler = Handler(cameraHandlerThread.looper)
+            val handler = Handler(cameraHandlerThread.looper)
             try {
-                cameraManager.openCamera(cameraId, this, cameraHandler)
+                cameraManager.openCamera(cameraId, object: CameraDevice.StateCallback() {
+                    override fun onOpened(cameraDevice: CameraDevice) {
+                        this@Camera2ApiManager.cameraDevice = cameraDevice
+                        startPreview(cameraDevice, handler)
+                        semaphore.release()
+                        cameraCallbacks?.onCameraOpened()
+                        Log.i(TAG, "Camera opened")
+                    }
+
+                    override fun onClosed(camera: CameraDevice) {
+                        super.onClosed(camera)
+                        handler.looper.quitSafely()
+                    }
+
+                    override fun onDisconnected(cameraDevice: CameraDevice) {
+                        cameraDevice.close()
+                        semaphore.release()
+                        cameraCallbacks?.onCameraDisconnected()
+                        Log.i(TAG, "Camera disconnected")
+                    }
+
+                    override fun onError(cameraDevice: CameraDevice, i: Int) {
+                        cameraDevice.close()
+                        semaphore.release()
+                        cameraCallbacks?.onCameraError("Open camera failed: $i")
+                        Log.e(TAG, "Open failed: $i")
+                    }
+
+                }, handler)
                 semaphore.acquireUninterruptibly()
                 val cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId)
                 isRunning = true
@@ -928,8 +955,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
         cameraCaptureSession = null
         cameraDevice?.close()
         cameraDevice = null
-        cameraHandler?.looper?.quitSafely()
-        cameraHandler = null
         if (resetSurface) {
             surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() })
             builderInputSurface = null
@@ -969,28 +994,6 @@ class Camera2ApiManager(context: Context) : CameraDevice.StateCallback() {
             prepareCamera(surfaceEncoder, fps)
             openLastCamera()
         }
-    }
-
-    override fun onOpened(cameraDevice: CameraDevice) {
-        this.cameraDevice = cameraDevice
-        startPreview(cameraDevice)
-        semaphore.release()
-        cameraCallbacks?.onCameraOpened()
-        Log.i(TAG, "Camera opened")
-    }
-
-    override fun onDisconnected(cameraDevice: CameraDevice) {
-        cameraDevice.close()
-        semaphore.release()
-        cameraCallbacks?.onCameraDisconnected()
-        Log.i(TAG, "Camera disconnected")
-    }
-
-    override fun onError(cameraDevice: CameraDevice, i: Int) {
-        cameraDevice.close()
-        semaphore.release()
-        cameraCallbacks?.onCameraError("Open camera failed: $i")
-        Log.e(TAG, "Open failed: $i")
     }
 
     @JvmOverloads
