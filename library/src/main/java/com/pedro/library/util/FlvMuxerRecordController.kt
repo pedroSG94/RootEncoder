@@ -216,7 +216,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                     sendInfo = true
                 }
             }
-            is Vp8Packet, is Vp9Packet -> sendInfo = true
+            is Vp8Packet -> sendInfo = true
         }
         if (sendInfo && recordStatus == RecordController.Status.STARTED) {
             myRequestKeyFrame = null
