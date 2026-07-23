@@ -20,11 +20,12 @@ import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import kotlin.random.Random
 
 /**
  * Created by pedro on 23/07/26.
  *
- * RFC 9628
+ * RFC 7741
  *
  * Descriptor Header
  *
@@ -38,6 +39,9 @@ class Vp8Packet(track: Int): BasePacket(
   RtpConstants.payloadType + track
 ) {
 
+  private val headerSize = 4
+  private var pictureId = Random.nextInt(0x7FFF)
+
   init {
     channelIdentifier = track
   }
@@ -47,29 +51,28 @@ class Vp8Packet(track: Int): BasePacket(
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
-    val ts = mediaFrame.info.timestamp
+    val ts = mediaFrame.info.timestamp * 1000
+    pictureId = (pictureId + 1) and 0x7FFF
 
     val size = fixedBuffer.remaining()
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < size) {
       val isFirstPacket = sum == 0
-      var isLastPacket = false
-      val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()) {
-        maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()
+      val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - headerSize - encryptSize()) {
+        maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - headerSize - encryptSize()
       } else {
         fixedBuffer.remaining()
       }
-      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1 + encryptSize())
+      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + headerSize + encryptSize())
       val rtpTs = updateTimeStamp(buffer, ts)
-      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
+      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + headerSize, length)
       sum += length
-      // Last packet before next NAL
-      if (sum >= size) {
-        isLastPacket = true
-        markPacket(buffer) //mark end frame
-      }
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateDescriptorHeader(mediaFrame.info.isKeyFrame, isFirstPacket, isLastPacket)
+      if (sum >= size) markPacket(buffer) //mark end frame
+      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateDescriptorHeader(isFirstPacket)
+      buffer[RtpConstants.RTP_HEADER_LENGTH + 1] = 0x80.toByte() //PID enabled and the rest disabled
+      buffer[RtpConstants.RTP_HEADER_LENGTH + 2] = (0x80 or (pictureId shr 8)).toByte()
+      buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = pictureId.toByte()
       updateSeq(buffer)
       encryptPacket(buffer)
       val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
@@ -80,16 +83,15 @@ class Vp8Packet(track: Int): BasePacket(
 
   override fun reset() {
     super.reset()
+    pictureId = Random.nextInt(0x7FFF)
   }
 
-  private fun generateDescriptorHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean): Byte {
-    return ((0x01 shl 7) or //I
-        (if (isKeyFrame) 0x00 else 0x01 shl 6) or //P
-        (0x01 shl 5)  or //L
-        (0x00 shl 4) or //F
-        (if (isFirstPacket) 0x01 else 0x00 shl 3) or //B
-        (if (isLastPacket) 0x01 else 0x00 shl 2) or //E
-        (0x01 shl 1) or //V
-        0x00).toByte() //Z
+  private fun generateDescriptorHeader(isFirstPacket: Boolean): Byte {
+    return ((0x01 shl 7) or //X
+        (0x00 shl 6) or //R
+        (0x00 shl 5)  or //N
+        ((if (isFirstPacket) 0x01 else 0x00) shl 4) or //S
+        (0x00 shl 3) or //R
+        0x00).toByte() //PID
   }
 }
