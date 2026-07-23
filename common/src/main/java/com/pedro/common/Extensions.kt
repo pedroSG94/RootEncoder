@@ -342,3 +342,15 @@ fun ByteBuffer.put(buffer: ByteBuffer, offset: Int, length: Int) {
 fun InetAddress.addressToString(): String {
   return (hostAddress ?: hostName).substringBefore("%")
 }
+
+fun ByteBuffer.getData(): ByteArray = removeHeader().toByteArray()
+
+fun ByteBuffer.removeHeader(): ByteBuffer {
+  val startCodeSize = this.getStartCodeSize()
+  this.position(startCodeSize)
+  return this.slice()
+}
+
+fun ByteArray.writeUInt32(offset: Int, value: Int) {
+  value.toUInt32().copyInto(this, offset)
+}

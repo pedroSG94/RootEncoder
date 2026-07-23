@@ -17,6 +17,7 @@
 package com.pedro.common
 
 import com.pedro.common.frame.MediaFrame
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.nio.ByteBuffer
@@ -54,5 +55,34 @@ class ExtensionTest {
     val expectedResult = "5eb63bbbe01eeed093cb22bb8f5acdc3"
     val md5Hash = fakeBuffer.getMd5Hash()
     assertEquals(expectedResult, md5Hash)
+  }
+
+  @Test
+  fun `GIVEN ByteBuffer WHEN start code has 3 bytes THEN return 3`() {
+    val fakeBuffer = ByteBuffer.wrap(byteArrayOf(0x0, 0x0, 0x1, 0x0))
+    val index = fakeBuffer.getStartCodeSize()
+    assertEquals(3, index)
+  }
+
+  @Test
+  fun `GIVEN ByteBuffer WHEN start code has 4 bytes THEN return 4`() {
+    val fakeBuffer = ByteBuffer.wrap(byteArrayOf(0x0, 0x0, 0x0, 0x1, 0x0))
+    val index = fakeBuffer.getStartCodeSize()
+    assertEquals(4, index)
+  }
+
+  @Test
+  fun `GIVEN ByteBuffer WHEN start code not found THEN return 0`() {
+    val fakeBuffer = ByteBuffer.wrap(byteArrayOf(0x0, 0x0, 0x0, 0x0, 0x0))
+    val index = fakeBuffer.getStartCodeSize()
+    assertEquals(0, index)
+  }
+
+  @Test
+  fun `GIVEN a ByteBuffer WHEN get data THEN get bytearray without start code`() {
+    val fakeByteBuffer = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x01))
+    val expectedResult = byteArrayOf(0x01)
+    val result = fakeByteBuffer.getData()
+    assertArrayEquals(expectedResult, result)
   }
 }

@@ -21,8 +21,10 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.getStartCodeSize
 import com.pedro.common.nal.NalReader
+import com.pedro.common.removeHeader
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
+import com.pedro.common.writeUInt32
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
@@ -49,7 +51,7 @@ class H265Packet: BasePacket() {
   private var videoInfo: List<ByteBuffer>? = null
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
-    this.videoInfo = listOf(removeHeader(sps), removeHeader(pps), removeHeader(vps))
+    this.videoInfo = listOf(sps.removeHeader(), pps.removeHeader(), vps.removeHeader())
   }
 
   override suspend fun createFlvPacket(
@@ -111,26 +113,12 @@ class H265Packet: BasePacket() {
     var offset = header.size
     nals.forEach {
       val nalSize = it.capacity()
-      writeNaluSize(buffer, offset, nalSize)
+      buffer.writeUInt32(offset, nalSize)
       it.get(buffer, offset + naluSize, nalSize)
       offset += naluSize + nalSize
     }
     System.arraycopy(header, 0, buffer, 0, header.size)
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
-  }
-
-  //naluSize = UInt32
-  private fun writeNaluSize(buffer: ByteArray, offset: Int, size: Int) {
-    buffer[offset] = (size ushr 24).toByte()
-    buffer[offset + 1] = (size ushr 16).toByte()
-    buffer[offset + 2] = (size ushr 8).toByte()
-    buffer[offset + 3] = size.toByte()
-  }
-
-  private fun removeHeader(byteBuffer: ByteBuffer, size: Int = -1): ByteBuffer {
-    val position = if (size == -1) byteBuffer.getStartCodeSize() else size
-    byteBuffer.position(position)
-    return byteBuffer.slice()
   }
 
   override fun reset(resetInfo: Boolean) {

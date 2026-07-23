@@ -71,7 +71,7 @@ class UdpSender(
   }
 
   override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    videoPacket.setVideoCodec(commandManager.videoCodec.toCodec())
+    videoPacket.setVideoCodec(commandManager.videoCodec)
     videoPacket.sendVideoInfo(sps, pps, vps)
   }
 

@@ -13,7 +13,7 @@ import com.pedro.rtsp.rtsp.commands.SdpBody
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
-import com.pedro.rtsp.utils.getData
+import com.pedro.common.getData
 import com.pedro.whip.dtls.CryptoUtils
 import com.pedro.whip.dtls.DtlsCertificate
 import com.pedro.whip.utils.Constants

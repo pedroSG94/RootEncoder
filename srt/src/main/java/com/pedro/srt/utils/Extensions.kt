@@ -23,13 +23,6 @@ import com.pedro.srt.mpeg2ts.Codec
 import java.nio.ByteBuffer
 
 
-fun ByteBuffer.startWith(byteArray: ByteArray): Boolean {
-  val startData = ByteArray(byteArray.size)
-  this.rewind()
-  this.get(startData)
-  return startData.contentEquals(byteArray)
-}
-
 fun Boolean.toInt(): Int {
   return if (this) 1 else 0
 }
