@@ -104,7 +104,7 @@ class CommandsManager {
             VideoCodec.H264 -> sps != null && pps != null
             VideoCodec.H265 -> sps != null && pps != null && vps != null
             VideoCodec.AV1 -> sps != null
-            VideoCodec.VP8, VideoCodec.VP9 -> true
+            VideoCodec.VP8, VideoCodec.VP9 -> sps != null
         }
     }
 

@@ -34,6 +34,8 @@ import com.pedro.rtsp.rtp.packets.G711Packet
 import com.pedro.rtsp.rtp.packets.H264Packet
 import com.pedro.rtsp.rtp.packets.H265Packet
 import com.pedro.rtsp.rtp.packets.OpusPacket
+import com.pedro.rtsp.rtp.packets.Vp8Packet
+import com.pedro.rtsp.rtp.packets.Vp9Packet
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -85,7 +87,8 @@ class RtspSender(
         H265Packet(commandsManager.rtpTracks.trackVideo).apply { sendVideoInfo(sps, pps, vps) }
       }
       VideoCodec.AV1 -> Av1Packet(commandsManager.rtpTracks.trackVideo)
-      else -> throw IllegalArgumentException("Unsupported codec: ${commandsManager.videoCodec}")
+      VideoCodec.VP8 -> Vp8Packet(commandsManager.rtpTracks.trackVideo)
+      VideoCodec.VP9 -> Vp9Packet(commandsManager.rtpTracks.trackVideo)
     }
   }
 
