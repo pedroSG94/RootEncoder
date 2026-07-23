@@ -23,6 +23,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.gl.GlUtil;
 
@@ -53,7 +54,7 @@ public class RainbowFilterRender extends BaseFilterRender {
   private int uSamplerHandle = -1;
   private int uTimeHandle = -1;
 
-  private long START_TIME = System.currentTimeMillis();
+  private long START_TIME = TimeUtils.getCurrentTimeMillis();
 
   public RainbowFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -94,11 +95,16 @@ public class RainbowFilterRender extends BaseFilterRender {
 
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0);
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
-    float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000.0f;
+    float time = ((float) (TimeUtils.getCurrentTimeMillis() - START_TIME)) / 1000.0f;
     GLES20.glUniform1f(uTimeHandle, time);
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
+  }
+
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle);
   }
 
   @Override

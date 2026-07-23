@@ -32,13 +32,14 @@ class PsiManagerTest {
     upgradeSdtVersion()
   }
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
+  private val chunkSize = 1
 
   @Test
   fun `GIVEN a psiManager WHEN call should send is key false patPeriod times THEN return PAT and PMT packets`() {
     val psiManager = PsiManager(service)
     var packets = listOf<MpegTsPacket>()
     (0..PsiManager.patPeriod).forEach { _ ->
-      packets = psiManager.checkSendInfo(false, mpegTsPacketizer)
+      packets = psiManager.checkSendInfo(false, mpegTsPacketizer, chunkSize)
     }
     assertEquals(2, packets.size)
   }
@@ -48,7 +49,7 @@ class PsiManagerTest {
     val psiManager = PsiManager(service)
     var packets = listOf<MpegTsPacket>()
     (0..PsiManager.sdtPeriod).forEach { _ ->
-      packets = psiManager.checkSendInfo(false, mpegTsPacketizer)
+      packets = psiManager.checkSendInfo(false, mpegTsPacketizer, chunkSize)
     }
     assertEquals(3, packets.size)
   }

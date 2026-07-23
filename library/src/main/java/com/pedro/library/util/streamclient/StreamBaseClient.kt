@@ -16,6 +16,8 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
+
 /**
  * Created by pedro on 12/10/23.
  *
@@ -51,12 +53,14 @@ abstract class StreamBaseClient {
   abstract fun getItemsInCache(): Int
   abstract fun getSentAudioFrames(): Long
   abstract fun getSentVideoFrames(): Long
+  abstract fun getBytesSend(): Long
   abstract fun getDroppedAudioFrames(): Long
   abstract fun getDroppedVideoFrames(): Long
   abstract fun resetSentAudioFrames()
   abstract fun resetSentVideoFrames()
   abstract fun resetDroppedAudioFrames()
   abstract fun resetDroppedVideoFrames()
+  abstract fun resetBytesSend()
   abstract fun setOnlyAudio(onlyAudio: Boolean)
   abstract fun setOnlyVideo(onlyVideo: Boolean)
 
@@ -70,4 +74,18 @@ abstract class StreamBaseClient {
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   abstract fun getBitrateExponentialFactor(): Float
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  abstract fun setSocketType(type: SocketType)
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  abstract fun setSocketTimeout(timeout: Long)
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  abstract fun setDelay(millis: Long)
 }

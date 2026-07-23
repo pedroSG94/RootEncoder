@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2024 JetBrains s.r.o. Use of this source code is governed by the Apache 2.0 license.
  */
 
 filteringContext = {
@@ -9,11 +9,7 @@ filteringContext = {
 }
 let highlightedAnchor;
 let topNavbarOffset;
-let instances = [];
 let sourcesetNotification;
-
-const samplesDarkThemeName = 'darcula'
-const samplesLightThemeName = 'idea'
 
 window.addEventListener('load', () => {
     document.querySelectorAll("div[data-platform-hinted]")
@@ -23,20 +19,25 @@ window.addEventListener('load', () => {
         filterSection.addEventListener('click', (event) => filterButtonHandler(event))
         initializeFiltering()
     }
-    initTabs()
+    if (typeof initTabs === 'function') {
+        initTabs() // initTabs comes from ui-kit/tabs
+    }
     handleAnchor()
-    initHidingLeftNavigation()
     topNavbarOffset = document.getElementById('navigation-wrapper')
     darkModeSwitch()
 })
 
 const darkModeSwitch = () => {
     const localStorageKey = "dokka-dark-mode"
-    const storage = localStorage.getItem(localStorageKey)
+    const storage = safeLocalStorage.getItem(localStorageKey)
     const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
     const darkModeEnabled = storage ? JSON.parse(storage) : osDarkSchemePreferred
     const element = document.getElementById("theme-toggle-button")
-    initPlayground(darkModeEnabled ? samplesDarkThemeName : samplesLightThemeName)
+
+    // Notify external scripts about changing dark mode, runnable samples plugin depends on this
+    if (window.onDarkModeChanged) {
+        window.onDarkModeChanged(darkModeEnabled)
+    }
 
     element.addEventListener('click', () => {
         const enabledClasses = document.getElementsByTagName("html")[0].classList
@@ -44,57 +45,12 @@ const darkModeSwitch = () => {
 
         //if previously we had saved dark theme then we set it to light as this is what we save in local storage
         const darkModeEnabled = enabledClasses.contains("theme-dark")
-        if (darkModeEnabled) {
-            initPlayground(samplesDarkThemeName)
-        } else {
-            initPlayground(samplesLightThemeName)
+        // Notify external scripts about changing dark mode, runnable samples plugin depends on this
+        if (window.onDarkModeChanged) {
+            window.onDarkModeChanged(darkModeEnabled)
         }
-        localStorage.setItem(localStorageKey, JSON.stringify(darkModeEnabled))
+        safeLocalStorage.setItem(localStorageKey, JSON.stringify(darkModeEnabled))
     })
-}
-
-const initPlayground = (theme) => {
-    if (!samplesAreEnabled()) return
-    instances.forEach(instance => instance.destroy())
-    instances = []
-
-    // Manually tag code fragments as not processed by playground since we also manually destroy all of its instances
-    document.querySelectorAll('code.runnablesample').forEach(node => {
-        node.removeAttribute("data-kotlin-playground-initialized");
-    })
-
-    KotlinPlayground('code.runnablesample', {
-        getInstance: playgroundInstance => {
-            instances.push(playgroundInstance)
-        },
-        theme: theme
-    });
-}
-
-// We check if type is accessible from the current scope to determine if samples script is present
-// As an alternative we could extract this samples-specific script to new js file but then we would handle dark mode in 2 separate files which is not ideal
-const samplesAreEnabled = () => {
-    try {
-        KotlinPlayground
-        return true
-    } catch (e) {
-        return false
-    }
-}
-
-
-const initHidingLeftNavigation = () => {
-    document.getElementById("menu-toggle").onclick = function (event) {
-        //Events need to be prevented from bubbling since they will trigger next handler
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        document.getElementById("leftColumn").classList.toggle("open");
-    }
-
-    document.getElementById("main").onclick = () => {
-        document.getElementById("leftColumn").classList.remove("open");
-    }
 }
 
 // Hash change is needed in order to allow for linking inside the same page with anchors
@@ -150,17 +106,17 @@ function handleAnchor() {
     }
 
     let anchor = window.location.hash
-    if (anchor != "") {
+    if (anchor !== "") {
         anchor = anchor.substring(1)
         let element = document.querySelector('a[data-name="' + anchor + '"]')
 
         if (element) {
             const content = element.nextElementSibling
             const contentStyle = window.getComputedStyle(content)
-            if(contentStyle.display == 'none') {
+            if(contentStyle.display === 'none') {
 		 let tab = findAnyTab(searchForContentTarget(content))
 		 if (tab) {
-		     toggleSections(tab)
+		     toggleSections(tab) // toggleSections comes from ui-kit/tabs
 		 }
             }
 
@@ -174,44 +130,10 @@ function handleAnchor() {
     }
 }
 
-function initTabs() {
-    // we could have only a single type of data - classlike or package
-    const mainContent = document.querySelector('.main-content');
-    const type = mainContent ? mainContent.getAttribute("data-page-type") : null;
-    const localStorageKey = "active-tab-" + type;
-    document.querySelectorAll('div[tabs-section]').forEach(element => {
-        showCorrespondingTabBody(element);
-        element.addEventListener('click', ({target}) => {
-            const togglable = target ? target.getAttribute("data-togglable") : null;
-            if (!togglable) return;
-
-            localStorage.setItem(localStorageKey, JSON.stringify(togglable));
-            toggleSections(target);
-        });
-    });
-
-    const cached = localStorage.getItem(localStorageKey);
-    if (!cached) return;
-
-    const tab = document.querySelector(
-        'div[tabs-section] > button[data-togglable="' + JSON.parse(cached) + '"]'
-    );
-    if (!tab) return;
-
-    toggleSections(tab);
-}
-
-function showCorrespondingTabBody(element) {
-    const buttonWithKey = element.querySelector("button[data-active]")
-    if (buttonWithKey) {
-        toggleSections(buttonWithKey)
-    }
-}
-
 function filterButtonHandler(event) {
-    if (event.target.tagName == "BUTTON" && event.target.hasAttribute("data-filter")) {
+    if (event.target.tagName === "BUTTON" && event.target.hasAttribute("data-filter")) {
         let sourceset = event.target.getAttribute("data-filter")
-        if (filteringContext.activeFilters.indexOf(sourceset) != -1) {
+        if (filteringContext.activeFilters.indexOf(sourceset) !== -1) {
             filterSourceset(sourceset)
         } else {
             unfilterSourceset(sourceset)
@@ -227,11 +149,11 @@ function initializeFiltering() {
         filteringContext.dependencies[p] = filteringContext.dependencies[p]
             .filter(q => -1 !== filteringContext.restrictedDependencies.indexOf(q))
     })
-    let cached = window.localStorage.getItem('inactive-filters')
+    let cached = safeLocalStorage.getItem('inactive-filters')
     if (cached) {
         let parsed = JSON.parse(cached)
         filteringContext.activeFilters = filteringContext.restrictedDependencies
-            .filter(q => parsed.indexOf(q) == -1)
+            .filter(q => parsed.indexOf(q) === -1)
     } else {
         filteringContext.activeFilters = filteringContext.restrictedDependencies
     }
@@ -239,13 +161,13 @@ function initializeFiltering() {
 }
 
 function filterSourceset(sourceset) {
-    filteringContext.activeFilters = filteringContext.activeFilters.filter(p => p != sourceset)
+    filteringContext.activeFilters = filteringContext.activeFilters.filter(p => p !== sourceset)
     refreshFiltering()
     addSourcesetFilterToCache(sourceset)
 }
 
 function unfilterSourceset(sourceset) {
-    if (filteringContext.activeFilters.length == 0) {
+    if (filteringContext.activeFilters.length === 0) {
         filteringContext.activeFilters = filteringContext.dependencies[sourceset].concat([sourceset])
         refreshFiltering()
         filteringContext.dependencies[sourceset].concat([sourceset]).forEach(p => removeSourcesetFilterFromCache(p))
@@ -258,68 +180,50 @@ function unfilterSourceset(sourceset) {
 }
 
 function addSourcesetFilterToCache(sourceset) {
-    let cached = localStorage.getItem('inactive-filters')
+    let cached = safeLocalStorage.getItem('inactive-filters')
     if (cached) {
         let parsed = JSON.parse(cached)
-        localStorage.setItem('inactive-filters', JSON.stringify(parsed.concat([sourceset])))
+        safeLocalStorage.setItem('inactive-filters', JSON.stringify(parsed.concat([sourceset])))
     } else {
-        localStorage.setItem('inactive-filters', JSON.stringify([sourceset]))
+        safeLocalStorage.setItem('inactive-filters', JSON.stringify([sourceset]))
     }
 }
 
 function removeSourcesetFilterFromCache(sourceset) {
-    let cached = localStorage.getItem('inactive-filters')
+    let cached = safeLocalStorage.getItem('inactive-filters')
     if (cached) {
         let parsed = JSON.parse(cached)
-        localStorage.setItem('inactive-filters', JSON.stringify(parsed.filter(p => p != sourceset)))
+        safeLocalStorage.setItem('inactive-filters', JSON.stringify(parsed.filter(p => p !== sourceset)))
     }
 }
 
-function toggleSections(target) {
-    const activateTabs = (containerClass) => {
-        for (const element of document.getElementsByClassName(containerClass)) {
-            for (const child of element.children) {
-                if (child.getAttribute("data-togglable") === target.getAttribute("data-togglable")) {
-                    child.setAttribute("data-active", "")
-                } else {
-                    child.removeAttribute("data-active")
-                }
-            }
-        }
-    }
-    const toggleTargets = target.getAttribute("data-togglable").split(",")
-    const activateTabsBody = (containerClass) => {
-        document.querySelectorAll("." + containerClass + " *[data-togglable]")
-            .forEach(child => {
-                    if (toggleTargets.includes(child.getAttribute("data-togglable"))) {
-                        child.setAttribute("data-active", "")
-                    } else if(!child.classList.contains("sourceset-dependent-content")) { // data-togglable is used to switch source set as well, ignore it
-                        child.removeAttribute("data-active")
-                    }
-            })
-    }
-    activateTabs("tabs-section")
-    activateTabsBody("tabs-section-body")
+function refreshSourcesetsCache() {
+    safeLocalStorage.setItem('inactive-filters', JSON.stringify(filteringContext.restrictedDependencies.filter(p => -1 === filteringContext.activeFilters.indexOf(p))))
 }
+
 
 function togglePlatformDependent(e, container) {
     let target = e.target
-    if (target.tagName != 'BUTTON') return;
+    if (target.tagName !== 'BUTTON') return;
     let index = target.getAttribute('data-toggle')
 
     for (let child of container.children) {
         if (child.hasAttribute('data-toggle-list')) {
             for (let bm of child.children) {
-                if (bm == target) {
+                if (bm === target) {
                     bm.setAttribute('data-active', "")
-                } else if (bm != target) {
+                    bm.setAttribute('aria-pressed', "true")
+                } else if (bm !== target) {
                     bm.removeAttribute('data-active')
+                    bm.removeAttribute('aria-pressed')
                 }
             }
-        } else if (child.getAttribute('data-togglable') == index) {
+        } else if (child.getAttribute('data-togglable') === index) {
             child.setAttribute('data-active', "")
+            child.setAttribute('aria-pressed', "true")
         } else {
             child.removeAttribute('data-active')
+            child.removeAttribute('aria-pressed')
         }
     }
 }
@@ -336,28 +240,22 @@ function refreshFiltering() {
     refreshFilterButtons()
     refreshPlatformTabs()
     refreshNoContentNotification()
-    refreshPlaygroundSamples()
-}
-
-function refreshPlaygroundSamples() {
-    document.querySelectorAll('code.runnablesample').forEach(node => {
-        const playground = node.KotlinPlayground;
-        /* Some samples may be hidden by filter, they have 0px height  for visible code area
-         * after rendering. Call this method for re-calculate code area height */
-        playground && playground.view.codemirror.refresh();
-    });
 }
 
 function refreshNoContentNotification() {
     const element = document.getElementsByClassName("main-content")[0]
+    const filteredMessage = document.querySelector(".filtered-message")
+
     if(filteringContext.activeFilters.length === 0){
         element.style.display = "none";
 
-        const appended = document.createElement("div")
-        appended.className = "filtered-message"
-        appended.innerText = "All documentation is filtered, please adjust your source set filters in top-right corner of the screen"
-        sourcesetNotification = appended
-        element.parentNode.prepend(appended)
+        if (!filteredMessage) {
+            const appended = document.createElement("div")
+            appended.className = "filtered-message"
+            appended.innerText = "All documentation is filtered, please adjust your source set filters in top-right corner of the screen"
+            sourcesetNotification = appended
+            element.parentNode.prepend(appended)
+        }
     } else {
         if(sourcesetNotification) sourcesetNotification.remove()
         element.style.display = "block"
@@ -371,8 +269,8 @@ function refreshPlatformTabs() {
             let firstAvailable = null
             p.childNodes.forEach(
                 element => {
-                    if (element.getAttribute("data-filterable-current") != '') {
-                        if (firstAvailable == null) {
+                    if (element.getAttribute("data-filterable-current") !== '') {
+                        if (firstAvailable === null) {
                             firstAvailable = element
                         }
                         if (element.hasAttribute("data-active")) {
@@ -381,7 +279,7 @@ function refreshPlatformTabs() {
                     }
                 }
             )
-            if (active == false && firstAvailable) {
+            if (active === false && firstAvailable) {
                 firstAvailable.click()
             }
         }
@@ -391,10 +289,22 @@ function refreshPlatformTabs() {
 function refreshFilterButtons() {
     document.querySelectorAll("#filter-section > button")
         .forEach(f => {
-            if (filteringContext.activeFilters.indexOf(f.getAttribute("data-filter")) != -1) {
+            if (filteringContext.activeFilters.indexOf(f.getAttribute("data-filter")) !== -1) {
                 f.setAttribute("data-active", "")
+                f.setAttribute("aria-pressed", "true")
             } else {
                 f.removeAttribute("data-active")
+                f.removeAttribute("aria-pressed")
+            }
+        })
+    document.querySelectorAll("#filter-section .checkbox--input")
+        .forEach(f => {
+            const isChecked = filteringContext.activeFilters.indexOf(f.getAttribute("data-filter")) !== -1
+            f.checked = isChecked;
+            if (isChecked) {
+                f.setAttribute("aria-pressed", "true")
+            } else {
+                f.removeAttribute("aria-pressed");
             }
         })
 }

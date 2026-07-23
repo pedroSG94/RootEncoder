@@ -1,31 +1,21 @@
 plugins {
   alias(libs.plugins.android.library)
-  alias(libs.plugins.jetbrains.kotlin)
-  id(libs.plugins.maven.publish.get().pluginId)
   alias(libs.plugins.jetbrains.dokka)
+  `maven-publish`
 }
 
 android {
   namespace = "com.pedro.udp"
+  //noinspection GradleDependency
   compileSdk = 35
 
   defaultConfig {
     minSdk = 16
-    lint.targetSdk = 35
+    lint.targetSdk = 37
   }
-  buildTypes {
-    release {
-      isMinifyEnabled = false
-    }
+  testOptions {
+    unitTests.isReturnDefaultValues = true
   }
-  compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-  }
-  kotlinOptions {
-    jvmTarget = "17"
-  }
-
   publishing {
     singleVariant("release")
   }
@@ -39,10 +29,9 @@ afterEvaluate {
         // Applies the component for the release build variant.
         from(components["release"])
 
-        // You can then customize attributes of the publication as shown below.
-        groupId = libs.versions.libraryGroup.get()
-        artifactId = "udp"
-        version = libs.versions.versionName.get()
+        groupId = project.group.toString()
+        artifactId = project.name
+        version = project.version.toString()
       }
     }
   }

@@ -1,25 +1,25 @@
 [versions]
-libraryGroup = "com.github.pedroSG94"
-versionCode = "254"
-versionName = "2.5.4"
-
 #plugins versions
-agp = "8.6.1"
+agp = "9.3.0"
 kotlin = "1.8.22"
-dokka = "1.9.20"
+dokka = "2.2.0"
 
 #dependencies versions
 #noinspection GradleDependency, version 1.7.0 need min sdk 21
 appcompat = "1.6.1"
+#noinspection GradleDependency, version 2.2.0 need min sdk 21
 constraintlayout = "2.1.4"
-camerax = "1.3.4"
+ktor = "3.5.1"
+#noinspection GradleDependency, version 1.6.0 need min sdk 23
+camerax = "1.5.3"
 multidex = "2.0.1"
-annotation = "1.9.0"
-coroutines = "1.9.0"
+annotation = "1.10.0"
+coroutines = "1.11.0"
 junit = "4.13.2"
-mockito = "5.4.0"
-ktor = "3.0.0"
-uvcandroid = "1.0.7"
+mockito = "6.3.0"
+uvcandroid = "1.0.13"
+media3 = "1.10.1"
+bouncycastle = "1.84"
 
 [libraries]
 androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -36,11 +36,14 @@ ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 ktor-network-tls = { module = "io.ktor:ktor-network-tls", version.ref = "ktor" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockito" }
 uvcandroid = { module = "com.herohan:UVCAndroid", version.ref = "uvcandroid" }
+androidx-media3-inspector = { module = "androidx.media3:media3-inspector", version.ref = "media3" }
+bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk15to18", version.ref = "bouncycastle" }
+bouncycastle-bctls = { module = "org.bouncycastle:bctls-jdk15to18", version.ref = "bouncycastle" }
+bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk15to18", version.ref = "bouncycastle" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
-maven-publish = { id = "maven-publish", version.ref = "agp" }
 jetbrains-kotlin = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrains-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 

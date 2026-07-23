@@ -79,8 +79,8 @@ public class SurfaceFilterRender extends BaseObjectFilterRender {
   @Override
   public void release() {
     super.release();
-    surfaceTexture.release();
-    surface.release();
+    if (surfaceTexture != null) surfaceTexture.release();
+    if (surface != null) surface.release();
   }
 
   /**

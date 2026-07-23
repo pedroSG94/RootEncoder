@@ -29,6 +29,7 @@ import com.pedro.common.validMessage
 import java.io.FileDescriptor
 import java.io.IOException
 import java.nio.ByteBuffer
+import kotlin.math.max
 
 /**
  * Created by pedro on 18/10/24.
@@ -79,22 +80,17 @@ class AndroidExtractor: Extractor {
     }
   }
 
-  override fun readFrame(buffer: ByteBuffer): Int {
-    return mediaExtractor.readSampleData(buffer, 0)
-  }
+  override fun readFrame(buffer: ByteBuffer) = mediaExtractor.readSampleData(buffer, 0)
 
-  override fun advance(): Boolean {
-    return mediaExtractor.advance()
-  }
+  override fun advance() = mediaExtractor.advance()
 
-  override fun getTimeStamp(): Long {
-    return mediaExtractor.sampleTime
-  }
+  override fun getTimeStamp() = mediaExtractor.sampleTime
 
   override fun getSleepTime(ts: Long): Long {
-    val extractorTs = getTimeStamp()
+    val extractorTs = max(0, getTimeStamp())
+    if (extractorTs == 0L) lastExtractorTs = 0
     accumulativeTs += extractorTs - lastExtractorTs
-    lastExtractorTs = getTimeStamp()
+    lastExtractorTs = extractorTs
     sleepTime = if (accumulativeTs > ts) (accumulativeTs - ts) / 1000 else 0
     return sleepTime
   }
@@ -112,7 +108,7 @@ class AndroidExtractor: Extractor {
     val format = this.format ?: throw IOException("Extractor track not selected")
     val width = format.getIntegerSafe(MediaFormat.KEY_WIDTH) ?: throw IOException("Width info is required")
     val height = format.getIntegerSafe(MediaFormat.KEY_HEIGHT) ?: throw IOException("Height info is required")
-    val duration = format.getLongSafe(MediaFormat.KEY_DURATION) ?: throw IOException("Duration info is required")
+    val duration = format.getLongSafe(MediaFormat.KEY_DURATION) ?: 0
     val fps = format.getIntegerSafe(MediaFormat.KEY_FRAME_RATE) ?: 30
     return VideoInfo(width, height, fps, duration)
   }
@@ -121,7 +117,7 @@ class AndroidExtractor: Extractor {
     val format = this.format ?: throw IOException("Extractor track not selected")
     val sampleRate = format.getIntegerSafe(MediaFormat.KEY_SAMPLE_RATE) ?: throw IOException("Channels info is required")
     val channels = format.getIntegerSafe(MediaFormat.KEY_CHANNEL_COUNT) ?: throw IOException("SampleRate info is required")
-    val duration = format.getLongSafe(MediaFormat.KEY_DURATION) ?: throw IOException("Duration info is required")
+    val duration = format.getLongSafe(MediaFormat.KEY_DURATION) ?: 0
     return AudioInfo(sampleRate, channels, duration)
   }
 

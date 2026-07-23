@@ -24,7 +24,6 @@ import com.pedro.encoder.Frame
 import com.pedro.encoder.input.audio.CustomAudioEffect
 import com.pedro.encoder.input.audio.GetMicrophoneData
 import com.pedro.encoder.input.audio.MicrophoneManager
-import com.pedro.encoder.input.audio.VolumeEffect
 
 /**
  * Created by pedro on 12/1/24.
@@ -33,8 +32,7 @@ class MicrophoneSource(
   var audioSource: Int = MediaRecorder.AudioSource.DEFAULT,
 ): AudioSource(), GetMicrophoneData {
 
-  private val microphoneVolumeEffect = VolumeEffect()
-  private val microphone = MicrophoneManager(this).apply { setCustomAudioEffect(microphoneVolumeEffect) }
+  private val microphone = MicrophoneManager(this)
   private var preferredDevice: AudioDeviceInfo? = null
 
   override fun create(sampleRate: Int, isStereo: Boolean, echoCanceler: Boolean, noiseSuppressor: Boolean): Boolean {
@@ -96,6 +94,6 @@ class MicrophoneSource(
   }
 
   var microphoneVolume: Float
-    set(value) { microphoneVolumeEffect.volume = value }
-    get() = microphoneVolumeEffect.volume
+    set(value) { microphone.microphoneVolume = value }
+    get() = microphone.microphoneVolume
 }

@@ -28,13 +28,10 @@ import kotlin.experimental.or
  *
  * RFC 3640.
  */
-class AacPacket: BasePacket(
-  0,
-  RtpConstants.payloadType + RtpConstants.trackAudio
-) {
+class AacPacket(track: Int): BasePacket(0, RtpConstants.payloadType + track) {
 
   init {
-    channelIdentifier = RtpConstants.trackAudio
+    channelIdentifier = track
   }
 
   fun setAudioInfo(sampleRate: Int) {
@@ -47,15 +44,14 @@ class AacPacket: BasePacket(
   ) {
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val length = fixedBuffer.remaining()
-    val maxPayload = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4)
+    val maxPayload = maxPacketSize - (RtpConstants.RTP_HEADER_LENGTH + 4 + encryptSize())
     val ts = mediaFrame.info.timestamp * 1000
     var sum = 0
     val frames = mutableListOf<RtpFrame>()
     while (sum < length) {
       val size = if (length - sum < maxPayload) length - sum else maxPayload
-      val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH + 4)
+      val buffer = getBuffer(size + RtpConstants.RTP_HEADER_LENGTH + 4 + encryptSize())
       fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 4, size)
-      markPacket(buffer)
       val rtpTs = updateTimeStamp(buffer, ts)
 
       // AU-headers-length field: contains the size in bits of a AU-header
@@ -71,9 +67,11 @@ class AacPacket: BasePacket(
       // AU-Index
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] and 0xF8.toByte()
       buffer[RtpConstants.RTP_HEADER_LENGTH + 3] = buffer[RtpConstants.RTP_HEADER_LENGTH + 3] or 0x00
-      updateSeq(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, RtpConstants.RTP_HEADER_LENGTH + size + 4, channelIdentifier)
       sum += size
+      if (sum >= length) markPacket(buffer)
+      updateSeq(buffer)
+      encryptPacket(buffer)
+      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
       frames.add(rtpFrame)
     }
     if (frames.isNotEmpty()) callback(frames)

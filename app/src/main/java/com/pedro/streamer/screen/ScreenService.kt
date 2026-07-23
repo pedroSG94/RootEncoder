@@ -19,7 +19,6 @@ package com.pedro.streamer.screen
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
@@ -29,14 +28,14 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.pedro.common.ConnectChecker
-import com.pedro.library.base.recording.RecordController
-import com.pedro.library.generic.GenericStream
-import com.pedro.encoder.input.sources.audio.MixAudioSource
 import com.pedro.encoder.input.sources.audio.AudioSource
 import com.pedro.encoder.input.sources.audio.InternalAudioSource
 import com.pedro.encoder.input.sources.audio.MicrophoneSource
+import com.pedro.encoder.input.sources.audio.MixAudioSource
 import com.pedro.encoder.input.sources.video.NoVideoSource
 import com.pedro.encoder.input.sources.video.ScreenSource
+import com.pedro.library.base.recording.RecordController
+import com.pedro.library.generic.GenericStream
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -68,7 +67,7 @@ class ScreenService: Service(), ConnectChecker {
   private val width = 640
   private val height = 480
   private val vBitrate = 1200 * 1000
-  private var rotation = 0 //0 for landscape or 90 for portrait
+  private var rotation = 90 //0 for landscape or 90 for portrait
   private val sampleRate = 32000
   private val isStereo = true
   private val aBitrate = 128 * 1000
@@ -79,7 +78,7 @@ class ScreenService: Service(), ConnectChecker {
   override fun onCreate() {
     super.onCreate()
     Log.i(TAG, "RTP Display service create")
-    notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val channel = NotificationChannel(CHANNEL_ID, CHANNEL_ID, NotificationManager.IMPORTANCE_HIGH)
       notificationManager?.createNotificationChannel(channel)
@@ -94,7 +93,7 @@ class ScreenService: Service(), ConnectChecker {
             echoCanceler = true,
             noiseSuppressor = true
           )
-    } catch (e: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
       false
     }
     if (prepared) INSTANCE = this
@@ -157,18 +156,14 @@ class ScreenService: Service(), ConnectChecker {
     keepAliveTrick()
     stopStream()
     mediaProjection?.stop()
-    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data)
+    val mediaProjection = mediaProjectionManager.getMediaProjection(resultCode, data) ?: throw IllegalStateException("get MediaProjection failed")
     this.mediaProjection = mediaProjection
     val screenSource = ScreenSource(applicationContext, mediaProjection)
     return try {
-      //ScreenSource need use always setCameraOrientation(0) because the MediaProjection handle orientation.
-      //You also need remove autoHandleOrientation if you are using it.
-      //You need to call it after prepareVideo to override the default value.
-      genericStream.getGlInterface().setCameraOrientation(0)
       genericStream.changeVideoSource(screenSource)
       toggleAudioSource(selectedAudioSource)
       true
-    } catch (ignored: IllegalArgumentException) {
+    } catch (_: IllegalArgumentException) {
       false
     }
   }
@@ -195,10 +190,7 @@ class ScreenService: Service(), ConnectChecker {
         selectedAudioSource = R.id.audio_source_mix
         if (genericStream.audioSource is MixAudioSource) return
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          mediaProjection?.let { genericStream.changeAudioSource(MixAudioSource(it).apply {
-            //Using audio mix the internal audio volume is higher than microphone. Increase microphone fix it.
-            microphoneVolume = 2f
-          }) }
+          mediaProjection?.let { genericStream.changeAudioSource(MixAudioSource(it)) }
         } else {
           throw IllegalArgumentException("You need min API 29+")
         }

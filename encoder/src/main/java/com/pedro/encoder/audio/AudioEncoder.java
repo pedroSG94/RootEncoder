@@ -47,7 +47,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   public static final int inputSize = 8192;
   private boolean isStereo = true;
   private GetFrame getFrame;
-  private float tsBuffer = 0;
+  private long tsBuffer = 0;
 
   public AudioEncoder(GetAudioData getAudioData) {
     this.getAudioData = getAudioData;
@@ -144,20 +144,23 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected long calculatePts(Frame frame, long presentTimeUs) {
     long pts;
+    long clockPts = Math.max(0, frame.getTimeStamp() - presentTimeUs);
     if (timestampMode == TimestampMode.CLOCK) {
-      pts = Math.max(0, frame.getTimeStamp() - presentTimeUs);
+      pts = clockPts;
     } else {
+      if (tsBuffer == 0) tsBuffer = clockPts;
       int channels = isStereo ? 2 : 1;
-      tsBuffer += (long) ((frame.getSize() / (channels * 2f) / sampleRate) * 1_000_000f);
-      pts = (long) tsBuffer;
+      tsBuffer += (long)((double)frame.getSize() / (sampleRate * channels * 2L) * 1_000_000L);
+      if (clockPts - tsBuffer > 500_000) tsBuffer = clockPts;
+      pts = tsBuffer;
     }
     return pts;
   }
 
   @Override
-  protected void checkBuffer(@NonNull ByteBuffer byteBuffer,
+  protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-    fixTimeStamp(bufferInfo);
+    return checkValidTimeStamp(bufferInfo);
   }
 
   @Override
@@ -172,7 +175,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
    * Used too with microphone.
    */
   @Override
-  public void inputPCMData(Frame frame) {
+  public void inputPCMData(@NonNull Frame frame) {
     if (running && !queue.offer(frame)) {
       Log.i(TAG, "frame discarded");
     }
@@ -185,6 +188,8 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
     } else if (codecType == CodecUtil.CodecType.SOFTWARE) {
       mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
+    } else if (codecType == CodecUtil.CodecType.CBR_PRIORITY) {
+      mediaCodecInfoList = CodecUtil.getAllEncodersCbrPriority(mime);
     } else {
       //Priority: hardware > software
       mediaCodecInfoList = CodecUtil.getAllEncoders(mime, true);

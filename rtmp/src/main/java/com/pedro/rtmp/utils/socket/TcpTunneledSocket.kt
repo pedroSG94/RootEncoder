@@ -18,18 +18,21 @@ package com.pedro.rtmp.utils.socket
 
 import android.util.Log
 import com.pedro.common.TimeUtils
-import com.pedro.rtmp.utils.readUInt16
-import com.pedro.rtmp.utils.readUInt24
-import com.pedro.rtmp.utils.readUInt32
-import com.pedro.rtmp.utils.readUInt32LittleEndian
-import com.pedro.rtmp.utils.readUntil
-import com.pedro.rtmp.utils.writeUInt16
-import com.pedro.rtmp.utils.writeUInt24
-import com.pedro.rtmp.utils.writeUInt32
-import com.pedro.rtmp.utils.writeUInt32LittleEndian
+import com.pedro.common.readUInt16
+import com.pedro.common.readUInt24
+import com.pedro.common.readUInt32
+import com.pedro.common.readUInt32LittleEndian
+import com.pedro.common.readUntil
+import com.pedro.common.writeUInt16
+import com.pedro.common.writeUInt24
+import com.pedro.common.writeUInt32
+import com.pedro.common.writeUInt32LittleEndian
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
 import java.net.URL
@@ -105,7 +108,8 @@ class TcpTunneledSocket(private val host: String, private val port: Int, private
 
   private fun configureSocket(path: String, secured: Boolean): HttpURLConnection {
     val schema = if (secured) "https" else "http"
-    val url = URL("$schema://$host:$port/$path")
+    val urlHost = if (host.contains(":")) "[$host]" else host
+    val url = URL("$schema://$urlHost:$port/$path")
     val socket = if (secured) {
       url.openConnection() as HttpsURLConnection
     } else {

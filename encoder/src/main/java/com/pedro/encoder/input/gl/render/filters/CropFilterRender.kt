@@ -89,9 +89,13 @@ class CropFilterRender: BaseFilterRender() {
     GLES20.glEnableVertexAttribArray(aTextureHandle)
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0)
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0)
-    GLES20.glUniform1i(uSamplerHandle, 4)
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4)
+    GLES20.glUniform1i(uSamplerHandle, 0)
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId)
+  }
+
+  override fun disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle)
   }
 
   override fun release() {
@@ -108,8 +112,8 @@ class CropFilterRender: BaseFilterRender() {
 
     val initialX = 1f - (1f / scaleX)
     val initialY = -(1f - (1f / scaleY))
-    val percentX = initialX / (50f - (width / 2f))
-    val percentY = -initialY / (50f - (height / 2f))
+    val percentX = if (width == 100f) 0f else initialX / (50f - (width / 2f))
+    val percentY = if (height == 100f) 0f else -initialY / (50f - (height / 2f))
 
     val oX = initialX - (offsetX * percentX)
     val oY = initialY + (offsetY * percentY)

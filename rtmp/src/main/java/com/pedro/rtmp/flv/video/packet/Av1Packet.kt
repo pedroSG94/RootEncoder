@@ -25,7 +25,7 @@ import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.video.FourCCPacketType
+import com.pedro.rtmp.flv.video.VideoFourCCPacketType
 import com.pedro.rtmp.flv.video.VideoDataType
 import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAV1
@@ -56,11 +56,9 @@ class Av1Packet: BasePacket() {
     var fixedBuffer = mediaFrame.data.duplicate().removeInfo(mediaFrame.info)
     val ts = mediaFrame.info.timestamp / 1000
 
-    //header is 8 bytes length:
+    //header is 5 bytes length:
     //mark first byte as extended header (0b10000000)
     //4 bits data type, 4 bits packet type
-    //4 bytes extended codec type (in this case av01)
-    //3 bytes CompositionTime, the cts.
     val codec = VideoFormat.AV1.value // { "a", "v", "0", "1" }
     header[1] = (codec shr 24).toByte()
     header[2] = (codec shr 16).toByte()
@@ -69,7 +67,7 @@ class Av1Packet: BasePacket() {
 
     var buffer: ByteArray
     if (!configSend) {
-      header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or FourCCPacketType.SEQUENCE_START.value).toByte()
+      header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or VideoFourCCPacketType.SEQUENCE_START.value).toByte()
       val obuSequence = this.obuSequence
       if (obuSequence != null) {
         val config = VideoSpecificConfigAV1(obuSequence)
@@ -95,7 +93,7 @@ class Av1Packet: BasePacket() {
     buffer = ByteArray(header.size + size)
 
     val nalType = if (mediaFrame.info.isKeyFrame) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
-    header[0] = (0b10000000 or (nalType shl 4) or FourCCPacketType.CODED_FRAMES.value).toByte()
+    header[0] = (0b10000000 or (nalType shl 4) or VideoFourCCPacketType.CODED_FRAMES.value).toByte()
     fixedBuffer.get(buffer, header.size, size)
 
     System.arraycopy(header, 0, buffer, 0, header.size)

@@ -16,6 +16,7 @@
 
 package com.pedro.library.util.streamclient
 
+import com.pedro.common.socket.base.SocketType
 import com.pedro.udp.UdpClient
 
 /**
@@ -29,6 +30,14 @@ class UdpStreamClient(
 
   override fun setAuthorization(user: String?, password: String?) {
 
+  }
+
+  /**
+   * Set stream delay in millis.
+   * This will create a cache and wait the delay to start send packets in real time
+   */
+  override fun setDelay(millis: Long) {
+    udpClient.setDelay(millis)
   }
 
   override fun setReTries(reTries: Int) {
@@ -70,6 +79,8 @@ class UdpStreamClient(
 
   override fun getSentVideoFrames(): Long = udpClient.sentVideoFrames
 
+  override fun getBytesSend(): Long = udpClient.bytesSend
+
   override fun getDroppedAudioFrames(): Long = udpClient.droppedAudioFrames
 
   override fun getDroppedVideoFrames(): Long = udpClient.droppedVideoFrames
@@ -88,6 +99,10 @@ class UdpStreamClient(
 
   override fun resetDroppedVideoFrames() {
     udpClient.resetDroppedVideoFrames()
+  }
+
+  override fun resetBytesSend() {
+    udpClient.resetBytesSend()
   }
 
   override fun setOnlyAudio(onlyAudio: Boolean) {
@@ -110,4 +125,18 @@ class UdpStreamClient(
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   override fun getBitrateExponentialFactor() = udpClient.getBitrateExponentialFactor()
+
+  /**
+   * Set if you want use java.io or ktor socket
+   */
+  override fun setSocketType(type: SocketType) {
+    udpClient.socketType = type
+  }
+
+  /**
+   * Set timeout ms for connection, write and read in sockets by default 5000ms
+   */
+  override fun setSocketTimeout(timeout: Long) {
+    udpClient.socketTimeout = timeout
+  }
 }

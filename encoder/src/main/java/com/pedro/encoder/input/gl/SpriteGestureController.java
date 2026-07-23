@@ -144,12 +144,12 @@ public class SpriteGestureController {
       } else {
         scale = androidViewFilterRender.getScale();
       }
-      scale.x += percent;
-      scale.y += percent;
+      float newScaleX = scale.x + percent;
+      float newScaleY = scale.y + percent;
       if (baseObjectFilterRender != null) {
-        baseObjectFilterRender.setScale(scale.x, scale.y);
+        baseObjectFilterRender.setScale(newScaleX, newScaleY);
       } else {
-        androidViewFilterRender.setScale(scale.x, scale.y);
+        androidViewFilterRender.setScale(newScaleX, newScaleY);
       }
       lastDistance = distance;
     }

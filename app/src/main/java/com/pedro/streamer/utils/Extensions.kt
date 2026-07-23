@@ -30,7 +30,11 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import com.pedro.streamer.R
 
@@ -74,4 +78,15 @@ fun MenuItem.updateMenuColor(context: Context, currentItem: MenuItem?): MenuItem
   currentItem?.setColor(context, R.color.black)
   setColor(context, R.color.appColor)
   return this
+}
+
+fun AppCompatActivity.fitAppPadding() {
+  ViewCompat.setOnApplyWindowInsetsListener(window.decorView.rootView) { view, insets ->
+    val bars = insets.getInsets(
+      WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+    )
+    view.updatePadding(left = bars.left, top = bars.top, right = bars.right, bottom = bars.bottom)
+    view.setBackgroundColor(ContextCompat.getColor(this, R.color.appColor))
+    WindowInsetsCompat.CONSUMED
+  }
 }

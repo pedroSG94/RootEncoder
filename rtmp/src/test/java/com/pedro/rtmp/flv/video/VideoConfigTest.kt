@@ -16,10 +16,12 @@
 
 package com.pedro.rtmp.flv.video
 
+import com.pedro.rtmp.flv.video.config.SPSH265Parser
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAV1
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAVC
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigHEVC
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class VideoConfigTest {
@@ -58,5 +60,36 @@ class VideoConfigTest {
     val data = ByteArray(config.size)
     config.write(data, 0)
     assertArrayEquals(expectedConfig, data)
+  }
+
+  @Test
+  fun `GIVEN obu sequence with seq_choose_screen_content_tools set WHEN create a video config THEN keep bitstream aligned`() {
+    val obuSequence = byteArrayOf(0x0a, 0x08, 0x40, 0x00, 0x00, 0x08, 0x00, 0x00, 0xc6.toByte(), 0x20)
+    val expectedConfig = byteArrayOf(0x81.toByte(), 0x41, 0x68, 0x00, 0x0a, 0x08, 0x40, 0x00, 0x00, 0x08, 0x00, 0x00, 0xc6.toByte(), 0x20)
+
+    val config = VideoSpecificConfigAV1(obuSequence)
+    val data = ByteArray(config.size)
+    config.write(data, 0)
+    assertArrayEquals(expectedConfig, data)
+  }
+
+  @Test
+  fun `GIVEN a real H265 sps WHEN parse THEN decode the profile_tier_level fields`() {
+    val sps = byteArrayOf(
+      66, 1, 1, 1, 96, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, -103, -96, 15, 8, 2, -127,
+      104, -76, -82, -55, 46, -26, -96, -64, -64, -64, 16
+    )
+    val parser = SPSH265Parser()
+    parser.parse(sps)
+
+    assertEquals(0, parser.generalProfileSpace)
+    assertEquals(0, parser.generalTierFlag)
+    assertEquals(1, parser.generalProfileIdc)
+    assertEquals(0x60000000, parser.generalProfileCompatibilityFlags)
+    assertEquals(0L, parser.generalConstraintIndicatorFlags)
+    assertEquals(153, parser.generalLevelIdc)
+    assertEquals(1, parser.chromaFormat)
+    assertEquals(0, parser.bitDepthLumaMinus8)
+    assertEquals(0, parser.bitDepthChromaMinus8)
   }
 }

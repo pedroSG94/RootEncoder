@@ -26,7 +26,8 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.AudioCodec;
-import com.pedro.encoder.EncoderErrorCallback;
+import com.pedro.common.TimeUtils;
+import com.pedro.encoder.CodecErrorCallback;
 import com.pedro.encoder.TimestampMode;
 import com.pedro.encoder.audio.AudioEncoder;
 import com.pedro.encoder.audio.GetAudioData;
@@ -34,7 +35,6 @@ import com.pedro.encoder.input.audio.CustomAudioEffect;
 import com.pedro.encoder.input.audio.GetMicrophoneData;
 import com.pedro.encoder.input.audio.MicrophoneManager;
 import com.pedro.encoder.utils.CodecUtil;
-import com.pedro.library.base.recording.BaseRecordController;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AacMuxerRecordController;
 import com.pedro.library.util.streamclient.StreamBaseClient;
@@ -50,7 +50,7 @@ import java.nio.ByteBuffer;
  */
 public abstract class OnlyAudioBase {
 
-  protected BaseRecordController recordController;
+  protected RecordController recordController;
   private final MicrophoneManager microphoneManager;
   private AudioEncoder audioEncoder;
   private boolean streaming = false;
@@ -73,7 +73,7 @@ public abstract class OnlyAudioBase {
    * Set a callback to know errors related with Video/Audio encoders
    * @param encoderErrorCallback callback to use, null to remove
    */
-  public void setEncoderErrorCallback(EncoderErrorCallback encoderErrorCallback) {
+  public void setEncoderErrorCallback(CodecErrorCallback encoderErrorCallback) {
     audioEncoder.setEncoderErrorCallback(encoderErrorCallback);
   }
 
@@ -143,10 +143,8 @@ public abstract class OnlyAudioBase {
    */
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   public void startRecord(String path, RecordController.Listener listener) throws IOException {
-    recordController.startRecord(path, listener);
-    if (!streaming) {
-      startEncoders();
-    }
+    recordController.startRecord(path, listener, RecordController.RecordTracks.AUDIO);
+    if (!streaming) startEncoders();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
@@ -163,10 +161,8 @@ public abstract class OnlyAudioBase {
   @RequiresApi(api = Build.VERSION_CODES.O)
   public void startRecord(@NonNull final FileDescriptor fd,
       @Nullable RecordController.Listener listener) throws IOException {
-    recordController.startRecord(fd, listener);
-    if (!streaming) {
-      startEncoders();
-    }
+    recordController.startRecord(fd, listener, RecordController.RecordTracks.AUDIO);
+    if (!streaming) startEncoders();
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)
@@ -220,7 +216,7 @@ public abstract class OnlyAudioBase {
   }
 
   private void startEncoders() {
-    long startTs = System.nanoTime() / 1000;
+    long startTs = TimeUtils.getCurrentTimeMicro();
     audioEncoder.start(startTs);
     microphoneManager.start();
   }
@@ -286,8 +282,11 @@ public abstract class OnlyAudioBase {
 
   protected abstract void getAudioDataImp(ByteBuffer audioBuffer, MediaCodec.BufferInfo info);
 
-  public void setRecordController(BaseRecordController recordController) {
-    if (!isRecording()) this.recordController = recordController;
+  public void setRecordController(RecordController recordController) {
+    if (!isRecording()) {
+      recordController.updateInfo(this.recordController.getVideoCodec(), this.recordController.getAudioCodec());
+      this.recordController = recordController;
+    }
   }
 
   private final GetMicrophoneData getMicrophoneData = frame -> {
@@ -305,7 +304,7 @@ public abstract class OnlyAudioBase {
 
     @Override
     public void onAudioFormat(@NonNull MediaFormat mediaFormat) {
-      recordController.setAudioFormat(mediaFormat, true);
+      recordController.setAudioFormat(mediaFormat);
     }
   };
 

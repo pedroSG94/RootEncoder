@@ -5,6 +5,9 @@ pluginManagement {
     gradlePluginPortal()
   }
 }
+plugins {
+    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+}
 
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
@@ -16,4 +19,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "RootEncoder"
-include(":app", ":rtmp", ":encoder", ":rtsp", ":library", ":srt", ":udp", ":common", ":extra-sources")
+include(":app", ":rtmp", ":encoder", ":rtsp", ":library", ":srt", ":udp", ":common", ":extra-sources", ":whip")

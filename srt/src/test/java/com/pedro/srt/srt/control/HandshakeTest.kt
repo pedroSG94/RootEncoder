@@ -22,6 +22,7 @@ import com.pedro.srt.srt.packets.control.handshake.Handshake
 import com.pedro.srt.srt.packets.control.handshake.HandshakeType
 import com.pedro.srt.srt.packets.control.handshake.extension.ExtensionContentFlag
 import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
+import junit.framework.TestCase.assertEquals
 import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import java.io.ByteArrayInputStream
@@ -30,6 +31,17 @@ import java.io.ByteArrayInputStream
  * Created by pedro on 1/9/23.
  */
 class HandshakeTest {
+
+  @Test
+  fun `test extension field calculation`() {
+    assertEquals(131079, ExtensionField.calculateValue(150039, encrypted = false, true))
+    assertEquals(5, ExtensionField.calculateValue(18967, encrypted = false, true))
+    assertEquals(7, ExtensionField.calculateValue(18967, encrypted = true, true))
+
+    assertEquals(131075, ExtensionField.calculateValue(150039, encrypted = false, false))
+    assertEquals(1, ExtensionField.calculateValue(18967, encrypted = false, false))
+    assertEquals(3, ExtensionField.calculateValue(18967, encrypted = true, false))
+  }
 
   @Test
   fun `GIVEN a handshake packet WHEN write packet in a buffer THEN get expected buffer`() {
@@ -47,6 +59,22 @@ class HandshakeTest {
     handshake.write(2500, 0x40)
     val packetHandshake = handshake.getData()
     assertArrayEquals(expectedData, packetHandshake)
+  }
+
+  @Test
+  fun `GIVEN a handshake packet with ip WHEN write and read it THEN get the same address`() {
+    val handshakeV4 = Handshake(ipAddress = "192.168.0.1")
+    handshakeV4.write(2500, 0x40)
+    val packetV4 = Handshake()
+    packetV4.read(ByteArrayInputStream(handshakeV4.getData()))
+    assertEquals("192.168.0.1", packetV4.ipAddress)
+
+    val handshakeV6 = Handshake(ipAddress = "2001:db8::aa:1")
+    handshakeV6.write(2500, 0x40)
+    val packetV6 = Handshake()
+    packetV6.read(ByteArrayInputStream(handshakeV6.getData()))
+    //Inet6Address.hostAddress returns the address without zeros compression
+    assertEquals("2001:db8:0:0:0:0:aa:1", packetV6.ipAddress)
   }
 
   @Test

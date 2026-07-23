@@ -15,6 +15,7 @@
  */
 package com.pedro.encoder.audio
 
+import com.pedro.encoder.utils.PCMUtil
 import kotlin.experimental.inv
 
 /**
@@ -22,28 +23,40 @@ import kotlin.experimental.inv
  */
 class G711Codec {
 
+  private var sampleRate = 8000
+  private var channels = 1
+
   fun configure(sampleRate: Int, channels: Int) {
-    require(!(sampleRate != 8000 || channels != 1)) {
-      "G711 codec only support 8000 sampleRate and mono channel"
-    }
+    this.sampleRate = sampleRate
+    this.channels = channels
   }
 
   fun encode(buffer: ByteArray, offset: Int, size: Int): ByteArray {
-    var j = offset
-    val count = size / 2
+    val validBuffer = PCMUtil.resample(
+      if (offset == 0 && size == buffer.size) buffer else buffer.copyOfRange(offset, offset + size),
+      channels, 1,
+      sampleRate, 8000
+    )
+    var j = 0
+    val count = buffer.size / 2
     val out = ByteArray(count)
     for (i in 0 until count) {
-      val sample = (buffer[j++].toInt() and 0xff or (buffer[j++].toInt() shl 8)).toShort()
+      val sample = (validBuffer[j++].toInt() and 0xff or (validBuffer[j++].toInt() shl 8)).toShort()
       out[i] = linearToALawSample(sample)
     }
     return out
   }
 
-  fun decode(src: ByteArray, offset: Int, len: Int): ByteArray {
+  fun decode(buffer: ByteArray, offset: Int, size: Int): ByteArray {
+    val validBuffer = PCMUtil.resample(
+      if (offset == 0 && size == buffer.size) buffer else buffer.copyOfRange(offset, offset + size),
+      channels, 1,
+      sampleRate, 8000
+    )
     var j = 0
-    val out = ByteArray(src.size * 2)
-    for (i in 0 until len) {
-      val s = aLawDecompressTable[src[i + offset].toInt() and 0xff]
+    val out = ByteArray(validBuffer.size * 2)
+    for (i in validBuffer.indices) {
+      val s = aLawDecompressTable[validBuffer[i].toInt() and 0xff]
       out[j++] = s.toByte()
       out[j++] = (s.toInt() shr 8).toByte()
     }

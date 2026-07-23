@@ -17,6 +17,7 @@
 package com.pedro.rtmp.flv.audio
 
 import com.pedro.common.frame.MediaFrame
+import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.packet.AacPacket
 import kotlinx.coroutines.test.runTest
@@ -30,23 +31,25 @@ import java.nio.ByteBuffer
 class AacPacketTest {
 
   @Test
-  fun `GIVEN a aac buffer WHEN call create a aac packet 2 times THEN return config and expected buffer`() = runTest {
+  fun `GIVEN an AAC buffer WHEN call create an AAC packet THEN return config and expected buffer`() = runTest {
     val timestamp = 123456789L
     val buffer = ByteArray(256) { 0x00 }
     val info = MediaFrame.Info(0, buffer.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(buffer), info, MediaFrame.Type.AUDIO)
     val aacPacket = AacPacket()
     aacPacket.sendAudioInfo(32000, true)
+    val packets = mutableListOf<FlvPacket>()
     aacPacket.createFlvPacket(mediaFrame) { flvPacket ->
-      assertEquals(FlvType.AUDIO, flvPacket.type)
-      assertEquals((-81).toByte(), flvPacket.buffer[0])
-      assertEquals(AacPacket.Type.SEQUENCE.mark, flvPacket.buffer[1])
+      packets.add(flvPacket)
     }
-    aacPacket.createFlvPacket(mediaFrame) { flvPacket ->
-      assertEquals(FlvType.AUDIO, flvPacket.type)
-      assertEquals((-81).toByte(), flvPacket.buffer[0])
-      assertEquals(AacPacket.Type.RAW.mark, flvPacket.buffer[1])
-      assertEquals(buffer.size + 2, flvPacket.length)
-    }
+    assertEquals(FlvType.AUDIO, packets[0].type)
+    assertEquals((-81).toByte(), packets[0].buffer[0])
+    assertEquals(AacPacket.Type.SEQUENCE.mark, packets[0].buffer[1])
+    assertEquals(4, packets[0].length)
+
+    assertEquals(FlvType.AUDIO, packets[1].type)
+    assertEquals((-81).toByte(), packets[1].buffer[0])
+    assertEquals(AacPacket.Type.RAW.mark, packets[1].buffer[1])
+    assertEquals(buffer.size + 2, packets[1].length)
   }
 }

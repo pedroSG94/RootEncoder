@@ -16,13 +16,16 @@
 
 package com.pedro.rtsp.rtp
 
-import com.pedro.common.socket.TcpStreamSocketImp
-import com.pedro.common.socket.UdpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.base.TcpStreamSocket
+import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketUdp
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.rtsp.utils.RtpTracks
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
@@ -43,14 +46,16 @@ class RtpStreamSocketTest {
   @Mock
   private lateinit var udpSocket: UdpStreamSocket
   @Mock
-  private lateinit var tcpSocket: TcpStreamSocketImp
+  private lateinit var tcpSocket: TcpStreamSocket
 
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp tcp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
-    val senderReportTcp = BaseRtpSocket.getInstance(Protocol.TCP, "127.0.0.1", 0, 1, 2, 3)
+    val rtpTracks = RtpTracks()
+    val senderReportTcp = BaseRtpSocket.getInstance(rtpTracks, SocketType.JAVA, Protocol.TCP, "127.0.0.1",
+      StreamSocket.DEFAULT_TIMEOUT, 0, 1, 2, 3)
     senderReportTcp.setSocket(tcpSocket)
-    val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, RtpConstants.trackVideo)
-    val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, RtpConstants.trackAudio)
+    val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackVideo)
+    val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackAudio)
     (0 until 10).forEach { value ->
       val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
       senderReportTcp.sendFrame(frame)
@@ -63,17 +68,18 @@ class RtpStreamSocketTest {
 
   @Test
   fun `GIVEN multiple video or audio rtp frames WHEN update rtcp udp send THEN send only 1 of video and 1 of audio each 3 seconds`() = runTest {
-    val senderReportUdp = RtpSocketUdp(udpSocket, udpSocket)
+    val rtpTracks = RtpTracks()
+    val senderReportUdp = RtpSocketUdp(rtpTracks, udpSocket, udpSocket)
     senderReportUdp.setSocket(tcpSocket)
-    val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, RtpConstants.trackVideo)
-    val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, RtpConstants.trackAudio)
+    val fakeFrameVideo = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackVideo)
+    val fakeFrameAudio = RtpFrame(byteArrayOf(0x00, 0x00, 0x00), 0, 3, rtpTracks.trackAudio)
     (0 until 10).forEach { value ->
       val frame = if (value % 2 == 0) fakeFrameVideo else fakeFrameAudio
       senderReportUdp.sendFrame(frame)
     }
     val resultValue = argumentCaptor<ByteArray>()
     withContext(Dispatchers.IO) {
-      verify(udpSocket, times((10))).writePacket(resultValue.capture())
+      verify(udpSocket, times((10))).write(resultValue.capture())
     }
   }
 }

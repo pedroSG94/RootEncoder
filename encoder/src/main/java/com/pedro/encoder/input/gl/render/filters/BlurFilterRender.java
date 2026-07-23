@@ -100,9 +100,14 @@ public class BlurFilterRender extends BaseFilterRender {
     GLES20.glUniform1f(uBlurHandle, blur);
     GLES20.glUniform1f(uRadiusHandle, radius);
 
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
+  }
+
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle);
   }
 
   @Override

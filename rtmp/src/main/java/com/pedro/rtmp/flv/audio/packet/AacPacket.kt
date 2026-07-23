@@ -16,17 +16,17 @@
 
 package com.pedro.rtmp.flv.audio.packet
 
+import com.pedro.common.config.AacAudioSpecificConfig
+import com.pedro.common.config.AudioObjectType
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
 import com.pedro.rtmp.flv.audio.AudioFormat
-import com.pedro.rtmp.flv.audio.AudioObjectType
 import com.pedro.rtmp.flv.audio.AudioSize
 import com.pedro.rtmp.flv.audio.AudioSoundRate
 import com.pedro.rtmp.flv.audio.AudioSoundType
-import com.pedro.rtmp.flv.audio.config.AudioSpecificConfig
 import kotlin.experimental.or
 
 /**
@@ -60,6 +60,8 @@ class AacPacket: BasePacket() {
     callback: suspend (FlvPacket) -> Unit
   ) {
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
+    val ts = mediaFrame.info.timestamp / 1000
+
     //header is 2 bytes length
     //4 bits sound format, 2 bits sound rate, 1 bit sound size, 1 bit sound type
     //8 bits sound data (always 10 because we are using aac)
@@ -71,21 +73,20 @@ class AacPacket: BasePacket() {
       5500 -> AudioSoundRate.SR_5_5K
       else -> AudioSoundRate.SR_44_1K
     }
+
     header[0] = type or (audioSize.value shl 1).toByte() or (soundRate.value shl 2).toByte() or (AudioFormat.AAC.value shl 4).toByte()
-    val buffer: ByteArray
     if (!configSend) {
-      val config = AudioSpecificConfig(objectType.value, sampleRate, if (isStereo) 2 else 1)
-      buffer = ByteArray(config.size + header.size)
       header[1] = Type.SEQUENCE.mark
-      config.write(buffer, header.size)
+      val config = AacAudioSpecificConfig(objectType, sampleRate, if (isStereo) 2 else 1)
+      val buffer = ByteArray(header.size).plus(config.calculate())
       configSend = true
-    } else {
-      header[1] = Type.RAW.mark
-      buffer = ByteArray(fixedBuffer.remaining() + header.size)
-      fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
+      System.arraycopy(header, 0, buffer, 0, header.size)
+      callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
     }
+    header[1] = Type.RAW.mark
+    val buffer = ByteArray(fixedBuffer.remaining() + header.size)
+    fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
     System.arraycopy(header, 0, buffer, 0, header.size)
-    val ts = mediaFrame.info.timestamp / 1000
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.AUDIO))
   }
 

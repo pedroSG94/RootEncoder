@@ -40,7 +40,7 @@ class EncryptionUtil(val type: EncryptionType, passphrase: String) {
   private val cipherType = CipherType.CTR
   private val salt: ByteArray
   private val keyLength: Int = when (type) {
-    EncryptionType.NONE -> 0
+    EncryptionType.NONE,
     EncryptionType.AES128 -> 16
     EncryptionType.AES192 -> 24
     EncryptionType.AES256 -> 32

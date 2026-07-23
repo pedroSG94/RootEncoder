@@ -16,9 +16,9 @@
 
 package com.pedro.srt.srt.packets.control
 
+import com.pedro.common.readUInt32
+import com.pedro.common.writeUInt32
 import com.pedro.srt.srt.packets.ControlPacket
-import com.pedro.srt.utils.readUInt32
-import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
 
 /**
@@ -56,12 +56,12 @@ class Ack(
 
   private fun readBody(input: InputStream) {
     lastAcknowledgedPacketSequenceNumber = input.readUInt32() and 0x7FFFFFFF //31 bits
-    rtt = input.readUInt32()
-    rttVariance = input.readUInt32()
-    availableBufferSize = input.readUInt32()
-    packetReceivingRate = input.readUInt32()
-    estimatedLinkCapacity = input.readUInt32()
-    receivingRate = input.readUInt32()
+    if (input.available() >= 4) rtt = input.readUInt32()
+    if (input.available() >= 4) rttVariance = input.readUInt32()
+    if (input.available() >= 4) availableBufferSize = input.readUInt32()
+    if (input.available() >= 4) packetReceivingRate = input.readUInt32()
+    if (input.available() >= 4) estimatedLinkCapacity = input.readUInt32()
+    if (input.available() >= 4) receivingRate = input.readUInt32()
   }
 
   override fun toString(): String {

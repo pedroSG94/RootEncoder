@@ -20,6 +20,7 @@ import android.opengl.GLES20
 import android.opengl.Matrix
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.pedro.common.TimeUtils
 import com.pedro.encoder.R
 import com.pedro.encoder.utils.gl.GlUtil
 import java.nio.ByteBuffer
@@ -45,7 +46,7 @@ class NoiseFilterRender : BaseFilterRender() {
   private var uSamplerHandle = -1
   private var uTimeHandle = -1
   private var uStrengthHandle = -1
-  private val startTime = System.currentTimeMillis()
+  private val startTime = TimeUtils.getCurrentTimeMillis()
 
   var strength = 16f
 
@@ -87,12 +88,16 @@ class NoiseFilterRender : BaseFilterRender() {
     GLES20.glEnableVertexAttribArray(aTextureHandle)
     GLES20.glUniformMatrix4fv(uMVPMatrixHandle, 1, false, MVPMatrix, 0)
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0)
-    val time = (System.currentTimeMillis() - startTime).toFloat() / 1000f
+    val time = (TimeUtils.getCurrentTimeMillis() - startTime).toFloat() / 1000f
     GLES20.glUniform1f(uTimeHandle, time)
     GLES20.glUniform1f(uStrengthHandle, strength)
-    GLES20.glUniform1i(uSamplerHandle, 4)
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4)
+    GLES20.glUniform1i(uSamplerHandle, 0)
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId)
+  }
+
+  override fun disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle)
   }
 
   override fun release() {

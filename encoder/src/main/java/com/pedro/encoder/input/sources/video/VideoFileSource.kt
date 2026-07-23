@@ -20,9 +20,11 @@ import android.content.Context
 import android.graphics.SurfaceTexture
 import android.net.Uri
 import android.view.Surface
+import com.pedro.encoder.CodecErrorCallback
 import com.pedro.encoder.input.decoder.DecoderInterface
 import com.pedro.encoder.input.decoder.Extractor
 import com.pedro.encoder.input.decoder.VideoDecoder
+import com.pedro.encoder.input.sources.OrientationConfig
 import com.pedro.encoder.input.sources.OrientationForced
 import java.io.IOException
 
@@ -77,7 +79,7 @@ class VideoFileSource(
 
   override fun isRunning(): Boolean = running
 
-  override fun getOrientationConfig(): OrientationForced = OrientationForced.LANDSCAPE
+  override fun getOrientationConfig() = OrientationConfig(forced = OrientationForced.LANDSCAPE)
 
   fun moveTo(time: Double) {
     videoDecoder.moveTo(time)
@@ -93,22 +95,23 @@ class VideoFileSource(
 
   @Throws(IOException::class)
   fun replaceFile(context: Context, uri: Uri) {
-    val width = videoDecoder.width
-    val height = videoDecoder.height
     val wasRunning = videoDecoder.isRunning
     val videoDecoder = VideoDecoder(videoDecoderInterface, decoderInterface)
     videoDecoder.extractor = this.videoDecoder.extractor
     if (!videoDecoder.initExtractor(context, uri)) throw IOException("Extraction failed")
-    if (width != videoDecoder.width || height != videoDecoder.height) throw IOException("Resolution must be the same that the previous file")
     this.videoDecoder.stop()
     this.videoDecoder = videoDecoder
     if (wasRunning) {
       videoDecoder.prepareVideo(Surface(surfaceTexture))
       videoDecoder.start()
     }
+  }
 
-    fun setExtractor(extractor: Extractor) {
-      videoDecoder.extractor = extractor
-    }
+  fun setExtractor(extractor: Extractor) {
+    videoDecoder.extractor = extractor
+  }
+
+  fun setCodecErrorCallback(codecErrorCallback: CodecErrorCallback?) {
+    videoDecoder.setCodecErrorCallback(codecErrorCallback)
   }
 }

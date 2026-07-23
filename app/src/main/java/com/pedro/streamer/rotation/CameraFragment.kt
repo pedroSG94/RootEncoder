@@ -30,11 +30,13 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
-import com.pedro.library.base.recording.RecordController
-import com.pedro.library.generic.GenericStream
+import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
 import com.pedro.extrasources.CameraXSource
+import com.pedro.library.base.StreamBase
+import com.pedro.library.base.recording.RecordController
+import com.pedro.library.generic.GenericStream
 import com.pedro.library.util.BitrateAdapter
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
@@ -74,18 +76,17 @@ class CameraFragment: Fragment(), ConnectChecker {
     fun getInstance(): CameraFragment = CameraFragment()
   }
 
-  val genericStream: GenericStream by lazy {
+  val genericStream: StreamBase by lazy {
     GenericStream(requireContext(), this).apply {
       getGlInterface().autoHandleOrientation = true
-      getStreamClient().setBitrateExponentialFactor(0.5f)
     }
   }
   private lateinit var surfaceView: SurfaceView
   private lateinit var bStartStop: ImageView
   private lateinit var txtBitrate: TextView
-  private val width = 640
-  private val height = 480
-  private val vBitrate = 1200 * 1000
+  val width = 640
+  val height = 480
+  val vBitrate = 1200 * 1000
   private var rotation = 0
   private val sampleRate = 32000
   private val isStereo = true
@@ -143,12 +144,14 @@ class CameraFragment: Fragment(), ConnectChecker {
         if (!folder.exists()) folder.mkdir()
         val sdf = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
         recordPath = "${folder.absolutePath}/${sdf.format(Date())}.mp4"
+        bRecord.setImageResource(R.drawable.pause_icon)
         genericStream.startRecord(recordPath) { status ->
           if (status == RecordController.Status.RECORDING) {
-            bRecord.setImageResource(R.drawable.stop_icon)
+            onMainThreadHandler {
+              bRecord.setImageResource(R.drawable.stop_icon)
+            }
           }
         }
-        bRecord.setImageResource(R.drawable.pause_icon)
       } else {
         genericStream.stopRecord()
         bRecord.setImageResource(R.drawable.record_icon)
@@ -181,9 +184,9 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   private fun prepare() {
     val prepared = try {
-      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation) &&
-          genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
-    } catch (e: IllegalArgumentException) {
+      genericStream.prepareVideo(width, height, vBitrate, rotation = rotation)
+          && genericStream.prepareAudio(sampleRate, isStereo, aBitrate)
+    } catch (_: IllegalArgumentException) {
       false
     }
     if (!prepared) {
@@ -209,24 +212,32 @@ class CameraFragment: Fragment(), ConnectChecker {
       toast("Retry")
     } else {
       genericStream.stopStream()
-      bStartStop.setImageResource(R.drawable.stream_icon)
+      onMainThreadHandler {
+        bStartStop.setImageResource(R.drawable.stream_icon)
+      }
       toast("Failed: $reason")
     }
   }
 
   override fun onNewBitrate(bitrate: Long) {
-    bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
-    txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
+    onMainThreadHandler {
+      bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
+      txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
+    }
   }
 
   override fun onDisconnect() {
-    txtBitrate.text = String()
-    toast("Disconnected")
+    onMainThreadHandler {
+      txtBitrate.text = String()
+      toast("Disconnected")
+    }
   }
 
   override fun onAuthError() {
     genericStream.stopStream()
-    bStartStop.setImageResource(R.drawable.stream_icon)
+    onMainThreadHandler {
+      bStartStop.setImageResource(R.drawable.stream_icon)
+    }
     toast("Auth error")
   }
 

@@ -25,10 +25,12 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.base.UdpType
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.validMessage
 import com.pedro.udp.utils.UdpSocket
-import com.pedro.udp.utils.UdpType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -65,9 +67,9 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   private var reTries = 0
 
   val droppedAudioFrames: Long
-    get() = udpSender.droppedAudioFrames
+    get() = udpSender.getDroppedAudioFrames()
   val droppedVideoFrames: Long
-    get() = udpSender.droppedVideoFrames
+    get() = udpSender.getDroppedVideoFrames()
 
   val cacheSize: Int
     get() = udpSender.getCacheSize()
@@ -75,6 +77,10 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     get() = udpSender.getSentAudioFrames()
   val sentVideoFrames: Long
     get() = udpSender.getSentVideoFrames()
+  val bytesSend: Long
+    get() = udpSender.getBytesSend()
+  var socketType = SocketType.JAVA
+  var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
@@ -92,6 +98,10 @@ class UdpClient(private val connectChecker: ConnectChecker) {
         else -> audioCodec
       }
     }
+  }
+
+  fun setDelay(millis: Long) {
+    udpSender.setDelay(millis)
   }
 
   /**
@@ -141,7 +151,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
         val urlParser = try {
           UrlParser.parse(url, validSchemes)
-        } catch (e: URISyntaxException) {
+        } catch (_: URISyntaxException) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, should be: udp://ip:port")
@@ -152,6 +162,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
         val host = urlParser.host
         val port = urlParser.port
         if (port == null) {
+          isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed("Endpoint malformed, port is required")
           }
@@ -161,7 +172,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
         val error = runCatching {
           val type = UdpType.getTypeByHost(host)
-          socket = UdpSocket(host, type, port)
+          socket = UdpSocket(socketType, host, type, port, socketTimeout)
           socket?.connect()
 
           udpSender.socket = socket
@@ -268,6 +279,10 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
   fun resetDroppedVideoFrames() {
     udpSender.resetDroppedVideoFrames()
+  }
+
+  fun resetBytesSend() {
+    udpSender.resetBytesSend()
   }
 
   @Throws(RuntimeException::class)

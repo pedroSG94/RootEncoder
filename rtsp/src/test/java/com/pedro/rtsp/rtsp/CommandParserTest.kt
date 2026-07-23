@@ -56,8 +56,8 @@ class CommandParserTest {
     val commandAudio = Command(Method.SETUP, 1, 200, serverCommandAudio)
     val commandVideo = Command(Method.SETUP, 1, 200, serverCommandVideo)
 
-    commandParser.loadServerPorts(commandAudio, Protocol.UDP, audioClientPorts, videoClientPorts, audioServerPorts, videoServerPorts)
-    commandParser.loadServerPorts(commandVideo, Protocol.UDP, audioClientPorts, videoClientPorts, audioServerPorts, videoServerPorts)
+    commandParser.loadServerPorts(commandAudio, Protocol.UDP, true, audioClientPorts, videoClientPorts, audioServerPorts, videoServerPorts)
+    commandParser.loadServerPorts(commandVideo, Protocol.UDP, false, audioClientPorts, videoClientPorts, audioServerPorts, videoServerPorts)
     assertArrayEquals(audioServerPorts, expectedAudioServerPorts)
     assertArrayEquals(videoServerPorts, expectedVideoServerPorts)
   }

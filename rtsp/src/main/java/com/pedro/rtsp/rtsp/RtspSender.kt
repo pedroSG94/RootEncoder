@@ -23,10 +23,17 @@ import com.pedro.common.VideoCodec
 import com.pedro.common.base.BaseSender
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
-import com.pedro.common.socket.TcpStreamSocket
+import com.pedro.common.socket.base.SocketType
+import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.common.validMessage
 import com.pedro.rtsp.rtcp.BaseSenderReport
-import com.pedro.rtsp.rtp.packets.*
+import com.pedro.rtsp.rtp.packets.AacPacket
+import com.pedro.rtsp.rtp.packets.Av1Packet
+import com.pedro.rtsp.rtp.packets.BasePacket
+import com.pedro.rtsp.rtp.packets.G711Packet
+import com.pedro.rtsp.rtp.packets.H264Packet
+import com.pedro.rtsp.rtp.packets.H265Packet
+import com.pedro.rtsp.rtp.packets.OpusPacket
 import com.pedro.rtsp.rtp.sockets.BaseRtpSocket
 import com.pedro.rtsp.rtp.sockets.RtpSocketTcp
 import com.pedro.rtsp.rtsp.commands.CommandsManager
@@ -35,8 +42,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
 import java.io.IOException
 import java.nio.ByteBuffer
-import java.util.*
-import java.util.concurrent.*
+import java.util.Random
 
 /**
  * Created by pedro on 7/11/18.
@@ -46,19 +52,20 @@ class RtspSender(
   private val commandsManager: CommandsManager
 ): BaseSender(connectChecker, "RtspSender") {
 
-  private var videoPacket: BasePacket = H264Packet()
-  private var audioPacket: BasePacket = AacPacket()
+  private var videoPacket: BasePacket = H264Packet(commandsManager.rtpTracks.trackVideo)
+  private var audioPacket: BasePacket = AacPacket(commandsManager.rtpTracks.trackAudio)
   private var rtpSocket: BaseRtpSocket? = null
   private var baseSenderReport: BaseSenderReport? = null
 
   @Throws(IOException::class)
   fun setSocketsInfo(
-    protocol: Protocol, host: String,
+    socketType: SocketType,
+    protocol: Protocol, host: String, timeout: Long,
     videoSourcePorts: Array<Int?>, audioSourcePorts: Array<Int?>,
     videoServerPorts: Array<Int?>, audioServerPorts: Array<Int?>,
   ) {
-    rtpSocket = BaseRtpSocket.getInstance(protocol, host, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
-    baseSenderReport = BaseSenderReport.getInstance(protocol, host, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
+    rtpSocket = BaseRtpSocket.getInstance(commandsManager.rtpTracks, socketType, protocol, host, timeout, videoSourcePorts[0], audioSourcePorts[0], videoServerPorts[0], audioServerPorts[0])
+    baseSenderReport = BaseSenderReport.getInstance(commandsManager.rtpTracks, socketType, protocol, host, timeout, videoSourcePorts[1], audioSourcePorts[1], videoServerPorts[1], audioServerPorts[1])
   }
 
   @Throws(IOException::class)
@@ -71,21 +78,21 @@ class RtspSender(
     videoPacket = when (commandsManager.videoCodec) {
       VideoCodec.H264 -> {
         if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
-        H264Packet().apply { sendVideoInfo(sps, pps) }
+        H264Packet(commandsManager.rtpTracks.trackVideo).apply { sendVideoInfo(sps, pps) }
       }
       VideoCodec.H265 -> {
         if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
-        H265Packet()
+        H265Packet(commandsManager.rtpTracks.trackVideo).apply { sendVideoInfo(sps, pps, vps) }
       }
-      VideoCodec.AV1 -> Av1Packet()
+      VideoCodec.AV1 -> Av1Packet(commandsManager.rtpTracks.trackVideo)
     }
   }
 
   override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandsManager.audioCodec) {
-      AudioCodec.G711 -> G711Packet().apply { setAudioInfo(sampleRate) }
-      AudioCodec.AAC -> AacPacket().apply { setAudioInfo(sampleRate) }
-      AudioCodec.OPUS -> OpusPacket().apply { setAudioInfo(sampleRate) }
+      AudioCodec.G711 -> G711Packet(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
+      AudioCodec.AAC -> AacPacket(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
+      AudioCodec.OPUS -> OpusPacket(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
     }
   }
 
@@ -98,26 +105,25 @@ class RtspSender(
     val isTcp = rtpSocket is RtpSocketTcp
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.poll(1, TimeUnit.SECONDS) }
+        val mediaFrame = runInterruptible { queue.take() }
         getRtpPackets(mediaFrame) { rtpFrames ->
-          var size = 0
+          var size = 0L
           var isVideo = false
           rtpFrames.forEach { rtpFrame ->
             rtpSocket?.sendFrame(rtpFrame)
             //4 is tcp header length
-            val packetSize = if (isTcp) rtpFrame.length + 4 else rtpFrame.length
-            bytesSend += packetSize
+            val packetSize = (if (isTcp) rtpFrame.length + 4 else rtpFrame.length).toLong()
+            bytesSend.addAndGet(packetSize)
+            bytesSendPerSecond.addAndGet(packetSize)
             size += packetSize
-            isVideo = rtpFrame.isVideoFrame()
-            if (isVideo) {
-              videoFramesSent++
-            } else {
-              audioFramesSent++
-            }
+            isVideo = rtpFrame.isVideoFrame(commandsManager.rtpTracks.trackVideo)
+            if (isVideo) videoFramesSent.incrementAndGet()
+            else audioFramesSent.incrementAndGet()
             if (baseSenderReport?.update(rtpFrame) == true) {
               //4 is tcp header length
-              val reportSize = if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH
-              bytesSend += reportSize
+              val reportSize = (if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH).toLong()
+              bytesSend.addAndGet(reportSize)
+              bytesSendPerSecond.addAndGet(reportSize)
               if (isEnableLogs) Log.i(TAG, "wrote report")
             }
           }

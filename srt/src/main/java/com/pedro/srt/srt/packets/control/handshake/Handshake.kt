@@ -16,14 +16,16 @@
 
 package com.pedro.srt.srt.packets.control.handshake
 
+import com.pedro.common.readUInt16
+import com.pedro.common.readUInt32
+import com.pedro.common.readUInt32LittleEndian
+import com.pedro.common.toUInt32
+import com.pedro.common.writeUInt16
+import com.pedro.common.writeUInt32
 import com.pedro.srt.srt.packets.ControlPacket
 import com.pedro.srt.srt.packets.control.ControlType
 import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.utils.Constants
-import com.pedro.srt.utils.readUInt16
-import com.pedro.srt.utils.readUInt32
-import com.pedro.srt.utils.writeUInt16
-import com.pedro.srt.utils.writeUInt32
 import java.io.InputStream
 import java.net.InetAddress
 
@@ -131,15 +133,20 @@ data class Handshake(
     handshakeType = HandshakeType.from(input.readUInt32())
     srtSocketId = input.readUInt32()
     synCookie = input.readUInt32()
-    readAddress(input)
+    ipAddress = readAddress(input)
   }
 
   private fun readAddress(input: InputStream): String {
-    val num1 = input.readUInt32()
-    val num2 = input.readUInt32()
-    val num3 = input.readUInt32()
-    val num4 = input.readUInt32()
-    return "$num1.$num2.$num3.$num4"
+    //4 words of 32 bits, each word in little endian like in writeAddress. IPv4 only use the first word
+    val words = List(4) { input.readUInt32LittleEndian() }
+    return if (words[1] == 0 && words[2] == 0 && words[3] == 0) { //ipv4
+      val ip = words[0]
+      "${(ip ushr 24) and 0xFF}.${(ip ushr 16) and 0xFF}.${(ip ushr 8) and 0xFF}.${ip and 0xFF}"
+    } else { //ipv6
+      val bytes = ByteArray(16)
+      words.forEachIndexed { index, word -> word.toUInt32().copyInto(bytes, index * 4) }
+      InetAddress.getByAddress(bytes).hostAddress ?: "::"
+    }
   }
 
   fun isErrorType(): Boolean {

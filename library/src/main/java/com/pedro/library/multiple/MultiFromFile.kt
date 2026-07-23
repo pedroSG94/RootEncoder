@@ -24,7 +24,6 @@ import com.pedro.common.ConnectChecker
 import com.pedro.common.VideoCodec
 import com.pedro.encoder.input.decoder.AudioDecoderInterface
 import com.pedro.encoder.input.decoder.VideoDecoderInterface
-import com.pedro.library.base.Camera2Base
 import com.pedro.library.base.FromFileBase
 import com.pedro.library.util.streamclient.RtmpStreamClient
 import com.pedro.library.util.streamclient.RtspStreamClient

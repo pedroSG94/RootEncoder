@@ -21,14 +21,19 @@ import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Surface;
+
+import com.pedro.common.TimeUtils;
+import com.pedro.encoder.CodecErrorCallback;
+import com.pedro.encoder.utils.CodecUtil;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class BaseDecoder {
@@ -38,16 +43,19 @@ public abstract class BaseDecoder {
   protected MediaCodec codec;
   protected volatile boolean running = false;
   protected MediaFormat mediaFormat;
-  private HandlerThread handlerThread;
+  private ExecutorService executor;
   protected String mime = "";
   protected boolean loopMode = false;
   private volatile long startTs = 0;
   protected long duration;
   protected final Object sync = new Object();
   protected AtomicBoolean pause = new AtomicBoolean(false);
+  protected final Semaphore semaphore = new Semaphore(0);
   protected volatile boolean looped = false;
   private final DecoderInterface decoderInterface;
   private Extractor extractor = new AndroidExtractor();
+  private CodecErrorCallback codecErrorCallback;
+  protected CodecUtil.CodecTypeError typeError;
 
   public BaseDecoder(DecoderInterface decoderInterface) {
     this.decoderInterface = decoderInterface;
@@ -68,18 +76,36 @@ public abstract class BaseDecoder {
     return extract(extractor);
   }
 
+  public void setCodecErrorCallback(CodecErrorCallback codecErrorCallback) {
+    this.codecErrorCallback = codecErrorCallback;
+  }
+
   public void start() {
     Log.i(TAG, "start decoder");
     running = true;
-    handlerThread = new HandlerThread(TAG);
-    handlerThread.start();
-    Handler handler = new Handler(handlerThread.getLooper());
-    codec.start();
-    handler.post(() -> {
+    try {
+      codec.start();
+    } catch (IllegalStateException e) {
+      Log.e(TAG, "start decoder failed", e);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (e instanceof MediaCodec.CodecException) {
+          CodecErrorCallback callback = codecErrorCallback;
+          if (callback != null) callback.onCodecError(typeError, (MediaCodec.CodecException) e);
+        }
+      }
+    }
+    executor = Executors.newSingleThreadExecutor();
+    executor.execute(() -> {
       try {
         decode();
       } catch (IllegalStateException e) {
         Log.i(TAG, "Decoding error", e);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+          if (e instanceof MediaCodec.CodecException) {
+            CodecErrorCallback callback = codecErrorCallback;
+            if (callback != null) callback.onCodecError(typeError, (MediaCodec.CodecException) e);
+          }
+        }
       } catch (NullPointerException e) {
         Log.i(TAG, "Decoder maybe was stopped");
         Log.i(TAG, "Decoding error", e);
@@ -93,6 +119,14 @@ public abstract class BaseDecoder {
     stopDecoder();
     startTs = 0;
     extractor.release();
+  }
+
+  public void reset(Surface surface) {
+    boolean wasRunning = running;
+    stopDecoder(!wasRunning);
+    moveTo(0);
+    prepare(surface);
+    if (wasRunning) start();
   }
 
   protected boolean prepare(Surface surface) {
@@ -122,24 +156,14 @@ public abstract class BaseDecoder {
   protected void stopDecoder(boolean clearTs) {
     running = false;
     if (clearTs) startTs = 0;
-    if (handlerThread != null) {
-      if (handlerThread.getLooper() != null) {
-        if (handlerThread.getLooper().getThread() != null) {
-          handlerThread.getLooper().getThread().interrupt();
-        }
-        handlerThread.getLooper().quit();
-      }
-      handlerThread.quit();
+    if (executor != null) {
+      executor.shutdownNow();
+      executor = null;
       if (codec != null) {
         try {
           codec.flush();
         } catch (IllegalStateException ignored) { }
       }
-      //wait for thread to die for 500ms.
-      try {
-        handlerThread.getLooper().getThread().join(500);
-      } catch (Exception ignored) { }
-      handlerThread = null;
     }
     try {
       codec.stop();
@@ -190,25 +214,29 @@ public abstract class BaseDecoder {
   private void decode() {
     if (startTs == 0) {
       moveTo(0); //make sure that we are on the start
-      startTs = System.nanoTime() / 1000;
+      startTs = TimeUtils.getCurrentTimeMicro();
     }
+    boolean shouldFinish = false;
     long sleepTime = 0;
     while (running) {
-      synchronized (sync) {
-        if (pause.get()) continue;
-        if (looped) {
-          double time = getTime();
-          if (time > 0) {
-            moveTo(0);
-            continue;
-          } else {
-            decoderInterface.onLoop();
-            looped = false;
-          }
+        if (pause.get()) {
+          try {
+            semaphore.acquire();
+          } catch (InterruptedException ignored) {}
+          continue;
         }
+        if (shouldFinish) {
+          finished();
+          break;
+        }
+        if (looped) {
+          decoderInterface.onLoop();
+          looped = false;
+        }
+      synchronized (sync) {
         int inIndex = codec.dequeueInputBuffer(10000);
         int sampleSize;
-        long timeStamp = System.nanoTime() / 1000;
+        long timeStamp = TimeUtils.getCurrentTimeMicro();
         boolean finished = false;
         if (inIndex >= 0) {
           ByteBuffer input;
@@ -219,7 +247,7 @@ public abstract class BaseDecoder {
           }
           if (input == null) continue;
           sampleSize = extractor.readFrame(input);
-          long ts = System.nanoTime() / 1000 - startTs;
+          long ts = TimeUtils.getCurrentTimeMicro() - startTs;
           sleepTime = extractor.getSleepTime(ts);
           finished = !extractor.advance();
           if (finished) {
@@ -243,11 +271,10 @@ public abstract class BaseDecoder {
           codec.releaseOutputBuffer(outIndex, render && bufferInfo.size != 0);
           if (finished) {
             if (loopMode) {
-              moveTo(0);
               looped = true;
             } else {
               Log.i(TAG, "end of file");
-              finished();
+              shouldFinish = true;
             }
           }
         }

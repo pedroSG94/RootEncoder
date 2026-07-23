@@ -16,10 +16,10 @@
 
 package com.pedro.srt.srt.packets.control.handshake.extension
 
+import com.pedro.common.writeUInt16
+import com.pedro.common.writeUInt32
 import com.pedro.srt.srt.packets.SrtPacket
 import com.pedro.srt.utils.EncryptInfo
-import com.pedro.srt.utils.writeUInt16
-import com.pedro.srt.utils.writeUInt32
 
 /**
  * Created by pedro on 22/8/23.
@@ -42,11 +42,12 @@ data class HandshakeExtension(
     buffer.writeUInt32(flags)
     buffer.writeUInt16(receiverDelay)
     buffer.writeUInt16(senderDelay)
-
-    buffer.writeUInt16(ExtensionType.SRT_CMD_SID.value)
-    val data = fixPathData(path.toByteArray(Charsets.UTF_8))
-    buffer.writeUInt16(data.size / 4)
-    buffer.write(data)
+    if (path.isNotEmpty()) {
+      buffer.writeUInt16(ExtensionType.SRT_CMD_SID.value)
+      val data = fixPathData(path.toByteArray(Charsets.UTF_8))
+      buffer.writeUInt16(data.size / 4)
+      buffer.write(data)
+    }
     //encrypted info
     if (encryptInfo != null) {
       buffer.writeUInt16(ExtensionType.SRT_CMD_KM_REQ.value)
@@ -78,7 +79,7 @@ data class HandshakeExtension(
     return if (mod == 0) {
       reverseBlocks(data.asList())
     } else {
-      val bytesToAdd = ByteArray(4 - mod) { 0x00 }.asList()
+      val bytesToAdd = ByteArray(4 - mod).asList()
       val list = data.asList().toMutableList()
       list.addAll(bytesToAdd)
       reverseBlocks(list)

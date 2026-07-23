@@ -16,10 +16,6 @@
 
 package com.pedro.rtmp.amf
 
-import com.pedro.rtmp.amf.v0.AmfData
-import com.pedro.rtmp.amf.v0.AmfNumber
-import com.pedro.rtmp.amf.v0.AmfObject
-import com.pedro.rtmp.amf.v0.AmfString
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -70,7 +66,23 @@ class AmfObjectTest {
     amfObject.writeHeader(output)
     amfObject.writeBody(output)
 
-println(output.toByteArray().contentToString())
     assertArrayEquals(expectedBuffer, output.toByteArray())
+  }
+
+  @Test
+  fun `GIVEN a property set twice with the same name WHEN written THEN it is not duplicated and size stays consistent`() {
+    val amfObject = AmfObject()
+    amfObject.setProperty("name", "first")
+    amfObject.setProperty("name", "second") //re-set same name via typed overload
+
+    //no duplicated key and last value wins
+    assertEquals(1, amfObject.getProperties().size)
+    val value = amfObject.getProperty("name")
+    assertTrue(value is AmfString && value.value == "second")
+
+    //getSize() must match the bytes actually written by writeBody()
+    val body = ByteArrayOutputStream()
+    amfObject.writeBody(body)
+    assertEquals(body.size(), amfObject.getSize())
   }
 }

@@ -18,14 +18,22 @@ package com.pedro.encoder.input.sources.video
 
 import android.content.Context
 import android.graphics.SurfaceTexture
+import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CameraManager
+import android.hardware.camera2.CaptureRequest
+import android.hardware.camera2.TotalCaptureResult
 import android.os.Build
 import android.util.Range
 import android.util.Size
 import android.view.MotionEvent
+import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.video.Camera2ApiManager
+import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
+import com.pedro.encoder.input.video.CameraCallbacks
 import com.pedro.encoder.input.video.CameraHelper
+import com.pedro.encoder.input.video.FrameCapturedCallback
 import com.pedro.encoder.input.video.facedetector.FaceDetectorCallback
 
 /**
@@ -98,7 +106,7 @@ class Camera2Source(context: Context): VideoSource() {
     }
   }
 
-  fun getCameraFacing(): CameraHelper.Facing = facing
+  fun getCameraFacing() = facing
 
   fun getCameraResolutions(facing: CameraHelper.Facing): List<Size> {
     val resolutions = if (facing == CameraHelper.Facing.FRONT) {
@@ -143,8 +151,8 @@ class Camera2Source(context: Context): VideoSource() {
     return if (isRunning()) camera.isAutoFocusEnabled else false
   }
 
-  fun tapToFocus(event: MotionEvent): Boolean {
-    return camera.tapToFocus(event)
+  fun tapToFocus(view: View, event: MotionEvent): Boolean {
+    return camera.tapToFocus(view, event)
   }
 
   @JvmOverloads
@@ -162,6 +170,10 @@ class Camera2Source(context: Context): VideoSource() {
 
   fun enableFaceDetection(callback: FaceDetectorCallback): Boolean {
     return if (isRunning()) camera.enableFaceDetection(callback) else false
+  }
+
+  fun enableFrameCaptureCallback(frameCapturedCallback: FrameCapturedCallback?) {
+    camera.enableFrameCaptureCallback(frameCapturedCallback)
   }
 
   fun disableFaceDetection() {
@@ -197,4 +209,134 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   fun isVideoStabilizationEnabled() = camera.isVideoStabilizationEnabled
+
+  fun enableAutoExposure(): Boolean {
+    return if (isRunning()) camera.enableAutoExposure() else false
+  }
+
+  fun disableAutoExposure() {
+    if (isRunning()) camera.disableAutoExposure()
+  }
+
+  fun isAutoExposureEnabled() = camera.isAutoExposureEnabled
+
+  /**
+   * Lock auto exposure to the current value. The camera will stop adjusting exposure
+   * automatically (useful to avoid exposure changes produced by faces or lighting changes).
+   * @return true if success, false if fail (not supported or called before start camera)
+   */
+  fun enableExposureLock(): Boolean {
+    return if (isRunning()) camera.enableExposureLock() else false
+  }
+
+  fun disableExposureLock() {
+    if (isRunning()) camera.disableExposureLock()
+  }
+
+  fun isExposureLockEnabled() = camera.isExposureLockEnabled
+
+  @JvmOverloads
+  fun addImageListener(
+    format: Int,
+    maxImages: Int,
+    autoClose: Boolean = true,
+    listener: ImageCallback
+  ) {
+    val w = if (rotation == 90 || rotation == 270) height else width
+    val h = if (rotation == 90 || rotation == 270) width else height
+    camera.addImageListener(w, h, format, maxImages, autoClose, listener)
+  }
+
+  fun removeImageListener() {
+    camera.removeImageListener()
+  }
+
+  @RequiresApi(Build.VERSION_CODES.P)
+  fun physicalCamerasAvailable() = camera.getPhysicalCamerasAvailable()
+
+  @RequiresApi(Build.VERSION_CODES.P)
+  fun openPhysicalCamera(id: String?) {
+    camera.openPhysicalCamera(id)
+  }
+
+  fun setCameraCallback(callbacks: CameraCallbacks?) {
+    camera.setCameraCallbacks(callbacks)
+  }
+
+  /**
+   * @param mode value from CameraCharacteristics.AWB_MODE_*
+   */
+  fun enableAutoWhiteBalance(mode: Int) = camera.enableAutoWhiteBalance(mode)
+
+  fun disableAutoWhiteBalance() {
+    camera.disableAutoWhiteBalance()
+  }
+
+  fun isAutoWhiteBalanceEnabled() = camera.isAutoWhiteBalanceEnabled
+
+  fun getWhiteBalance() = camera.getWhiteBalance()
+
+  fun getAutoWhiteBalanceModesAvailable() = camera.getAutoWhiteBalanceModesAvailable()
+
+  fun setColorCorrectionGains(red: Float, greenEven: Float, greenOdd: Float, blue: Float) =
+    camera.setColorCorrectionGains(red, greenEven, greenOdd, blue)
+
+  @JvmOverloads
+  fun getMaxSupportedFps(size: Size?, facing: CameraHelper.Facing = getCameraFacing()): Int {
+    return camera.getSupportedFps(size, facing).maxOfOrNull { it.upper } ?: 30
+  }
+
+  /**
+   * Set the required resolution for the camera.
+   * Must be called before prepareVideo or changeVideoSource. Otherwise it will be ignored.
+   */
+  fun setRequiredResolution(size: Size?) {
+    size?.let { checkResolutionSupported(it.width, it.height) }
+    camera.setRequiredResolution(size)
+  }
+
+  /**
+   * Add a callback to detect the camera availability.
+   * Set null value to remove the callback
+   */
+  fun setAvailabilityCallback(callback: CameraManager.AvailabilityCallback?) {
+    camera.setAvailabilityCallback(callback)
+  }
+
+  /**
+   * Re start camera if possible, return true or false depend if can do it or not.
+   */
+  fun restart(): Boolean {
+    if (isRunning()) camera.reOpenCamera(camera.getCurrentCameraId())
+    else if (camera.isPrepared) camera.openCameraId(camera.getCurrentCameraId())
+    else return false
+    return true
+  }
+
+  /**
+   * @return true of false depend if success or fail to do it.
+   *
+   * Set custom values to the camera.
+   * Need to be called after start or it will return false.
+   * Build and apply are done by the library automatically.
+   *
+   * For example, if you want disable autoExposure:
+   *
+   * camera.setCustomRequest { builder ->
+   *   builder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_OFF)
+   * }
+   */
+  fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
+    return camera.setCustomRequest(request)
+  }
+
+  fun setCustomOnCaptureCompletedCallback(
+    callback: ((CameraCaptureSession, CaptureRequest, TotalCaptureResult) -> Unit)?
+  ) {
+    camera.setCustomOnCaptureCompletedCallback(callback)
+  }
+
+  fun setDynamicFps(enabled: Boolean) {
+    camera.dynamicFps = enabled
+  }
 }

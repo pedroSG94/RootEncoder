@@ -52,10 +52,12 @@ public class SurfaceManager {
     return isReady.get();
   }
 
-  public void makeCurrent() {
+  public boolean makeCurrent() {
     if (!EGL14.eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext)) {
       Log.e(TAG, "eglMakeCurrent failed");
+      return false;
     }
+    return true;
   }
 
   public void swapBuffer() {
@@ -196,7 +198,7 @@ public class SurfaceManager {
       eglDisplay = EGL14.EGL_NO_DISPLAY;
       eglContext = EGL14.EGL_NO_CONTEXT;
       eglSurface = EGL14.EGL_NO_SURFACE;
-    } else {
+    } else if (GlUtil.debugMode) {
       Log.e(TAG, "GL already released");
     }
     isReady.set(false);

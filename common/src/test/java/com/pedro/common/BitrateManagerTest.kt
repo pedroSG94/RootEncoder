@@ -16,16 +16,22 @@
 
 package com.pedro.common
 
-import com.pedro.common.util.MainDispatcherRule
-import com.pedro.common.util.Utils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.mockito.Mock
+import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.argumentCaptor
@@ -39,41 +45,49 @@ import org.mockito.kotlin.verify
 @RunWith(MockitoJUnitRunner::class)
 class BitrateManagerTest {
 
+  @OptIn(ExperimentalCoroutinesApi::class)
   @get:Rule
-  val mainDispatcherRule = MainDispatcherRule()
+  val mainDispatcherRule = object: TestWatcher() {
+    override fun starting(description: Description) {
+      Dispatchers.setMain(UnconfinedTestDispatcher())
+    }
+
+    override fun finished(description: Description) {
+      Dispatchers.resetMain()
+    }
+  }
   @Mock
   private lateinit var connectChecker: ConnectChecker
-  private val timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
+  private lateinit var timeUtilsMocked: MockedStatic<TimeUtils>
   private var fakeTime = 7502849023L
 
   @Before
   fun setup() {
+    timeUtilsMocked = Mockito.mockStatic(TimeUtils::class.java)
     timeUtilsMocked.`when`<Long>(TimeUtils::getCurrentTimeMillis).then { fakeTime }
   }
 
   @After
   fun teardown() {
-    fakeTime = 7502849023L
+    timeUtilsMocked.close()
   }
 
   @Test
   fun `WHEN set multiple values THEN return total of values each second`() = runTest {
-    Utils.useStatics(listOf(timeUtilsMocked)) {
-      val bitrateManager = BitrateManager(connectChecker)
-      val fakeValues = arrayOf(100L, 200L, 300L, 400L, 500L)
-      var expectedResult = 0L
-      fakeValues.forEach {
-        bitrateManager.calculateBitrate(it)
-        expectedResult += it
-      }
-      fakeTime += 1000
-      val value = 100L
-      bitrateManager.calculateBitrate(value)
-      expectedResult += value
-      val resultValue = argumentCaptor<Long>()
-      verify(connectChecker, times(1)).onNewBitrate(resultValue.capture())
-      val marginError = 20
-      assertTrue(expectedResult - marginError <= resultValue.firstValue && resultValue.firstValue <= expectedResult + marginError)
+    val bitrateManager = BitrateManager(connectChecker)
+    val fakeValues = arrayOf(100L, 200L, 300L, 400L, 500L)
+    var expectedResult = 0L
+    fakeValues.forEach {
+      bitrateManager.calculateBitrate(it)
+      expectedResult += it
     }
+    fakeTime += 1000
+    val value = 100L
+    bitrateManager.calculateBitrate(value)
+    expectedResult += value
+    val resultValue = argumentCaptor<Long>()
+    verify(connectChecker, times(1)).onNewBitrate(resultValue.capture())
+    val marginError = 20
+    assertTrue(expectedResult - marginError <= resultValue.firstValue && resultValue.firstValue <= expectedResult + marginError)
   }
 }

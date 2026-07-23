@@ -76,7 +76,7 @@ class GenericCamera2: Camera2Base {
       RtmpStreamClient(rtmpClient, streamClientListener),
       RtspStreamClient(rtspClient, streamClientListener),
       SrtStreamClient(srtClient, streamClientListener),
-      UdpStreamClient(udpClient, streamClientListener),
+      UdpStreamClient(udpClient, streamClientListener)
     )
   }
 

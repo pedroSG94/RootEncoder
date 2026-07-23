@@ -29,17 +29,13 @@ class CommandParser {
     private const val TAG = "CommandParser"
   }
 
-  fun loadServerPorts(command: Command, protocol: Protocol, audioClientPorts: Array<Int?>,
-    videoClientPorts: Array<Int?>, audioServerPorts: Array<Int?>, videoServerPorts: Array<Int?>): Boolean {
-    var isAudio = true
+  fun loadServerPorts(
+    command: Command, protocol: Protocol, isAudio: Boolean,
+    audioClientPorts: Array<Int?>,
+    videoClientPorts: Array<Int?>,
+    audioServerPorts: Array<Int?>, videoServerPorts: Array<Int?>
+  ): Boolean {
     if (command.method == Method.SETUP && protocol == Protocol.UDP) {
-      val clientPattern = Pattern.compile("client_port=([0-9]+)-([0-9]+)")
-      val clientMatcher = clientPattern.matcher(command.text)
-      if (clientMatcher.find()) {
-        val port = (clientMatcher.group(1) ?: "-1").toInt()
-        isAudio = port == audioClientPorts[0]
-      }
-
       val rtspPattern = Pattern.compile("server_port=([0-9]+)-([0-9]+)")
       val matcher = rtspPattern.matcher(command.text)
       if (matcher.find()) {
@@ -109,8 +105,8 @@ class CommandParser {
           Method.TEARDOWN.name -> Method.TEARDOWN
           Method.PLAY.name -> Method.PLAY
           Method.PAUSE.name -> Method.PAUSE
-          Method.SET_PARAMETERS.name -> Method.SET_PARAMETERS
-          Method.GET_PARAMETERS.name -> Method.GET_PARAMETERS
+          Method.SET_PARAMETER.name -> Method.SET_PARAMETER
+          Method.GET_PARAMETER.name -> Method.GET_PARAMETER
           Method.REDIRECT.name -> Method.REDIRECT
           else -> Method.UNKNOWN
         }

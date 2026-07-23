@@ -23,6 +23,7 @@ import android.os.Build;
 
 import androidx.annotation.RequiresApi;
 
+import com.pedro.common.TimeUtils;
 import com.pedro.encoder.R;
 import com.pedro.encoder.utils.gl.GlUtil;
 
@@ -56,7 +57,7 @@ public class RippleFilterRender extends BaseFilterRender {
   private int uTimeHandle = -1;
 
   private float speed = 15f;
-  private long START_TIME = System.currentTimeMillis();
+  private long START_TIME = TimeUtils.getCurrentTimeMillis();
 
   public RippleFilterRender() {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.length * FLOAT_SIZE_BYTES)
@@ -101,12 +102,17 @@ public class RippleFilterRender extends BaseFilterRender {
     GLES20.glUniformMatrix4fv(uSTMatrixHandle, 1, false, STMatrix, 0);
     GLES20.glUniform2f(uResolutionHandle, getWidth(), getHeight());
     GLES20.glUniform1f(uSpeedHandle, speed);
-    float time = ((float) (System.currentTimeMillis() - START_TIME)) / 1000f;
+    float time = ((float) (TimeUtils.getCurrentTimeMillis() - START_TIME)) / 1000f;
     if (time >= 10) START_TIME += 10000;
     GLES20.glUniform1f(uTimeHandle, time);
-    GLES20.glUniform1i(uSamplerHandle, 4);
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE4);
+    GLES20.glUniform1i(uSamplerHandle, 0);
+    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, previousTexId);
+  }
+
+  @Override
+  protected void disableResources() {
+    GlUtil.disableResources(aTextureHandle, aPositionHandle);
   }
 
   @Override

@@ -16,10 +16,8 @@
 
 package com.pedro.srt.mpeg2ts
 
-import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.toInt
 import java.nio.ByteBuffer
-import kotlin.math.pow
 
 /**
  * Created by pedro on 24/8/23.
@@ -58,9 +56,9 @@ data class AdaptationField(
     private val adaptationExtension: ByteArray? = null,
     private val stuffingBytes: ByteArray? = null,
 ) {
-    private val length: Int = calculateSize()
     private val transportPrivateDataLength: Int = transportPrivateData?.size ?: 0
-        
+    private val length: Int = calculateSize()
+
     fun getData(): ByteArray {
         val buffer = ByteBuffer.allocate(length)
         //size after put length
@@ -82,8 +80,11 @@ data class AdaptationField(
         pcr?.let { addClockReference(buffer, it) }
         opcr?.let { addClockReference(buffer, it) }
         spliceCountdown?.let { buffer.put(it) }
-        transportPrivateData?.let { buffer.put(it) }
-        transportPrivateData?.let { buffer.put(it) }
+        transportPrivateData?.let {
+            buffer.put(it.size.toByte())
+            buffer.put(it)
+        }
+        adaptationExtension?.let { buffer.put(it) }
         stuffingBytes?.let { buffer.put(it) }
         return buffer.array()
     }
@@ -98,11 +99,8 @@ data class AdaptationField(
     }
 
     private fun addClockReference(buffer: ByteBuffer, timestamp: Long) {
-        val pcrBase =
-            (Constants.SYSTEM_CLOCK_FREQ * timestamp / 1000000 /* µs -> s */ / 300) % 2.toDouble()
-                .pow(33)
-                .toLong()
-        val pcrExt = (Constants.SYSTEM_CLOCK_FREQ * timestamp / 1000000 /* µs -> s */) % 300
+        val pcrBase = (timestamp * 9 / 100) % (1L shl 33)
+        val pcrExt = (timestamp * 27) % 300
 
         /**
          * PCR Base -> 33 bits

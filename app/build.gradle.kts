@@ -1,36 +1,36 @@
 plugins {
   alias(libs.plugins.android.application)
-  alias(libs.plugins.jetbrains.kotlin)
 }
 
 android {
   namespace = "com.pedro.streamer"
-  compileSdk = 35
+  compileSdk = 37
 
   defaultConfig {
     applicationId = "com.pedro.streamer"
     minSdk = 16
-    targetSdk = 35
-    versionCode = libs.versions.versionCode.get().toInt()
-    versionName = libs.versions.versionName.get()
+    targetSdk = 37
+    versionCode = project.version.toString().replace(".", "").toInt()
+    versionName = project.version.toString()
     multiDexEnabled = true
   }
   buildTypes {
     release {
       isMinifyEnabled = false
-      proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+      proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
+  }
+  buildFeatures {
+    buildConfig = true
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
   }
-  kotlinOptions {
-    jvmTarget = "17"
-  }
-  buildFeatures {
-    buildConfig = true
-  }
+}
+
+kotlin {
+  jvmToolchain(17)
 }
 
 dependencies {

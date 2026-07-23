@@ -17,7 +17,7 @@
 package com.pedro.encoder.input.sources.video
 
 import android.graphics.SurfaceTexture
-import com.pedro.encoder.input.sources.OrientationForced
+import com.pedro.encoder.input.sources.OrientationConfig
 
 /**
  * Created by pedro on 11/1/24.
@@ -45,5 +45,5 @@ abstract class VideoSource {
   abstract fun stop()
   abstract fun release()
   abstract fun isRunning(): Boolean
-  open fun getOrientationConfig() = OrientationForced.NONE
+  open fun getOrientationConfig() = OrientationConfig()
 }
