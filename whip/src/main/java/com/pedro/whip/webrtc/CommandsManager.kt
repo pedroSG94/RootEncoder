@@ -316,10 +316,10 @@ class CommandsManager {
                     SdpBody.createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString, true)
                 }
                 VideoCodec.VP8 -> {
-                    SdpBody.createVp8Body(rtpTracks.trackVideo, spsString, ppsString, vpsString, true)
+                    SdpBody.createVp8Body(rtpTracks.trackVideo, true)
                 }
                 VideoCodec.VP9 -> {
-                    SdpBody.createVp9Body(rtpTracks.trackVideo, spsString, ppsString, vpsString, true)
+                    SdpBody.createVp9Body(rtpTracks.trackVideo, true)
                 }
                 VideoCodec.AV1 -> {
                     SdpBody.createAV1Body(rtpTracks.trackVideo, true)

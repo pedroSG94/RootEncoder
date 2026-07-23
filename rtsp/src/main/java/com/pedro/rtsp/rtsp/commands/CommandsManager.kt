@@ -160,8 +160,8 @@ open class CommandsManager {
       videoBody = when (videoCodec) {
         VideoCodec.H264 -> createH264Body(rtpTracks.trackVideo, spsString, ppsString)
         VideoCodec.H265 -> createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
-        VideoCodec.VP8 -> createVp8Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
-        VideoCodec.VP9 -> createVp9Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
+        VideoCodec.VP8 -> createVp8Body(rtpTracks.trackVideo)
+        VideoCodec.VP9 -> createVp9Body(rtpTracks.trackVideo)
         VideoCodec.AV1 -> createAV1Body(rtpTracks.trackVideo)
       }
     }

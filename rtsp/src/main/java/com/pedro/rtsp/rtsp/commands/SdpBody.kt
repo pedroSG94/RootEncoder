@@ -105,17 +105,33 @@ object SdpBody {
     } else "a=control:streamid=$trackVideo\r\n"
     return "m=video 0 $type ${payload}\r\n" +
         "a=rtpmap:$payload H265/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:$payload packetization-mode=1; sprop-sps=$sps; sprop-pps=$pps; sprop-vps=$vps\r\n" +
+        "a=fmtp:$payload sprop-sps=$sps; sprop-pps=$pps; sprop-vps=$vps\r\n" +
         identifier
   }
 
-  fun createVp8Body(trackVideo: Int, sps: String, pps: String, vps: String, secured: Boolean = false): String {
-    return ""
+  fun createVp8Body(trackVideo: Int, secured: Boolean = false): String {
+    val payload = RtpConstants.payloadType + trackVideo
+    val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
+    val identifier = if (secured) {
+          "a=sendonly\r\n" +
+          "a=mid:$trackVideo\r\n"
+    } else "a=control:streamid=$trackVideo\r\n"
+    return "m=video 0 $type ${payload}\r\n" +
+        "a=rtpmap:$payload VP8/${RtpConstants.clockVideoFrequency}\r\n" +
+        "a=fmtp:$payload\r\n" +
+        identifier
   }
 
-  fun createVp9Body(trackVideo: Int, sps: String, pps: String, vps: String, secured: Boolean = false): String {
-    return ""
+  fun createVp9Body(trackVideo: Int, secured: Boolean = false): String {
+    val payload = RtpConstants.payloadType + trackVideo
+    val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
+    val identifier = if (secured) {
+      "a=sendonly\r\n" +
+          "a=mid:$trackVideo\r\n"
+    } else "a=control:streamid=$trackVideo\r\n"
+    return "m=video 0 $type ${payload}\r\n" +
+        "a=rtpmap:$payload VP9/${RtpConstants.clockVideoFrequency}\r\n" +
+        "a=fmtp:$payload\r\n" +
+        identifier
   }
-
-
 }
