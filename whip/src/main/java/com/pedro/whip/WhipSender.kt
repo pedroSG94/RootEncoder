@@ -71,7 +71,7 @@ class WhipSender(
     override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
         audioPacket = when (commandsManager.audioCodec) {
             AudioCodec.G711 -> G711Packet(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
-            AudioCodec.AAC -> AacPacket(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
+            AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
             AudioCodec.OPUS -> OpusPacket(commandsManager.rtpTracks.trackAudio).apply { setAudioInfo(sampleRate) }
         }
     }

@@ -1010,13 +1010,13 @@ public abstract class Camera1Base {
   public void setVideoCodec(VideoCodec codec) {
     setVideoCodecImp(codec);
     recordController.setVideoCodec(codec);
-    videoEncoder.setType(codec.getMime());
+    videoEncoder.type = codec;
   }
 
   public void setAudioCodec(AudioCodec codec) {
     setAudioCodecImp(codec);
     recordController.setAudioCodec(codec);
-    audioEncoder.setType(codec.getMime());
+    audioEncoder.type = codec;
   }
 
   protected abstract void setVideoCodecImp(VideoCodec codec);

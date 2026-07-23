@@ -61,7 +61,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
     private fun start(listener: RecordController.Listener?) {
         audioPacket = when (getAudioCodec()) {
             AudioCodec.G711 -> G711Packet()
-            AudioCodec.AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
+            AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
             AudioCodec.OPUS -> OpusPacket().apply { sendAudioInfo(sampleRate, isStereo) }
         }
         videoPacket = when (getVideoCodec()) {
@@ -262,7 +262,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
         info.setProperty("videocodecid", videoCodecValue.toDouble())
         info.setProperty("framerate", fps.toDouble())
         val audioCodecValue = when (getAudioCodec()) {
-            AudioCodec.AAC -> AudioFormat.AAC.value
+            AudioCodec.AAC, AudioCodec.HE_AAC -> AudioFormat.AAC.value
             AudioCodec.G711 -> AudioFormat.G711_A.value
             AudioCodec.OPUS -> AudioFormat.OPUS.value
         }

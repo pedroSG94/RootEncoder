@@ -73,7 +73,7 @@ class RtmpSender(
   override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandsManager.audioCodec) {
       AudioCodec.G711 -> G711Packet().apply { sendAudioInfo() }
-      AudioCodec.AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
+      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
       AudioCodec.OPUS -> OpusPacket().apply { sendAudioInfo(sampleRate, isStereo) }
     }
   }

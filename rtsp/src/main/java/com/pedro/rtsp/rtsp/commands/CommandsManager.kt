@@ -169,7 +169,7 @@ open class CommandsManager {
     if (!audioDisabled) {
       audioBody = when (audioCodec) {
         AudioCodec.G711 -> createG711Body(rtpTracks.trackAudio, sampleRate, isStereo)
-        AudioCodec.AAC -> createAacBody(rtpTracks.trackAudio, sampleRate, isStereo)
+        AudioCodec.AAC, AudioCodec.HE_AAC -> createAacBody(rtpTracks.trackAudio, sampleRate, isStereo)
         AudioCodec.OPUS -> createOpusBody(rtpTracks.trackAudio)
       }
     }

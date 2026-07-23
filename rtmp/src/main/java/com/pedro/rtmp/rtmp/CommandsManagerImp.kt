@@ -129,7 +129,7 @@ class CommandsManagerImp: CommandsManager() {
     if (!audioDisabled) {
       val codecValue = when (audioCodec) {
         AudioCodec.G711 -> AudioFormat.G711_A.value
-        AudioCodec.AAC -> AudioFormat.AAC.value
+        AudioCodec.AAC, AudioCodec.HE_AAC -> AudioFormat.AAC.value
         AudioCodec.OPUS -> AudioFormat.OPUS.value
       }
       amfEcmaArray.setProperty("audiocodecid", codecValue.toDouble())

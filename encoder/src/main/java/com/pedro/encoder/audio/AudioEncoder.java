@@ -53,7 +53,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   public AudioEncoder(GetAudioData getAudioData) {
     this.getAudioData = getAudioData;
     typeError = CodecUtil.CodecTypeError.AUDIO_CODEC;
-    type = AudioCodec.AAC.getMime();
+    type = AudioCodec.AAC;
     TAG = "AudioEncoder";
   }
 
@@ -69,7 +69,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     isBufferMode = true;
 
     try {
-      if (type.equals(AudioCodec.G711.getMime())) {
+      if (type == AudioCodec.G711) {
         g711Codec.configure(sampleRate, isStereo ? 2 : 1);
         setCallback();
         running = false;
@@ -77,7 +77,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
         prepared = true;
         return true;
       }
-      MediaCodecInfo encoder = chooseEncoder(type);
+      MediaCodecInfo encoder = chooseEncoder(type.getMime());
       if (encoder != null) {
         Log.i(TAG, "Encoder selected " + encoder.getName());
         codec = MediaCodec.createByCodecName(encoder.getName());
@@ -87,11 +87,13 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       }
 
       int channelCount = (isStereo) ? 2 : 1;
-      MediaFormat audioFormat = MediaFormat.createAudioFormat(type, sampleRate, channelCount);
+      MediaFormat audioFormat = MediaFormat.createAudioFormat(type.getMime(), sampleRate, channelCount);
       audioFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       audioFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, inputSize);
-      audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE,
-          MediaCodecInfo.CodecProfileLevel.AACObjectLC);
+      if (type == AudioCodec.AAC || type == AudioCodec.HE_AAC) {
+        int profile = type == AudioCodec.HE_AAC ? MediaCodecInfo.CodecProfileLevel.AACObjectHE : MediaCodecInfo.CodecProfileLevel.AACObjectLC;
+        audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, profile);
+      }
       setCallback();
       codec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
       running = false;

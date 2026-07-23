@@ -313,7 +313,7 @@ public abstract class OnlyAudioBase {
   public void setAudioCodec(AudioCodec codec) {
     setAudioCodecImp(codec);
     recordController.setAudioCodec(codec);
-    audioEncoder.setType(codec.getMime());
+    audioEncoder.type = codec;
   }
 
   protected abstract void setAudioCodecImp(AudioCodec codec);

@@ -81,7 +81,7 @@ class SrtSender(
 
   override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandsManager.audioCodec) {
-      AudioCodec.AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo) }
+      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo) }
       AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
