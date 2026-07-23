@@ -16,6 +16,7 @@
 
 package com.pedro.rtmp.flv.audio.packet
 
+import com.pedro.common.AudioCodec
 import com.pedro.common.config.AacAudioSpecificConfig
 import com.pedro.common.config.AudioObjectType
 import com.pedro.common.frame.MediaFrame
@@ -43,16 +44,16 @@ class AacPacket: BasePacket() {
   //In microphone we are using always 16bits pcm encoding. Change me if needed
   private var audioSize = AudioSize.SND_16_BIT
   //In encoder we are using always AAC LC. Change me if needed
-  private val objectType = AudioObjectType.AAC_LC
+  private var objectType = AudioObjectType.AAC_LC
 
   enum class Type(val mark: Byte) {
     SEQUENCE(0x00), RAW(0x01)
   }
 
-  fun sendAudioInfo(sampleRate: Int, isStereo: Boolean, audioSize: AudioSize = AudioSize.SND_16_BIT) {
+  fun sendAudioInfo(sampleRate: Int, isStereo: Boolean, codec: AudioCodec) {
     this.sampleRate = sampleRate
     this.isStereo = isStereo
-    this.audioSize = audioSize
+    objectType = if (codec == AudioCodec.HE_AAC) AudioObjectType.AAC_SBR else AudioObjectType.AAC_LC
   }
 
   override suspend fun createFlvPacket(

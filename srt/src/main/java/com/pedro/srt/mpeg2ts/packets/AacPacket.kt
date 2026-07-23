@@ -16,6 +16,7 @@
 
 package com.pedro.srt.mpeg2ts.packets
 
+import com.pedro.common.AudioCodec
 import com.pedro.common.AudioUtils
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
@@ -63,8 +64,8 @@ class AacPacket(
 
   override fun resetPacket(resetInfo: Boolean) { }
 
-  fun sendAudioInfo(sampleRate: Int, stereo: Boolean) {
-    this.sampleRate = sampleRate
+  fun sendAudioInfo(sampleRate: Int, stereo: Boolean, codec: AudioCodec) {
+    this.sampleRate = if (codec == AudioCodec.HE_AAC) sampleRate / 2 else sampleRate
     channels = if (stereo) 2 else 1
   }
 }

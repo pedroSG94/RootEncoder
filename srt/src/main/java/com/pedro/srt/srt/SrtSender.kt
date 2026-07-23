@@ -26,7 +26,6 @@ import com.pedro.common.validMessage
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.MpegType
-import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.packets.AacPacket
 import com.pedro.srt.mpeg2ts.packets.BasePacket
 import com.pedro.srt.mpeg2ts.packets.H26XPacket
@@ -81,7 +80,9 @@ class SrtSender(
 
   override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandsManager.audioCodec) {
-      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo) }
+      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(limitSize, psiManager).apply {
+        sendAudioInfo(sampleRate, isStereo, commandsManager.audioCodec)
+      }
       AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")

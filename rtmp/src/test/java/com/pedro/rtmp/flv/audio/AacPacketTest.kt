@@ -16,6 +16,7 @@
 
 package com.pedro.rtmp.flv.audio
 
+import com.pedro.common.AudioCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
@@ -37,7 +38,7 @@ class AacPacketTest {
     val info = MediaFrame.Info(0, buffer.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(buffer), info, MediaFrame.Type.AUDIO)
     val aacPacket = AacPacket()
-    aacPacket.sendAudioInfo(32000, true)
+    aacPacket.sendAudioInfo(32000, true, AudioCodec.AAC)
     val packets = mutableListOf<FlvPacket>()
     aacPacket.createFlvPacket(mediaFrame) { flvPacket ->
       packets.add(flvPacket)

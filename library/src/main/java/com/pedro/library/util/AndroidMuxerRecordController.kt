@@ -48,7 +48,7 @@ class AndroidMuxerRecordController : AsyncBaseRecordController() {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    if (getAudioCodec() != AudioCodec.AAC) {
+    if (getAudioCodec() != AudioCodec.AAC || getAudioCodec() != AudioCodec.HE_AAC) {
       throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
     }
     if (getVideoCodec() == VideoCodec.VP8 || getVideoCodec() == VideoCodec.VP9) {
@@ -65,7 +65,7 @@ class AndroidMuxerRecordController : AsyncBaseRecordController() {
     listener: RecordController.Listener?,
     tracks: RecordTracks
   ) {
-    if (getAudioCodec() != AudioCodec.AAC) {
+    if (getAudioCodec() != AudioCodec.AAC || getAudioCodec() != AudioCodec.HE_AAC) {
       throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
     }
     if (getVideoCodec() == VideoCodec.VP8 || getVideoCodec() == VideoCodec.VP9) {

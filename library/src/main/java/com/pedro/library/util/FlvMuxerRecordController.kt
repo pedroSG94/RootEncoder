@@ -61,7 +61,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
     private fun start(listener: RecordController.Listener?) {
         audioPacket = when (getAudioCodec()) {
             AudioCodec.G711 -> G711Packet()
-            AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo) }
+            AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket().apply { sendAudioInfo(sampleRate, isStereo, getAudioCodec()) }
             AudioCodec.OPUS -> OpusPacket().apply { sendAudioInfo(sampleRate, isStereo) }
         }
         videoPacket = when (getVideoCodec()) {
@@ -230,7 +230,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
         val channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
         this.sampleRate = sampleRate
         this.isStereo = channels > 1
-        (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
+        (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo, getAudioCodec())
     }
 
     override fun resetFormats() {
