@@ -31,7 +31,7 @@ import kotlin.random.Random
  *
  *  0 1 2 3 4 5 6 7
  * +-+-+-+-+-+-+-+-+
- * |I|P|L|F|B|E|V|Z|
+ * |X|R|N|S|R| PID |
  * +-+-+-+-+-+-+-+-+
  */
 class Vp8Packet(track: Int): BasePacket(
