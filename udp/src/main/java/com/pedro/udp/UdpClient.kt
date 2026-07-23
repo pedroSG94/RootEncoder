@@ -94,8 +94,8 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   fun setAudioCodec(audioCodec: AudioCodec) {
     if (!isStreaming) {
       commandManager.audioCodec = when (audioCodec) {
-        AudioCodec.G711 -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
-        else -> audioCodec
+        AudioCodec.OPUS, AudioCodec.AAC, AudioCodec.HE_AAC -> audioCodec
+        else -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
       }
     }
   }

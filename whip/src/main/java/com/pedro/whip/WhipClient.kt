@@ -160,8 +160,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     fun setAudioCodec(audioCodec: AudioCodec) {
         if (!isStreaming) {
             commandsManager.audioCodec = when (audioCodec) {
-                AudioCodec.AAC -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
-                else -> audioCodec
+                AudioCodec.G711, AudioCodec.OPUS -> audioCodec
+                else -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
             }
         }
     }
