@@ -23,6 +23,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
+import com.pedro.common.AudioCodec;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.GetFrame;
@@ -52,7 +53,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   public AudioEncoder(GetAudioData getAudioData) {
     this.getAudioData = getAudioData;
     typeError = CodecUtil.CodecTypeError.AUDIO_CODEC;
-    type = CodecUtil.AAC_MIME;
+    type = AudioCodec.AAC.getMime();
     TAG = "AudioEncoder";
   }
 
@@ -68,7 +69,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     isBufferMode = true;
 
     try {
-      if (type.equals(CodecUtil.G711_MIME)) {
+      if (type.equals(AudioCodec.G711.getMime())) {
         g711Codec.configure(sampleRate, isStereo ? 2 : 1);
         setCallback();
         running = false;
@@ -185,9 +186,9 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   protected MediaCodecInfo chooseEncoder(String mime) {
     List<MediaCodecInfo> mediaCodecInfoList;
     if (codecType == CodecUtil.CodecType.HARDWARE) {
-      mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(CodecUtil.AAC_MIME);
+      mediaCodecInfoList = CodecUtil.getAllHardwareEncoders(mime);
     } else if (codecType == CodecUtil.CodecType.SOFTWARE) {
-      mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(CodecUtil.AAC_MIME);
+      mediaCodecInfoList = CodecUtil.getAllSoftwareEncoders(mime);
     } else if (codecType == CodecUtil.CodecType.CBR_PRIORITY) {
       mediaCodecInfoList = CodecUtil.getAllEncodersCbrPriority(mime);
     } else {

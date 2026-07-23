@@ -15,12 +15,12 @@
  */
 package com.pedro.library.util
 
-import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.pedro.common.AudioCodec
+import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.toMediaCodecBufferInfo
 import com.pedro.library.base.recording.AsyncBaseRecordController
@@ -51,6 +51,9 @@ class AndroidMuxerRecordController : AsyncBaseRecordController() {
     if (getAudioCodec() != AudioCodec.AAC) {
       throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
     }
+    if (getVideoCodec() == VideoCodec.VP8 || getVideoCodec() == VideoCodec.VP9) {
+      throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
+    }
     mediaMuxer = MediaMuxer(path, outputFormat)
     if (tracks == RecordTracks.AUDIO && audioFormat != null) init()
   }
@@ -64,6 +67,9 @@ class AndroidMuxerRecordController : AsyncBaseRecordController() {
   ) {
     if (getAudioCodec() != AudioCodec.AAC) {
       throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
+    }
+    if (getVideoCodec() == VideoCodec.VP8 || getVideoCodec() == VideoCodec.VP9) {
+      throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
     }
     mediaMuxer = MediaMuxer(fd, outputFormat)
     if (tracks == RecordTracks.AUDIO && audioFormat != null) init()

@@ -27,6 +27,8 @@ import com.pedro.rtmp.flv.video.VideoFormat
 import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
 import com.pedro.rtmp.flv.video.packet.H265Packet
+import com.pedro.rtmp.flv.video.packet.Vp8Packet
+import com.pedro.rtmp.flv.video.packet.Vp9Packet
 import java.io.ByteArrayOutputStream
 import java.io.FileDescriptor
 import java.io.FileOutputStream
@@ -66,6 +68,8 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
             VideoCodec.H264 -> H264Packet()
             VideoCodec.H265 -> H265Packet()
             VideoCodec.AV1 -> Av1Packet()
+            VideoCodec.VP8 -> Vp8Packet()
+            VideoCodec.VP9 -> Vp9Packet()
         }
         outputStream?.let {
             try {
@@ -150,6 +154,16 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                             Log.e(TAG, "manual av1 extraction failed")
                         }
                     }
+                    is Vp8Packet -> sendInfo = true
+                    is Vp9Packet -> {
+                        val header = VideoEncoderHelper.extractVp9BitStreamHeader(buffer.duplicate(), info)
+                        if (header != null) {
+                            (videoPacket as Vp9Packet).sendVideoInfo(header)
+                            sendInfo = true
+                        } else {
+                            Log.e(TAG, "manual vp9 extraction failed")
+                        }
+                    }
                     else -> {
                         Log.e(TAG, "Unsupported codec: ${videoPacket?.javaClass?.name ?: "null"}")
                     }
@@ -194,7 +208,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                        sendInfo = true
                    }
                }
-           }
+            }
             is Av1Packet -> {
                 val bufferInfo = videoFormat.getByteBuffer("csd-0")
                 if (bufferInfo != null && bufferInfo.remaining() > 4) {
@@ -202,6 +216,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                     sendInfo = true
                 }
             }
+            is Vp8Packet -> sendInfo = true
         }
         if (sendInfo && recordStatus == RecordController.Status.STARTED) {
             myRequestKeyFrame = null
@@ -240,6 +255,8 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
         val videoCodecValue = when (getVideoCodec()) {
             VideoCodec.H264 -> VideoFormat.AVC.value
             VideoCodec.H265 -> VideoFormat.HEVC.value
+            VideoCodec.VP8 -> VideoFormat.VP8.value
+            VideoCodec.VP9 -> VideoFormat.VP9.value
             VideoCodec.AV1 -> VideoFormat.AV1.value
         }
         info.setProperty("videocodecid", videoCodecValue.toDouble())

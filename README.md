@@ -98,7 +98,7 @@ dependencies {
 - [x] Disable/Enable video and audio while streaming.
 - [x] Switch camera while streaming.
 - [x] Change video bitrate while streaming (API 19+).
-- [x] AV1, H264, H265, G711, AAC and OPUS hardware/software encoding.
+- [x] AV1, H264, H265, VP8, VP9, G711, AAC and OPUS hardware/software encoding.
 - [x] Force video and audio Codec to use hardware/software encoding (Not recommended).
 - [X] Record MP4 file while streaming (API 18+).
 - [X] Set Image, Gif or Text to stream on real time.
@@ -110,7 +110,7 @@ dependencies {
 
 - [x] Get upload bandwidth used.
 - [x] RTSP auth (adobe and llnw).
-- [x] AV1, H265 ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)), H264, AAC and G711 support.
+- [x] AV1, H265 ([Using RTMP enhanced](https://github.com/veovera/enhanced-rtmp/tree/main)), H264, VP8, VP9, AAC and G711 support.
 - [x] RTMPS (under TLS)
 - [x] RTMPT and RTMPTS (tunneled and tunneled under TLS)
 - [x] AMF0
@@ -119,7 +119,7 @@ dependencies {
 
 - [x] Get upload bandwidth used.
 - [x] RTMP auth (basic and digest).
-- [x] AV1, H264, H265, AAC, G711 and OPUS support.
+- [x] AV1, H264, H265, VP8, VP9, AAC, G711 and OPUS support.
 - [x] TCP/UDP.
 - [x] RTSPS.
 
@@ -143,7 +143,7 @@ https://haivision.github.io/srt-rfc/draft-sharabayko-srt.html
 ### WHIP (beta):
 
 - [x] Get upload bandwidth used.
-- [x] H264, H265, AV1, G711 and OPUS support.
+- [x] H264, H265, AV1, VP8, VP9, G711 and OPUS support.
 - [x] WHIP auth (bearer token).
 
 ## Other related projects:

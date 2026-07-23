@@ -1,0 +1,60 @@
+package com.pedro.rtmp.flv.video.packet
+
+import com.pedro.common.frame.MediaFrame
+import com.pedro.common.removeInfo
+import com.pedro.rtmp.flv.BasePacket
+import com.pedro.rtmp.flv.FlvPacket
+import com.pedro.rtmp.flv.FlvType
+import com.pedro.rtmp.flv.video.VideoDataType
+import com.pedro.rtmp.flv.video.VideoFormat
+import com.pedro.rtmp.flv.video.VideoFourCCPacketType
+import com.pedro.rtmp.flv.video.config.VideoSpecificConfigVp8
+
+class Vp8Packet: BasePacket() {
+
+  private val header = ByteArray(5)
+  //first time we need send video config
+  private var configSend = false
+
+  override suspend fun createFlvPacket(
+    mediaFrame: MediaFrame,
+    callback: suspend (FlvPacket) -> Unit
+  ) {
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
+    val ts = mediaFrame.info.timestamp / 1000
+    //header is 5 bytes length:
+    //mark first byte as extended header (0b10000000)
+    //4 bits data type, 4 bits packet type
+    //4 bytes extended codec type (in this case vp08)
+    val codec = VideoFormat.VP8.value // { "v", "p", "0", "8" }
+    header[1] = (codec shr 24).toByte()
+    header[2] = (codec shr 16).toByte()
+    header[3] = (codec shr 8).toByte()
+    header[4] = codec.toByte()
+
+    var buffer: ByteArray
+    if (!configSend) {
+      //avoid send cts on sequence start
+      header[0] = (0b10000000 or (VideoDataType.KEYFRAME.value shl 4) or VideoFourCCPacketType.SEQUENCE_START.value).toByte()
+
+      val config = VideoSpecificConfigVp8()
+      buffer = ByteArray(config.size + header.size)
+      config.write(buffer, header.size)
+      System.arraycopy(header, 0, buffer, 0, header.size)
+      callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
+      configSend = true
+    }
+
+    fixedBuffer.rewind()
+    buffer = ByteArray(header.size + fixedBuffer.remaining())
+    fixedBuffer.get(buffer, header.size, fixedBuffer.remaining())
+    val nalType = if (mediaFrame.info.isKeyFrame) VideoDataType.KEYFRAME.value else VideoDataType.INTER_FRAME.value
+    header[0] = (0b10000000 or (nalType shl 4) or VideoFourCCPacketType.CODED_FRAMES.value).toByte()
+    System.arraycopy(header, 0, buffer, 0, header.size)
+    callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
+  }
+
+  override fun reset(resetInfo: Boolean) {
+    configSend = false
+  }
+}

@@ -85,8 +85,8 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   fun setVideoCodec(videoCodec: VideoCodec) {
     if (!isStreaming) {
       commandManager.videoCodec = when (videoCodec) {
-        VideoCodec.AV1 -> throw IllegalArgumentException("Unsupported codec: ${videoCodec.name}")
-        else -> videoCodec
+        VideoCodec.H264, VideoCodec.H265 -> videoCodec
+        else -> throw IllegalArgumentException("Unsupported codec: ${videoCodec.name}")
       }
     }
   }

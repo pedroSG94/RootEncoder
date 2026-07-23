@@ -16,11 +16,7 @@ class BufferDecoder(videoCodec: VideoCodec) {
     private var mediaFormat: MediaFormat? = null
     private var startTs = 0L
     private val bufferInfo = BufferInfo()
-    private val mime = when (videoCodec){
-        VideoCodec.H264 -> CodecUtil.H264_MIME
-        VideoCodec.H265 -> CodecUtil.H265_MIME
-        VideoCodec.AV1 -> CodecUtil.AV1_MIME
-    }
+    private val mime = videoCodec.mime
     private var isSurfaceMode = false
 
     fun prepare(width: Int, height: Int, fps: Int, rotation: Int) {

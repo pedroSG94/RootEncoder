@@ -21,6 +21,7 @@ package com.pedro.encoder.video;
 import android.media.MediaCodec;
 import android.util.Pair;
 
+import com.pedro.common.BitBuffer;
 import com.pedro.common.ExtensionsKt;
 import com.pedro.common.av1.Av1Parser;
 import com.pedro.common.av1.Obu;
@@ -115,6 +116,22 @@ public class VideoEncoderHelper {
     byteBufferList.add(ByteBuffer.wrap(sps));
     byteBufferList.add(ByteBuffer.wrap(pps));
     return byteBufferList;
+  }
+
+  public static ByteBuffer extractVp8Header(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
+    //we can only extract info from keyframes
+    if (!ExtensionsKt.isKeyframe(bufferInfo) || buffer.remaining() < 10) return null;
+    byte[] header = new byte[10];
+    buffer.get(header);
+    return ByteBuffer.wrap(header);
+  }
+
+  public static ByteBuffer extractVp9BitStreamHeader(ByteBuffer buffer, MediaCodec.BufferInfo bufferInfo) {
+    //we can only extract info from keyframes
+    if (!ExtensionsKt.isKeyframe(bufferInfo) || buffer.remaining() < 10) return null;
+    byte[] bytes = new byte[10]; //bit stream header is min 32 bits or max 73 bits
+    buffer.get(bytes);
+    return ByteBuffer.wrap(bytes);
   }
 
   /**

@@ -33,6 +33,8 @@ import com.pedro.rtmp.flv.audio.packet.OpusPacket
 import com.pedro.rtmp.flv.video.packet.Av1Packet
 import com.pedro.rtmp.flv.video.packet.H264Packet
 import com.pedro.rtmp.flv.video.packet.H265Packet
+import com.pedro.rtmp.flv.video.packet.Vp8Packet
+import com.pedro.rtmp.flv.video.packet.Vp9Packet
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.runInterruptible
@@ -59,10 +61,12 @@ class RtmpSender(
       VideoCodec.AV1 -> {
         Av1Packet().apply { sendVideoInfo(sps) }
       }
-      else -> {
+      VideoCodec.H264 -> {
         if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
         H264Packet().apply { sendVideoInfo(sps, pps) }
       }
+      VideoCodec.VP8 -> Vp8Packet()
+      VideoCodec.VP9 -> Vp9Packet().apply { sendVideoInfo(sps) }
     }
   }
 

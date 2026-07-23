@@ -18,6 +18,7 @@ package com.pedro.encoder.utils;
 
 import android.media.MediaCodecInfo;
 import android.media.MediaCodecList;
+import android.media.MediaFormat;
 import android.os.Build;
 
 import androidx.annotation.RequiresApi;
@@ -31,16 +32,6 @@ import java.util.List;
  */
 
 public class CodecUtil {
-
-  private static final String TAG = "CodecUtil";
-
-  public static final String H264_MIME = "video/avc";
-  public static final String H265_MIME = "video/hevc";
-  public static final String AV1_MIME = "video/av01";
-  public static final String AAC_MIME = "audio/mp4a-latm";
-  public static final String G711_MIME = "audio/g711-alaw";
-  public static final String VORBIS_MIME = "audio/ogg";
-  public static final String OPUS_MIME = "audio/opus";
 
   public enum CodecType {
     FIRST_COMPATIBLE_FOUND, SOFTWARE, HARDWARE, CBR_PRIORITY
