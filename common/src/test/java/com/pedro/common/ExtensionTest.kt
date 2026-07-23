@@ -85,4 +85,26 @@ class ExtensionTest {
     val result = fakeByteBuffer.getData()
     assertArrayEquals(expectedResult, result)
   }
+
+  @Test
+  fun `GIVEN a ByteBuffer with start code WHEN remove header THEN get a buffer without start code`() {
+    val fakeBuffer = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x65, 0x02))
+    val result = fakeBuffer.removeHeader()
+    assertEquals(ByteBuffer.wrap(byteArrayOf(0x65, 0x02)), result)
+  }
+
+  @Test
+  fun `GIVEN a ByteBuffer without start code WHEN remove header THEN get a buffer with the same data`() {
+    val fakeBuffer = ByteBuffer.wrap(byteArrayOf(0x65, 0x02, 0x03, 0x04))
+    val result = fakeBuffer.removeHeader()
+    assertEquals(ByteBuffer.wrap(byteArrayOf(0x65, 0x02, 0x03, 0x04)), result)
+  }
+
+  @Test
+  fun `GIVEN a ByteArray WHEN write uint32 in an offset THEN get array with value written in big endian`() {
+    val fakeBuffer = ByteArray(8)
+    fakeBuffer.writeUInt32(2, 0x01020304)
+    val expectedResult = byteArrayOf(0x00, 0x00, 0x01, 0x02, 0x03, 0x04, 0x00, 0x00)
+    assertArrayEquals(expectedResult, fakeBuffer)
+  }
 }
