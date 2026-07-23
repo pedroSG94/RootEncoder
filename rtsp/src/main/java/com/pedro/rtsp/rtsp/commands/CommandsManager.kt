@@ -20,6 +20,7 @@ import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.TimeUtils
 import com.pedro.common.VideoCodec
+import com.pedro.common.getData
 import com.pedro.common.getMd5Hash
 import com.pedro.common.socket.base.TcpStreamSocket
 import com.pedro.rtsp.rtsp.Protocol
@@ -31,7 +32,6 @@ import com.pedro.rtsp.rtsp.commands.SdpBody.createH265Body
 import com.pedro.rtsp.rtsp.commands.SdpBody.createOpusBody
 import com.pedro.rtsp.utils.RtpTracks
 import com.pedro.rtsp.utils.encodeToString
-import com.pedro.rtsp.utils.getData
 import java.io.IOException
 import java.net.DatagramSocket
 import java.nio.ByteBuffer

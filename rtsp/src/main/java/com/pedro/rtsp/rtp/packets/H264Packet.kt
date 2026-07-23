@@ -18,11 +18,11 @@ package com.pedro.rtsp.rtp.packets
 
 import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
+import com.pedro.common.getData
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
 import com.pedro.rtsp.utils.RtpConstants
-import com.pedro.rtsp.utils.getData
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 import kotlin.experimental.or

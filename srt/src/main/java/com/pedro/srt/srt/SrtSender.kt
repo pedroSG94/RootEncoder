@@ -75,7 +75,7 @@ class SrtSender(
   }
 
   override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    videoPacket.setVideoCodec(commandsManager.videoCodec.toCodec())
+    videoPacket.setVideoCodec(commandsManager.videoCodec)
     videoPacket.sendVideoInfo(sps, pps, vps)
   }
 

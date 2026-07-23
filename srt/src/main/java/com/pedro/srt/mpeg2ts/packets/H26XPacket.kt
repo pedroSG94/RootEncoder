@@ -17,11 +17,11 @@
 package com.pedro.srt.mpeg2ts.packets
 
 import android.util.Log
+import com.pedro.common.VideoCodec
 import com.pedro.common.frame.MediaFrame
-import com.pedro.common.getStartCodeSize
+import com.pedro.common.getData
+import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
-import com.pedro.common.toByteArray
-import com.pedro.srt.mpeg2ts.Codec
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegType
 import com.pedro.srt.mpeg2ts.Pes
@@ -29,7 +29,6 @@ import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.chunkPackets
-import com.pedro.srt.utils.startWith
 import java.nio.ByteBuffer
 
 /**
@@ -44,42 +43,36 @@ class H26XPacket(
 
   private val TAG = "H26XPacket"
 
-  private var sps: ByteArray? = null
-  private var pps: ByteArray? = null
-  private var vps: ByteArray? = null
-  private var codec = Codec.AVC
-  private var configSend = false
+  private var sps: ByteBuffer? = null
+  private var pps: ByteBuffer? = null
+  private var vps: ByteBuffer? = null
+  private var codec = VideoCodec.H264
 
   override suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
     callback: suspend (List<MpegTsPacket>) -> Unit
   ) {
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
-    val length = fixedBuffer.remaining()
-    if (length < 0) return
     val isKeyFrame = mediaFrame.info.isKeyFrame
+    val nals = NalReader.extractNals(fixedBuffer, codec, false)
+    if (nals.isEmpty()) return
 
-    if (codec == Codec.HEVC) {
-      val sps = this.sps
-      val pps = this.pps
-      val vps = this.vps
-      if (sps == null || pps == null || vps == null) {
-        Log.e(TAG, "waiting for a valid sps, pps and vps")
-        return
-      }
-    } else {
-      val sps = this.sps
-      val pps = this.pps
-      if (sps == null || pps == null) {
-        Log.e(TAG, "waiting for a valid sps and pps")
-        return
-      }
+    val sps = this.sps
+    val pps = this.pps
+    val vps = this.vps
+    if (sps == null || pps == null || (codec == VideoCodec.H265 && vps == null)) {
+      Log.e(TAG, "waiting for a valid video info")
+      return
     }
-    val validBuffer = fixHeader(fixedBuffer, isKeyFrame)
-    val payload = ByteArray(validBuffer.remaining())
-    validBuffer.get(payload, 0, validBuffer.remaining())
 
-    val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, mediaFrame.info.timestamp, ByteBuffer.wrap(payload))
+    if (isKeyFrame) {
+      if (!nals.contains(pps)) nals.add(0, pps.duplicate())
+      if (!nals.contains(sps)) nals.add(0, sps.duplicate())
+      if (vps != null) if (!nals.contains(vps)) nals.add(0, vps.duplicate())
+    }
+
+    val payload = getPayload(nals, isKeyFrame)
+    val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, mediaFrame.info.timestamp, payload)
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize).map { buffer ->
       MpegTsPacket(buffer, MpegType.VIDEO, PacketPosition.SINGLE, isKeyFrame)
     }
@@ -92,104 +85,52 @@ class H26XPacket(
       sps = null
       pps = null
     }
-    configSend = false
   }
 
-  fun setVideoCodec(codec: Codec) {
+  fun setVideoCodec(codec: VideoCodec) {
+    if (codec != VideoCodec.H265 && codec != VideoCodec.H264) {
+      throw IllegalArgumentException("This packet only support H264 and H265")
+    }
     this.codec = codec
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    this.sps = getVideoInfoData(sps)
-    this.pps = if (pps != null) getVideoInfoData(pps) else null
-    this.vps = if (vps != null) getVideoInfoData(vps) else null
+    this.sps = ByteBuffer.wrap(sps.getData())
+    this.pps = pps?.let { ByteBuffer.wrap(pps.getData()) }
+    this.vps = vps?.let { ByteBuffer.wrap(vps.getData()) }
   }
 
-  /**
-   * Doing video header check sanity.
-   *
-   * Remove all header video info if necessary, make sure buffer start with prefix and add video info to first keyframe
-   */
-  private fun fixHeader(byteBuffer: ByteBuffer, isKeyFrame: Boolean): ByteBuffer {
-    var noHeaderBuffer = removeHeader(byteBuffer, isKeyFrame) //remove video info header
-    val startCodeSize = noHeaderBuffer.getStartCodeSize()
-    if (startCodeSize == 0) { //make sure buffer start with prefix
-      val bufferWithPrefix = ByteBuffer.allocate(noHeaderBuffer.remaining() + 4)
-      bufferWithPrefix.putInt(0x00000001)
-      bufferWithPrefix.put(noHeaderBuffer)
-      noHeaderBuffer = bufferWithPrefix
-    }
-    return if (isKeyFrame) { //add video info to first keyframe
-      val vps = this.vps ?: byteArrayOf()
-      val sps = this.sps ?: byteArrayOf()
-      val pps = this.pps ?: byteArrayOf()
-      val codec = this.codec
-      val audSize = if (codec == Codec.AVC) 6 else 7
-      val videoHeader = vps.plus(sps).plus(pps)
-      val noHeaderBytes = noHeaderBuffer.toByteArray()
-      val validBuffer = ByteBuffer.allocate(audSize + videoHeader.size + noHeaderBytes.size)
-      validBuffer.putInt(0x00000001)
-      if (codec == Codec.AVC) {
-        validBuffer.put(0x09.toByte())
-        validBuffer.put(0xf0.toByte())
-      } else {
-        validBuffer.put(0x46.toByte())
-        validBuffer.put(0x01.toByte())
-        validBuffer.put(0x50.toByte())
+  private fun getPayload(nals: List<ByteBuffer>, isKeyFrame: Boolean): ByteBuffer {
+    val nalsSize = nals.sumOf { it.remaining() }
+    val bufferSize = if (isKeyFrame) {
+      val audSize = when (codec) {
+        VideoCodec.H265 -> 7
+        else -> 6
       }
-      validBuffer.put(videoHeader)
-      validBuffer.put(noHeaderBytes)
-      validBuffer.rewind()
-      configSend = true
-      validBuffer
-    } else {
-      noHeaderBuffer.rewind()
-      noHeaderBuffer
-    }
-  }
+      audSize + nalsSize + (nals.size * 4)
+    } else nalsSize + (nals.size * 4)
 
-  private fun getVideoInfoData(byteBuffer: ByteBuffer): ByteArray {
-    byteBuffer.rewind()
-    val startCodeSize = byteBuffer.getStartCodeSize()
-    return if (startCodeSize == 0) { //make sure video info start with prefix
-      val validBuffer = ByteBuffer.allocate(byteBuffer.remaining() + 4)
-      validBuffer.putInt(0x00000001)
-      validBuffer.put(byteBuffer)
-      validBuffer.toByteArray()
-    } else {
-      byteBuffer.toByteArray()
-    }
-  }
-
-  private fun removeHeader(byteBuffer: ByteBuffer, isKeyFrame: Boolean): ByteBuffer {
-      if (isKeyFrame) {
-        var validBuffer = byteBuffer
-        val vps = this.vps ?: byteArrayOf()
-        val sps = this.sps ?: byteArrayOf()
-        val pps = this.pps ?: byteArrayOf()
-        if (vps.isNotEmpty()) {
-          if (validBuffer.startWith(vps)) {
-            validBuffer.position(vps.size)
-            validBuffer = validBuffer.slice()
-          }
+    val payload = ByteBuffer.allocate(bufferSize)
+    //add AUD nal
+    if (isKeyFrame) {
+      payload.putInt(0x00000001) //annex-b header
+      when (codec) {
+        VideoCodec.H265 -> {
+          payload.put(0x46.toByte())
+          payload.put(0x01.toByte())
+          payload.put(0x50.toByte())
         }
-        if (sps.isNotEmpty()) {
-          if (validBuffer.startWith(sps)) {
-            validBuffer.position(sps.size)
-            validBuffer = validBuffer.slice()
-          }
+        else -> {
+          payload.put(0x09.toByte())
+          payload.put(0xf0.toByte())
         }
-        if (pps.isNotEmpty()) {
-          if (validBuffer.startWith(pps)) {
-            validBuffer.position(pps.size)
-            validBuffer = validBuffer.slice()
-          }
-        }
-        validBuffer.rewind()
-        return validBuffer
-      } else {
-        byteBuffer.rewind()
-        return byteBuffer
       }
+    }
+    nals.forEach {
+      payload.putInt(0x00000001) //annex-b header
+      payload.put(it)
+    }
+    payload.flip()
+    return payload
   }
 }
