@@ -74,14 +74,21 @@ open class ViewFilterRender : BaseFilterRender() {
   private var uSamplerViewHandle = -1
 
   private var viewId = intArrayOf(-1)
+  /**
+   * The view to render. This filter never measures or layouts the view so you must do it before
+   * set it here, in other case nothing is rendered.
+   * Example using the encoder resolution to render the view in fullscreen:
+   *
+   * val widthSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
+   * val heightSpec = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+   * view.measure(widthSpec, heightSpec)
+   * view.layout(0, 0, width, height)
+   */
   var view: View? = null
     set(value) {
       stopRender()
       field = value
-      value?.let {
-        it.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        startRender()
-      }
+      value?.let { startRender() }
     }
   private var surfaceTexture: SurfaceTexture? = null
   private var surface: Surface? = null
@@ -198,8 +205,7 @@ open class ViewFilterRender : BaseFilterRender() {
   var rotation: Int
     get() = sprite.rotation
     set(rotation) {
-      //revert rotation to rotate exactly like object filters
-      sprite.rotation = -rotation
+      sprite.rotation = rotation
     }
 
   /**
@@ -246,7 +252,8 @@ open class ViewFilterRender : BaseFilterRender() {
 
         val canvasPosition = getCanvasPosition()
         val canvasScale = getCanvasScale(view)
-        val rotation = sprite.rotation
+        //revert rotation to rotate exactly like object filters
+        val rotation = -sprite.rotation
 
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         canvas.translate(canvasPosition.x, canvasPosition.y)
