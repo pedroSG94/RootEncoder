@@ -22,6 +22,18 @@ import com.pedro.common.AudioUtils
  * Created by pedro on 29/04/21.
  *
  * ISO 14496-3
+ *
+ * --- core (16 bits) ---
+ * audioObjectType            [5]  = 2   (AAC-LC)
+ * samplingFrequencyIndex     [4]  = 8   (16000, sampleRate)
+ * channelConfiguration       [4]  = 2   (stereo, channel)
+ * GASpecificConfig           [3]  = 000 (frameLengthFlag, dependsOnCoreCoder, extensionFlag)
+ * --- extensión SBR (21 bits) ---
+ * syncExtensionType          [11] = 0x2b7
+ * extensionAudioObjectType   [5]  = 5   (SBR)
+ * sbrPresentFlag             [1]  = 1
+ * extensionSamplingFreqIndex [4]  = 5   (32000, output sampleRate)
+ * padding                    [3]  = 0
  */
 class AacAudioSpecificConfig(
   private val type: AudioObjectType,
@@ -29,13 +41,20 @@ class AacAudioSpecificConfig(
   private val channels: Int
 ) {
 
-  val size = 2
+  val size = if (type == AudioObjectType.AAC_SBR) 5 else 2
 
   fun calculate(): ByteArray {
     val buffer = ByteArray(size)
-    val frequency = AudioUtils.getFrequency(sampleRate)
-    buffer[0] = ((type.value shl 3) or (frequency shr 1)).toByte()
+    val realSampleRate = if (type == AudioObjectType.AAC_SBR) sampleRate / 2 else sampleRate
+    val frequency = AudioUtils.getFrequency(realSampleRate)
+    buffer[0] = ((AudioObjectType.AAC_LC.value shl 3) or (frequency shr 1)).toByte()
     buffer[1] = (frequency shl 7 and 0x80).plus(channels shl 3 and 0x78).toByte()
+    if (type == AudioObjectType.AAC_SBR) {
+      val outputFrequency = AudioUtils.getFrequency(sampleRate)
+      buffer[2] = (0x2b7 shl 3).toByte()
+      buffer[3] = ((0x2b7 shl 5) or type.value).toByte()
+      buffer[4] = ((0x01 shl 7) or (outputFrequency shl 3)).toByte()
+    }
     return buffer
   }
 }

@@ -77,7 +77,7 @@ class UdpSender(
 
   override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandManager.audioCodec) {
-      AudioCodec.AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo) }
+      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo, commandManager.audioCodec) }
       AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandManager.audioCodec.name}")

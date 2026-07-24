@@ -80,12 +80,7 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
   @Throws(IOException::class)
   private fun start(listener: RecordController.Listener?, tracks: RecordTracks) {
     audioPacket = when (getAudioCodec()) {
-      AudioCodec.AAC -> AacPacket(limitSize, psiManager).apply {
-        sendAudioInfo(
-          sampleRate,
-          isStereo
-        )
-      }
+      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo, getAudioCodec()) }
       AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
       else -> {
         throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
@@ -271,7 +266,7 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
     val channels = audioFormat.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
     this.sampleRate = sampleRate
     this.isStereo = channels > 1
-    (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo)
+    (audioPacket as? AacPacket)?.sendAudioInfo(sampleRate, isStereo, getAudioCodec())
   }
 
   override fun resetFormats() {

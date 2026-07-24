@@ -67,7 +67,9 @@ class AacMuxerRecordController : AsyncBaseRecordController() {
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   @Throws(IOException::class)
   private fun start() {
-    if (getAudioCodec() != AudioCodec.AAC) throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
+    if (getAudioCodec() != AudioCodec.AAC || getAudioCodec() != AudioCodec.HE_AAC) {
+      throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
+    }
     if (sampleRate != -1 && channels != -1) init()
   }
 

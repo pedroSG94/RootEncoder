@@ -639,8 +639,8 @@ abstract class StreamBase(
   fun setVideoCodec(codec: VideoCodec) {
     setVideoCodecImp(codec)
     recordController.setVideoCodec(codec)
-    videoEncoder.type = codec.mime
-    videoEncoderRecord.type = codec.mime
+    videoEncoder.type = codec
+    videoEncoderRecord.type = codec
   }
 
   /**
@@ -650,7 +650,7 @@ abstract class StreamBase(
   fun setAudioCodec(codec: AudioCodec) {
     setAudioCodecImp(codec)
     recordController.setAudioCodec(codec)
-    audioEncoder.type = codec.mime
+    audioEncoder.type = codec
   }
 
   protected abstract fun setVideoCodecImp(codec: VideoCodec)

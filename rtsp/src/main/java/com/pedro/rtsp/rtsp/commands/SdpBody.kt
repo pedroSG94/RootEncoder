@@ -54,9 +54,10 @@ object SdpBody {
         identifier
   }
 
-  fun createAacBody(trackAudio: Int, sampleRate: Int, isStereo: Boolean, secured: Boolean = false): String {
+  fun createAacBody(trackAudio: Int, sampleRate: Int, isStereo: Boolean, isHeAac: Boolean, secured: Boolean = false): String {
     val channels = if (isStereo) 2 else 1
-    val config = AacAudioSpecificConfig(AudioObjectType.AAC_LC, sampleRate, channels)
+    val objectType = if (isHeAac) AudioObjectType.AAC_SBR else AudioObjectType.AAC_LC
+    val config = AacAudioSpecificConfig(objectType, sampleRate, channels)
     val configHex = config.calculate().toHexString()
     val payload = RtpConstants.payloadType + trackAudio
     val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"

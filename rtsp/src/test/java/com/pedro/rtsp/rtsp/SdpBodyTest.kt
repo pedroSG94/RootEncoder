@@ -51,7 +51,7 @@ class SdpBodyTest {
     val expectedPayload = "a=rtpmap:${RtpConstants.payloadType + track}"
     val expectedTrack = "a=control:streamid=${track}"
 
-    val result = SdpBody.createAacBody(track, sampleRate, channels == 2)
+    val result = SdpBody.createAacBody(track, sampleRate, channels == 2, false)
     assertTrue(result.contains(expectedType))
     assertTrue(result.contains(expectedConfig))
     assertTrue(result.contains(expectedPayload))
