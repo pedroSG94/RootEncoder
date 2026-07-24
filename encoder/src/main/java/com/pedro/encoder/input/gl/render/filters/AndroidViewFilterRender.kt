@@ -193,7 +193,8 @@ class AndroidViewFilterRender : BaseFilterRender() {
   var rotation: Int
     get() = sprite.rotation
     set(rotation) {
-      sprite.rotation = rotation
+      //revert rotation to rotate exactly like object filters
+      sprite.rotation = -rotation
     }
 
   /**
