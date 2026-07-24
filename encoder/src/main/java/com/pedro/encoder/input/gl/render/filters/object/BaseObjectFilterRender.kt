@@ -54,17 +54,17 @@ abstract class BaseObjectFilterRender : BaseFilterRender() {
   private var uSTMatrixHandle = -1
   private var uSamplerHandle = -1
   private var uObjectHandle = -1
-  protected var uAlphaHandle: Int = -1
+  @JvmField protected var uAlphaHandle: Int = -1
 
-  protected var fragment: Int = R.raw.object_fragment
+  @JvmField protected var fragment: Int = R.raw.object_fragment
   private val squareVertexObject: FloatBuffer
 
-  protected var streamObjectTextureId: IntArray = intArrayOf(-1)
-  protected var textureLoader: TextureLoader = TextureLoader()
-  protected var streamObject: StreamObjectBase? = null
+  @JvmField protected var streamObjectTextureId: IntArray = intArrayOf(-1)
+  @JvmField protected var textureLoader: TextureLoader = TextureLoader()
+  @JvmField protected var streamObject: StreamObjectBase? = null
   val sprite = Sprite()
   var alpha: Float = 1f
-  protected var shouldLoad: Boolean = false
+  @JvmField protected var shouldLoad: Boolean = false
 
   init {
     squareVertex = ByteBuffer.allocateDirect(squareVertexDataFilter.size * FLOAT_SIZE_BYTES)
