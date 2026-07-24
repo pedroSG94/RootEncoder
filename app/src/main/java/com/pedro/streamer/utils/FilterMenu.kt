@@ -72,7 +72,7 @@ import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender
 import com.pedro.encoder.input.gl.render.filters.`object`.GifObjectFilterRender
 import com.pedro.encoder.input.gl.render.filters.`object`.ImageObjectFilterRender
 import com.pedro.encoder.input.gl.render.filters.`object`.SurfaceFilterRender
-import com.pedro.encoder.input.gl.render.filters.`object`.TextObjectFilterRender
+import com.pedro.encoder.input.gl.render.filters.`object`.TextFilterRender
 import com.pedro.encoder.utils.gl.TranslateTo
 import com.pedro.library.view.GlInterface
 import com.pedro.streamer.R
@@ -323,7 +323,7 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.text -> {
-        val textObjectFilterRender = TextObjectFilterRender()
+        val textObjectFilterRender = TextFilterRender()
         glInterface.setFilter(textObjectFilterRender)
         textObjectFilterRender.setText("Hello world", 22f, Color.RED)
         textObjectFilterRender.setScale(50f, 50f)
