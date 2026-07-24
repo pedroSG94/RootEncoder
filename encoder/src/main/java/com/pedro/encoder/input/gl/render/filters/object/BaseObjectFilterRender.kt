@@ -175,6 +175,7 @@ abstract class BaseObjectFilterRender : BaseFilterRender() {
   var rotation: Int
     get() = sprite.rotation
     set(angle) {
-      sprite.setRotation(angle)
+      sprite.rotation = angle
+      squareVertexObject.put(sprite.getTransformedVertices()).position(0)
     }
 }

@@ -221,7 +221,6 @@ class AndroidViewFilterRender : BaseFilterRender() {
           continue
         }
 
-        sprite.calculateDefaultScale(previewWidth.toFloat(), previewHeight.toFloat())
         val canvasPosition = sprite.getCanvasPosition(previewWidth.toFloat(), previewHeight.toFloat())
         val canvasScale = sprite.getCanvasScale(previewWidth.toFloat(), previewHeight.toFloat())
         val rotationAxis = sprite.rotationAxis
