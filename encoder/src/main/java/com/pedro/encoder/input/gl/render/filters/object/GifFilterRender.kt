@@ -26,11 +26,12 @@ import java.io.InputStream
  * Created by pedro on 27/07/18.
  */
 
-@Deprecated("Use GifFilterRender instead")
-typealias GifObjectFilterRender = GifFilterRender
+@Deprecated("Use GifFilterRender instead", ReplaceWith("GifFilterRender"))
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+open class GifObjectFilterRender : GifFilterRender()
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class GifFilterRender : BaseObjectFilterRender() {
+open class GifFilterRender : BaseObjectFilterRender() {
   init {
     streamObject = GifStreamObject()
   }

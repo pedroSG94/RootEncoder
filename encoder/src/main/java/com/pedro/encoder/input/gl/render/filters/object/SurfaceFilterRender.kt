@@ -31,9 +31,9 @@ import com.pedro.encoder.utils.gl.GlUtil
  * Created by pedro on 18/07/18.
  */
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class SurfaceFilterRender @JvmOverloads constructor(private val surfaceReadyCallback: SurfaceReadyCallback? = null) : BaseObjectFilterRender() {
-  interface SurfaceReadyCallback {
-    fun surfaceReady(surfaceTexture: SurfaceTexture?)
+open class SurfaceFilterRender @JvmOverloads constructor(private val surfaceReadyCallback: SurfaceReadyCallback? = null) : BaseObjectFilterRender() {
+  fun interface SurfaceReadyCallback {
+    fun surfaceReady(surfaceTexture: SurfaceTexture)
   }
 
   /**
@@ -48,7 +48,7 @@ class SurfaceFilterRender @JvmOverloads constructor(private val surfaceReadyCall
   var surface: Surface? = null
     private set
 
-  override fun initGlFilter(context: Context?) {
+  override fun initGlFilter(context: Context) {
     fragment = R.raw.surface_fragment
     super.initGlFilter(context)
     GlUtil.createExternalTextures(streamObjectTextureId.size, streamObjectTextureId, 0)
@@ -58,9 +58,7 @@ class SurfaceFilterRender @JvmOverloads constructor(private val surfaceReadyCall
     surface = Surface(surfaceTexture)
     surfaceReadyCallback?.let {
       Handler(Looper.getMainLooper()).post {
-        surfaceReadyCallback.surfaceReady(
-          surfaceTexture
-        )
+        surfaceReadyCallback.surfaceReady(surfaceTexture)
       }
     }
   }

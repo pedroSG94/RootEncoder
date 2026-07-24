@@ -306,7 +306,8 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.surface_filter -> {
-        val surfaceFilterRender = SurfaceFilterRender { surfaceTexture -> //You can render this filter with other api that draw in a surface. for example you can use VLC
+        //You can render this filter with other api that draw in a surface. for example you can use VLC
+        val surfaceFilterRender = SurfaceFilterRender { surfaceTexture ->
           mediaPlayer = MediaPlayer.create(context, R.raw.big_bunny_240p)
           mediaPlayer?.setSurface(Surface(surfaceTexture))
           mediaPlayer?.isLooping = true

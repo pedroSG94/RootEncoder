@@ -25,11 +25,12 @@ import com.pedro.encoder.utils.gl.ImageStreamObject
  * Created by pedro on 27/07/18.
  */
 
-@Deprecated("Use ImageFilterRender instead")
-typealias ImageObjectFilterRender = ImageFilterRender
+@Deprecated("Use ImageFilterRender instead", ReplaceWith("ImageFilterRender"))
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+open class ImageObjectFilterRender : ImageFilterRender()
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class ImageFilterRender : BaseObjectFilterRender() {
+open class ImageFilterRender : BaseObjectFilterRender() {
   init {
     streamObject = ImageStreamObject()
   }

@@ -26,11 +26,12 @@ import com.pedro.encoder.utils.gl.TextStreamObject
  * Created by pedro on 27/07/18.
  */
 
-@Deprecated("Use TextFilterRender instead")
-typealias TextObjectFilterRender = TextFilterRender
+@Deprecated("Use TextFilterRender instead", ReplaceWith("TextFilterRender"))
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+open class TextObjectFilterRender : TextFilterRender()
 
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class TextFilterRender : BaseObjectFilterRender() {
+open class TextFilterRender : BaseObjectFilterRender() {
   private var text: String = ""
   private var textSize = 0f
   private var textColor = 0
@@ -60,6 +61,10 @@ class TextFilterRender : BaseObjectFilterRender() {
     this.typeface = typeface
     (streamObject as TextStreamObject).load(text, textSize, textColor, backgroundColor, typeface)
     shouldLoad = true
+  }
+
+  fun setText(text: String, textSize: Float, textColor: Int, typeface: Typeface?) {
+    setText(text, textSize, textColor, Color.TRANSPARENT, typeface)
   }
 
   fun addText(text: String) {
