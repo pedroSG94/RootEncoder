@@ -87,7 +87,7 @@ class AndroidViewFilterRender : BaseFilterRender() {
    */
   var isHardwareMode: Boolean = true
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && field
-  private val sprite = Sprite()
+  val sprite = Sprite()
   private val frameAvailable = AtomicBoolean(false)
   @Volatile
   var targetFps = 30

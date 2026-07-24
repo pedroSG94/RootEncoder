@@ -212,7 +212,7 @@ class FilterMenu(private val context: Context) {
           glInterface.setFilter(gifObjectFilterRender)
           gifObjectFilterRender.setScale(50f, 50f)
           gifObjectFilterRender.setPosition(TranslateTo.BOTTOM)
-          spriteGestureController.setBaseObjectFilterRender(gifObjectFilterRender) //Optional
+          spriteGestureController.setSprite(gifObjectFilterRender.sprite) //Optional
         } catch (_: IOException) { }
         return true
       }
@@ -232,7 +232,7 @@ class FilterMenu(private val context: Context) {
         )
         imageObjectFilterRender.setScale(50f, 50f)
         imageObjectFilterRender.setPosition(TranslateTo.CENTER)
-        spriteGestureController.setBaseObjectFilterRender(imageObjectFilterRender) //Optional
+        spriteGestureController.setSprite(imageObjectFilterRender.sprite) //Optional
         spriteGestureController.setPreventMoveOutside(false) //Optional
         return true
       }
@@ -316,7 +316,7 @@ class FilterMenu(private val context: Context) {
         glInterface.setFilter(surfaceFilterRender)
         //Video is 360x240 so select a percent to keep aspect ratio (50% x 33.3% screen)
         surfaceFilterRender.setScale(50f, 33.3f)
-        spriteGestureController.setBaseObjectFilterRender(surfaceFilterRender) //Optional
+        spriteGestureController.setSprite(surfaceFilterRender.sprite) //Optional
         return true
       }
       R.id.temperature -> {
@@ -329,7 +329,7 @@ class FilterMenu(private val context: Context) {
         textObjectFilterRender.setText("Hello world", 22f, Color.RED)
         textObjectFilterRender.setScale(50f, 50f)
         textObjectFilterRender.setPosition(TranslateTo.CENTER)
-        spriteGestureController.setBaseObjectFilterRender(textObjectFilterRender) //Optional
+        spriteGestureController.setSprite(textObjectFilterRender.sprite) //Optional
         return true
       }
       R.id.zebra -> {

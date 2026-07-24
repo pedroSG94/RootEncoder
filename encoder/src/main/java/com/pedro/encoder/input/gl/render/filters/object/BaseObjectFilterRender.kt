@@ -62,7 +62,7 @@ abstract class BaseObjectFilterRender : BaseFilterRender() {
   protected var streamObjectTextureId: IntArray = intArrayOf(-1)
   protected var textureLoader: TextureLoader = TextureLoader()
   protected var streamObject: StreamObjectBase? = null
-  private val sprite = Sprite()
+  val sprite = Sprite()
   var alpha: Float = 1f
   protected var shouldLoad: Boolean = false
 
@@ -96,6 +96,9 @@ abstract class BaseObjectFilterRender : BaseFilterRender() {
   }
 
   override fun drawFilter() {
+    if (sprite.consumeDirty()) {
+      squareVertexObject.put(sprite.getTransformedVertices()).position(0)
+    }
     if (shouldLoad) {
       releaseTexture()
       streamObject?.bitmaps?.let { streamObjectTextureId = textureLoader.load(it) }
@@ -153,17 +156,14 @@ abstract class BaseObjectFilterRender : BaseFilterRender() {
 
   fun setScale(scaleX: Float, scaleY: Float) {
     sprite.scale(scaleX, scaleY)
-    squareVertexObject.put(sprite.getTransformedVertices()).position(0)
   }
 
   fun setPosition(x: Float, y: Float) {
     sprite.translate(x, y)
-    squareVertexObject.put(sprite.getTransformedVertices()).position(0)
   }
 
   fun setPosition(positionTo: TranslateTo) {
     sprite.translate(positionTo)
-    squareVertexObject.put(sprite.getTransformedVertices()).position(0)
   }
 
   val scale: PointF
@@ -176,6 +176,5 @@ abstract class BaseObjectFilterRender : BaseFilterRender() {
     get() = sprite.rotation
     set(angle) {
       sprite.rotation = angle
-      squareVertexObject.put(sprite.getTransformedVertices()).position(0)
     }
 }
