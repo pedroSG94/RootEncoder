@@ -30,7 +30,7 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.common.TimeUtils
 import com.pedro.encoder.R
-import com.pedro.encoder.input.gl.AndroidViewSprite
+import com.pedro.encoder.input.gl.Sprite
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.encoder.utils.gl.TranslateTo
 import kotlinx.coroutines.CoroutineScope
@@ -75,7 +75,6 @@ class AndroidViewFilterRender : BaseFilterRender() {
       field = value
       value?.let {
         it.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        sprite.setView(it)
         startRender()
       }
     }
@@ -88,7 +87,7 @@ class AndroidViewFilterRender : BaseFilterRender() {
    */
   var isHardwareMode: Boolean = true
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && field
-  private val sprite: AndroidViewSprite
+  private val sprite = Sprite()
   private val frameAvailable = AtomicBoolean(false)
   @Volatile
   var targetFps = 30
@@ -104,7 +103,6 @@ class AndroidViewFilterRender : BaseFilterRender() {
     squareVertex.put(squareVertexDataFilter).position(0)
     Matrix.setIdentityM(MVPMatrix, 0)
     Matrix.setIdentityM(STMatrix, 0)
-    sprite = AndroidViewSprite()
   }
 
   override fun initGlFilter(context: Context) {
@@ -195,8 +193,27 @@ class AndroidViewFilterRender : BaseFilterRender() {
   var rotation: Int
     get() = sprite.rotation
     set(rotation) {
-      sprite.setRotation(rotation)
+      sprite.rotation = rotation
     }
+
+  /**
+   * Translate position in percent to work with canvas.
+   */
+  private fun getCanvasPosition(): PointF {
+    val position = sprite.translation
+    return PointF(previewWidth * position.x / 100f, previewHeight * position.y / 100f)
+  }
+
+  /**
+   * Translate scale in percent to work with canvas.
+   */
+  private fun getCanvasScale(view: View): PointF {
+    if (view.width <= 0 || view.height <= 0) return PointF(0f, 0f)
+    val scale = sprite.scale
+    val scaleFactorX = 100f * view.width / previewWidth
+    val scaleFactorY = 100f * view.height / previewHeight
+    return PointF(scale.x / scaleFactorX, scale.y / scaleFactorY)
+  }
 
   private fun startRender() {
     job = CoroutineScope(Dispatchers.IO).launch {
@@ -221,15 +238,14 @@ class AndroidViewFilterRender : BaseFilterRender() {
           continue
         }
 
-        val canvasPosition = sprite.getCanvasPosition(previewWidth.toFloat(), previewHeight.toFloat())
-        val canvasScale = sprite.getCanvasScale(previewWidth.toFloat(), previewHeight.toFloat())
-        val rotationAxis = sprite.rotationAxis
+        val canvasPosition = getCanvasPosition()
+        val canvasScale = getCanvasScale(view)
         val rotation = sprite.rotation
 
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         canvas.translate(canvasPosition.x, canvasPosition.y)
         canvas.scale(canvasScale.x, canvasScale.y)
-        canvas.rotate(rotation.toFloat(), rotationAxis.x, rotationAxis.y)
+        canvas.rotate(rotation.toFloat(), view.width / 2f, view.height / 2f)
 
         try {
           view.draw(canvas)
