@@ -50,6 +50,7 @@ public class Sprite {
   private PointF scale;
   private PointF position;
   private int rotation;
+  private volatile boolean dirty = true;
 
   public Sprite() {
     reset();
@@ -62,6 +63,7 @@ public class Sprite {
   public void translate(float deltaX, float deltaY) {
     position.x = deltaX;
     position.y = deltaY;
+    dirty = true;
   }
 
   /**
@@ -108,6 +110,7 @@ public class Sprite {
       default:
         break;
     }
+    dirty = true;
   }
 
   /**
@@ -120,24 +123,36 @@ public class Sprite {
     position.y /= deltaY / scale.y;
     //set new scale.
     scale = new PointF(deltaX, deltaY);
+    dirty = true;
   }
 
   public void setRotation(int angle) {
     rotation = angle;
+    dirty = true;
+  }
+
+  /**
+   * @return true if the sprite changed since the last call. Used to know if the vertices related
+   * with this sprite must be calculated again.
+   */
+  public boolean consumeDirty() {
+    boolean dirty = this.dirty;
+    this.dirty = false;
+    return dirty;
   }
 
   /**
    * @return Scale in percent
    */
   public PointF getScale() {
-    return scale;
+    return new PointF(scale.x, scale.y);
   }
 
   /**
    * @return Position in percent
    */
   public PointF getTranslation() {
-    return position;
+    return new PointF(position.x, position.y);
   }
 
   public int getRotation() {
@@ -148,6 +163,7 @@ public class Sprite {
     scale = new PointF(100f, 100f);
     position = new PointF(0f, 0f);
     rotation = 0;
+    dirty = true;
   }
 
   /**

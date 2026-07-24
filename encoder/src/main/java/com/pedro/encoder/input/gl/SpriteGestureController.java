@@ -23,9 +23,6 @@ import android.view.View;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
-import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
-import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;
 import com.pedro.encoder.input.video.CameraHelper;
 
 /**
@@ -35,39 +32,23 @@ import com.pedro.encoder.input.video.CameraHelper;
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
 public class SpriteGestureController {
 
-  private BaseObjectFilterRender baseObjectFilterRender;
-  private AndroidViewFilterRender androidViewFilterRender;
+  private Sprite sprite;
   private float lastDistance;
   private boolean preventMoveOutside = true;
 
   public SpriteGestureController() {
   }
 
-  public SpriteGestureController(BaseObjectFilterRender sprite) {
-    this.baseObjectFilterRender = sprite;
+  public SpriteGestureController(Sprite sprite) {
+    this.sprite = sprite;
   }
 
-  public SpriteGestureController(AndroidViewFilterRender sprite) {
-    this.androidViewFilterRender = sprite;
-  }
-
-  public BaseFilterRender getFilterRender() {
-    return androidViewFilterRender == null ? baseObjectFilterRender : androidViewFilterRender;
-  }
-
-  public void setBaseObjectFilterRender(BaseObjectFilterRender baseObjectFilterRender) {
-    this.baseObjectFilterRender = baseObjectFilterRender;
-    this.androidViewFilterRender = null;
-  }
-
-  public void setBaseObjectFilterRender(AndroidViewFilterRender androidViewFilterRender) {
-    this.androidViewFilterRender = androidViewFilterRender;
-    this.baseObjectFilterRender = null;
+  public void setSprite(Sprite sprite) {
+    this.sprite = sprite;
   }
 
   public void stopListener() {
-    this.androidViewFilterRender = null;
-    this.baseObjectFilterRender = null;
+    sprite = null;
   }
 
   public void setPreventMoveOutside(boolean preventMoveOutside) {
@@ -75,34 +56,24 @@ public class SpriteGestureController {
   }
 
   public boolean spriteTouched(View view, MotionEvent motionEvent) {
-    if (baseObjectFilterRender == null && androidViewFilterRender == null) return false;
+    Sprite sprite = this.sprite;
+    if (sprite == null) return false;
     float xPercent = motionEvent.getX() * 100 / view.getWidth();
     float yPercent = motionEvent.getY() * 100 / view.getHeight();
-    PointF scale;
-    PointF position;
-    if (baseObjectFilterRender != null) {
-      scale = baseObjectFilterRender.getScale();
-      position = baseObjectFilterRender.getPosition();
-    } else {
-      scale = androidViewFilterRender.getScale();
-      position = androidViewFilterRender.getPosition();
-    }
+    PointF scale = sprite.getScale();
+    PointF position = sprite.getTranslation();
     boolean xTouched = xPercent >= position.x && xPercent <= position.x + scale.x;
     boolean yTouched = yPercent >= position.y && yPercent <= position.y + scale.y;
     return xTouched && yTouched;
   }
 
   public void moveSprite(View view, MotionEvent motionEvent) {
-    if (baseObjectFilterRender == null && androidViewFilterRender == null) return;
+    Sprite sprite = this.sprite;
+    if (sprite == null) return;
     if (motionEvent.getPointerCount() == 1) {
       float xPercent = motionEvent.getX() * 100 / view.getWidth();
       float yPercent = motionEvent.getY() * 100 / view.getHeight();
-      PointF scale;
-      if (baseObjectFilterRender != null) {
-        scale = baseObjectFilterRender.getScale();
-      } else {
-        scale = androidViewFilterRender.getScale();
-      }
+      PointF scale = sprite.getScale();
       if (preventMoveOutside) {
         float x = xPercent - scale.x / 2.0F;
         float y = yPercent - scale.y / 2.0F;
@@ -118,39 +89,23 @@ public class SpriteGestureController {
         if (y + scale.y > 100.0F) {
           y = 100.0F - scale.y;
         }
-        if (baseObjectFilterRender != null) {
-          baseObjectFilterRender.setPosition(x, y);
-        } else {
-          androidViewFilterRender.setPosition(x, y);
-        }
+        sprite.translate(x, y);
       } else {
-        if (baseObjectFilterRender != null) {
-          baseObjectFilterRender.setPosition(xPercent - scale.x / 2f, yPercent - scale.y / 2f);
-        } else {
-          androidViewFilterRender.setPosition(xPercent - scale.x / 2f, yPercent - scale.y / 2f);
-        }
+        sprite.translate(xPercent - scale.x / 2f, yPercent - scale.y / 2f);
       }
     }
   }
 
   public void scaleSprite(MotionEvent motionEvent) {
-    if (baseObjectFilterRender == null && androidViewFilterRender == null) return;
+    Sprite sprite = this.sprite;
+    if (sprite == null) return;
     if (motionEvent.getPointerCount() > 1) {
       float distance = CameraHelper.getFingerSpacing(motionEvent);
       float percent = distance >= lastDistance ? 1 : -1;
-      PointF scale;
-      if (baseObjectFilterRender != null) {
-        scale = baseObjectFilterRender.getScale();
-      } else {
-        scale = androidViewFilterRender.getScale();
-      }
+      PointF scale = sprite.getScale();
       float newScaleX = scale.x + percent;
       float newScaleY = scale.y + percent;
-      if (baseObjectFilterRender != null) {
-        baseObjectFilterRender.setScale(newScaleX, newScaleY);
-      } else {
-        androidViewFilterRender.setScale(newScaleX, newScaleY);
-      }
+      sprite.scale(newScaleX, newScaleY);
       lastDistance = distance;
     }
   }

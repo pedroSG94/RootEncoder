@@ -30,7 +30,7 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.common.TimeUtils
 import com.pedro.encoder.R
-import com.pedro.encoder.input.gl.AndroidViewSprite
+import com.pedro.encoder.input.gl.Sprite
 import com.pedro.encoder.utils.gl.GlUtil
 import com.pedro.encoder.utils.gl.TranslateTo
 import kotlinx.coroutines.CoroutineScope
@@ -49,8 +49,13 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Created by pedro on 4/02/18.
  */
+
+@Deprecated("Use ViewFilterRender instead", ReplaceWith("ViewFilterRender"))
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class AndroidViewFilterRender : BaseFilterRender() {
+open class AndroidViewFilterRender : ViewFilterRender()
+
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+open class ViewFilterRender : BaseFilterRender() {
   //rotation matrix
   private val squareVertexDataFilter = floatArrayOf(
     // X, Y, Z, U, V
@@ -69,15 +74,21 @@ class AndroidViewFilterRender : BaseFilterRender() {
   private var uSamplerViewHandle = -1
 
   private var viewId = intArrayOf(-1)
+  /**
+   * The view to render. This filter never measures or layouts the view so you must do it before
+   * set it here, in other case nothing is rendered.
+   * Example using the encoder resolution to render the view in fullscreen:
+   *
+   * val widthSpec = View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY)
+   * val heightSpec = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+   * view.measure(widthSpec, heightSpec)
+   * view.layout(0, 0, width, height)
+   */
   var view: View? = null
     set(value) {
       stopRender()
       field = value
-      value?.let {
-        it.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        sprite.setView(it)
-        startRender()
-      }
+      value?.let { startRender() }
     }
   private var surfaceTexture: SurfaceTexture? = null
   private var surface: Surface? = null
@@ -88,7 +99,7 @@ class AndroidViewFilterRender : BaseFilterRender() {
    */
   var isHardwareMode: Boolean = true
     get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && field
-  private val sprite: AndroidViewSprite
+  val sprite = Sprite()
   private val frameAvailable = AtomicBoolean(false)
   @Volatile
   var targetFps = 30
@@ -104,7 +115,6 @@ class AndroidViewFilterRender : BaseFilterRender() {
     squareVertex.put(squareVertexDataFilter).position(0)
     Matrix.setIdentityM(MVPMatrix, 0)
     Matrix.setIdentityM(STMatrix, 0)
-    sprite = AndroidViewSprite()
   }
 
   override fun initGlFilter(context: Context) {
@@ -195,8 +205,27 @@ class AndroidViewFilterRender : BaseFilterRender() {
   var rotation: Int
     get() = sprite.rotation
     set(rotation) {
-      sprite.setRotation(rotation)
+      sprite.rotation = rotation
     }
+
+  /**
+   * Translate position in percent to work with canvas.
+   */
+  private fun getCanvasPosition(): PointF {
+    val position = sprite.translation
+    return PointF(previewWidth * position.x / 100f, previewHeight * position.y / 100f)
+  }
+
+  /**
+   * Translate scale in percent to work with canvas.
+   */
+  private fun getCanvasScale(view: View): PointF {
+    if (view.width <= 0 || view.height <= 0) return PointF(0f, 0f)
+    val scale = sprite.scale
+    val scaleFactorX = 100f * view.width / previewWidth
+    val scaleFactorY = 100f * view.height / previewHeight
+    return PointF(scale.x / scaleFactorX, scale.y / scaleFactorY)
+  }
 
   private fun startRender() {
     job = CoroutineScope(Dispatchers.IO).launch {
@@ -204,8 +233,8 @@ class AndroidViewFilterRender : BaseFilterRender() {
         val sleepRate = 1000 / targetFps
         val startTimestamp = TimeUtils.getCurrentTimeMillis()
 
-        val surface = this@AndroidViewFilterRender.surface
-        val view = this@AndroidViewFilterRender.view
+        val surface = this@ViewFilterRender.surface
+        val view = this@ViewFilterRender.view
         if (surface == null || view == null) {
           val sleep = sleepRate - (TimeUtils.getCurrentTimeMillis() - startTimestamp)
           delay(sleep.milliseconds)
@@ -221,16 +250,15 @@ class AndroidViewFilterRender : BaseFilterRender() {
           continue
         }
 
-        sprite.calculateDefaultScale(previewWidth.toFloat(), previewHeight.toFloat())
-        val canvasPosition = sprite.getCanvasPosition(previewWidth.toFloat(), previewHeight.toFloat())
-        val canvasScale = sprite.getCanvasScale(previewWidth.toFloat(), previewHeight.toFloat())
-        val rotationAxis = sprite.rotationAxis
-        val rotation = sprite.rotation
+        val canvasPosition = getCanvasPosition()
+        val canvasScale = getCanvasScale(view)
+        //revert rotation to rotate exactly like object filters
+        val rotation = -sprite.rotation
 
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
         canvas.translate(canvasPosition.x, canvasPosition.y)
         canvas.scale(canvasScale.x, canvasScale.y)
-        canvas.rotate(rotation.toFloat(), rotationAxis.x, rotationAxis.y)
+        canvas.rotate(rotation.toFloat(), view.width / 2f, view.height / 2f)
 
         try {
           view.draw(canvas)
