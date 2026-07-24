@@ -23,9 +23,6 @@ import android.view.View;
 
 import androidx.annotation.RequiresApi;
 
-import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender;
-import com.pedro.encoder.input.gl.render.filters.BaseFilterRender;
-import com.pedro.encoder.input.gl.render.filters.object.BaseObjectFilterRender;
 import com.pedro.encoder.input.video.CameraHelper;
 
 /**

@@ -28,7 +28,7 @@ import android.view.View
 import androidx.annotation.RequiresApi
 import com.pedro.encoder.input.gl.SpriteGestureController
 import com.pedro.encoder.input.gl.render.filters.AnalogTVFilterRender
-import com.pedro.encoder.input.gl.render.filters.AndroidViewFilterRender
+import com.pedro.encoder.input.gl.render.filters.ViewFilterRender
 import com.pedro.encoder.input.gl.render.filters.BasicDeformationFilterRender
 import com.pedro.encoder.input.gl.render.filters.BeautyFilterRender
 import com.pedro.encoder.input.gl.render.filters.BlackFilterRender
@@ -113,9 +113,9 @@ class FilterMenu(private val context: Context) {
         //Set view size to allow rendering
         view.measure(sizeSpecWidth, sizeSpecHeight)
         view.layout(0, 0, previewSize.x, previewSize.y)
-        val androidViewFilterRender = AndroidViewFilterRender()
-        androidViewFilterRender.view = view
-        glInterface.setFilter(androidViewFilterRender)
+        val viewFilterRender = ViewFilterRender()
+        viewFilterRender.view = view
+        glInterface.setFilter(viewFilterRender)
         return true
       }
       R.id.basic_deformation -> {
@@ -207,12 +207,12 @@ class FilterMenu(private val context: Context) {
       }
       R.id.gif -> {
         try {
-          val gifObjectFilterRender = GifFilterRender()
-          gifObjectFilterRender.setGif(context.resources.openRawResource(R.raw.banana))
-          glInterface.setFilter(gifObjectFilterRender)
-          gifObjectFilterRender.setScale(50f, 50f)
-          gifObjectFilterRender.setPosition(TranslateTo.BOTTOM)
-          spriteGestureController.setSprite(gifObjectFilterRender.sprite) //Optional
+          val gifFilterRender = GifFilterRender()
+          gifFilterRender.setGif(context.resources.openRawResource(R.raw.banana))
+          glInterface.setFilter(gifFilterRender)
+          gifFilterRender.setScale(50f, 50f)
+          gifFilterRender.setPosition(TranslateTo.BOTTOM)
+          spriteGestureController.setSprite(gifFilterRender.sprite) //Optional
         } catch (_: IOException) { }
         return true
       }
@@ -225,14 +225,14 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.image -> {
-        val imageObjectFilterRender = ImageFilterRender()
-        glInterface.setFilter(imageObjectFilterRender)
-        imageObjectFilterRender.setImage(
+        val imageFilterRender = ImageFilterRender()
+        glInterface.setFilter(imageFilterRender)
+        imageFilterRender.setImage(
           BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
         )
-        imageObjectFilterRender.setScale(50f, 50f)
-        imageObjectFilterRender.setPosition(TranslateTo.CENTER)
-        spriteGestureController.setSprite(imageObjectFilterRender.sprite) //Optional
+        imageFilterRender.setScale(50f, 50f)
+        imageFilterRender.setPosition(TranslateTo.CENTER)
+        spriteGestureController.setSprite(imageFilterRender.sprite) //Optional
         spriteGestureController.setPreventMoveOutside(false) //Optional
         return true
       }
@@ -324,12 +324,12 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.text -> {
-        val textObjectFilterRender = TextFilterRender()
-        glInterface.setFilter(textObjectFilterRender)
-        textObjectFilterRender.setText("Hello world", 22f, Color.RED)
-        textObjectFilterRender.setScale(50f, 50f)
-        textObjectFilterRender.setPosition(TranslateTo.CENTER)
-        spriteGestureController.setSprite(textObjectFilterRender.sprite) //Optional
+        val textFilterRender = TextFilterRender()
+        glInterface.setFilter(textFilterRender)
+        textFilterRender.setText("Hello world", 22f, Color.RED)
+        textFilterRender.setScale(50f, 50f)
+        textFilterRender.setPosition(TranslateTo.CENTER)
+        spriteGestureController.setSprite(textFilterRender.sprite) //Optional
         return true
       }
       R.id.zebra -> {

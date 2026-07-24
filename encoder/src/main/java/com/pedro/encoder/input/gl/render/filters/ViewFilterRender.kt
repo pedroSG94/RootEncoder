@@ -49,8 +49,13 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * Created by pedro on 4/02/18.
  */
+
+@Deprecated("Use ViewFilterRender instead", ReplaceWith("ViewFilterRender"))
 @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
-class AndroidViewFilterRender : BaseFilterRender() {
+open class AndroidViewFilterRender : ViewFilterRender()
+
+@RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+open class ViewFilterRender : BaseFilterRender() {
   //rotation matrix
   private val squareVertexDataFilter = floatArrayOf(
     // X, Y, Z, U, V
@@ -222,8 +227,8 @@ class AndroidViewFilterRender : BaseFilterRender() {
         val sleepRate = 1000 / targetFps
         val startTimestamp = TimeUtils.getCurrentTimeMillis()
 
-        val surface = this@AndroidViewFilterRender.surface
-        val view = this@AndroidViewFilterRender.view
+        val surface = this@ViewFilterRender.surface
+        val view = this@ViewFilterRender.view
         if (surface == null || view == null) {
           val sleep = sleepRate - (TimeUtils.getCurrentTimeMillis() - startTimestamp)
           delay(sleep.milliseconds)
