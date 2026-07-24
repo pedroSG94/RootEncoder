@@ -69,8 +69,8 @@ import com.pedro.encoder.input.gl.render.filters.SnowFilterRender
 import com.pedro.encoder.input.gl.render.filters.SwirlFilterRender
 import com.pedro.encoder.input.gl.render.filters.TemperatureFilterRender
 import com.pedro.encoder.input.gl.render.filters.ZebraFilterRender
-import com.pedro.encoder.input.gl.render.filters.`object`.GifObjectFilterRender
-import com.pedro.encoder.input.gl.render.filters.`object`.ImageObjectFilterRender
+import com.pedro.encoder.input.gl.render.filters.`object`.GifFilterRender
+import com.pedro.encoder.input.gl.render.filters.`object`.ImageFilterRender
 import com.pedro.encoder.input.gl.render.filters.`object`.SurfaceFilterRender
 import com.pedro.encoder.input.gl.render.filters.`object`.TextFilterRender
 import com.pedro.encoder.utils.gl.TranslateTo
@@ -207,7 +207,7 @@ class FilterMenu(private val context: Context) {
       }
       R.id.gif -> {
         try {
-          val gifObjectFilterRender = GifObjectFilterRender()
+          val gifObjectFilterRender = GifFilterRender()
           gifObjectFilterRender.setGif(context.resources.openRawResource(R.raw.banana))
           glInterface.setFilter(gifObjectFilterRender)
           gifObjectFilterRender.setScale(50f, 50f)
@@ -225,7 +225,7 @@ class FilterMenu(private val context: Context) {
         return true
       }
       R.id.image -> {
-        val imageObjectFilterRender = ImageObjectFilterRender()
+        val imageObjectFilterRender = ImageFilterRender()
         glInterface.setFilter(imageObjectFilterRender)
         imageObjectFilterRender.setImage(
           BitmapFactory.decodeResource(context.resources, R.mipmap.ic_launcher)
