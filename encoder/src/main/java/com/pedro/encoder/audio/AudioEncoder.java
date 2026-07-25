@@ -78,10 +78,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
         prepared = true;
         return true;
       }
-      if (type == AudioCodec.HE_AAC && bitRate > 128 * 1000) {
-        Log.e(TAG, "invalid bitrate configuration. Only support 128_000 bitrate max");
-        return false;
-      }
+
       MediaCodecInfo encoder = chooseEncoder(type.getMime());
       if (encoder != null) {
         Log.i(TAG, "Encoder selected " + encoder.getName());
