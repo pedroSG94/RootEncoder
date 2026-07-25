@@ -408,6 +408,22 @@ public class CodecUtil {
         MediaCodecInfo.EncoderCapabilities.BITRATE_MODE_CBR);
   }
 
+  public static List<MediaCodecInfo> getCodecsWithProfile(List<MediaCodecInfo> list, String mime, int profile) {
+    List<MediaCodecInfo> mediaCodecInfoList = new ArrayList<>();
+    for (MediaCodecInfo info : list) {
+      MediaCodecInfo.CodecCapabilities codecCapabilities = info.getCapabilitiesForType(mime);
+      if (codecCapabilities == null || codecCapabilities.profileLevels == null) continue;
+      MediaCodecInfo.CodecProfileLevel[] profiles = codecCapabilities.profileLevels;
+      for (MediaCodecInfo.CodecProfileLevel profileLevel : profiles) {
+        if (profileLevel.profile == profile) {
+          mediaCodecInfoList.add(info);
+          break;
+        }
+      }
+    }
+    return mediaCodecInfoList;
+  }
+
   /**
    * Filter broken codecs by name and device model.
    *

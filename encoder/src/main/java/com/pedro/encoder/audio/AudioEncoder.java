@@ -19,6 +19,7 @@ package com.pedro.encoder.audio;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -77,6 +78,10 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
         prepared = true;
         return true;
       }
+      if (type == AudioCodec.HE_AAC && bitRate > 128 * 1000) {
+        Log.e(TAG, "invalid bitrate configuration. Only support 128_000 bitrate max");
+        return false;
+      }
       MediaCodecInfo encoder = chooseEncoder(type.getMime());
       if (encoder != null) {
         Log.i(TAG, "Encoder selected " + encoder.getName());
@@ -93,6 +98,9 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
       if (type == AudioCodec.AAC || type == AudioCodec.HE_AAC) {
         int profile = type == AudioCodec.HE_AAC ? MediaCodecInfo.CodecProfileLevel.AACObjectHE : MediaCodecInfo.CodecProfileLevel.AACObjectLC;
         audioFormat.setInteger(MediaFormat.KEY_AAC_PROFILE, profile);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+          audioFormat.setInteger(MediaFormat.KEY_PROFILE, profile);
+        }
       }
       setCallback();
       codec.configure(audioFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -199,6 +207,9 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
     }
 
     Log.i(TAG, mediaCodecInfoList.size() + " encoders found");
+    if (type == AudioCodec.HE_AAC) {
+      mediaCodecInfoList = CodecUtil.getCodecsWithProfile(mediaCodecInfoList, mime, MediaCodecInfo.CodecProfileLevel.AACObjectHE);
+    }
     if (mediaCodecInfoList.isEmpty()) return null;
     else return mediaCodecInfoList.get(0);
   }
