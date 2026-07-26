@@ -48,6 +48,9 @@ class MainActivity : AppCompatActivity() {
     if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
       this.add(Manifest.permission.POST_NOTIFICATIONS)
     }
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.CINNAMON_BUN) {
+      this.add(Manifest.permission.ACCESS_LOCAL_NETWORK)
+    }
   }.toTypedArray()
 
   override fun onCreate(savedInstanceState: Bundle?) {
