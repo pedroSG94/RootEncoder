@@ -286,13 +286,15 @@ fun Long.compare(l: Long): Int {
 }
 
 fun SurfaceTexture.tryClear() {
-  val surface = Surface(this)
+  //Surface constructor fail if the SurfaceTexture is already released
+  var surface: Surface? = null
   try {
+    surface = Surface(this)
     val canvas = surface.lockCanvas(null)
     canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
     surface.unlockCanvasAndPost(canvas)
   } catch (_: Exception) {} finally {
-    surface.release()
+    surface?.release()
   }
 }
 
