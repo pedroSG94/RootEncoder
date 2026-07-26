@@ -79,11 +79,17 @@ class SrtSender(
     videoPacket = when (commandsManager.videoCodec) {
       VideoCodec.H264 -> {
         if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
-        H264Packet(limitSize, psiManager).apply { sendVideoInfo(sps, pps) }
+        (videoPacket as? H264Packet ?: H264Packet(limitSize, psiManager)).apply {
+          setLimitSize(limitSize)
+          sendVideoInfo(sps, pps)
+        }
       }
       VideoCodec.H265 -> {
         if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
-        H265Packet(limitSize, psiManager).apply { sendVideoInfo(sps, pps, vps) }
+        (videoPacket as? H265Packet ?: H265Packet(limitSize, psiManager)).apply {
+          setLimitSize(limitSize)
+          sendVideoInfo(sps, pps, vps)
+        }
       }
       else -> {
         throw IllegalArgumentException("Unsupported codec: ${commandsManager.videoCodec.name}")
@@ -93,10 +99,13 @@ class SrtSender(
 
   override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandsManager.audioCodec) {
-      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(limitSize, psiManager).apply {
+      AudioCodec.AAC, AudioCodec.HE_AAC -> (audioPacket as? AacPacket ?: AacPacket(limitSize, psiManager)).apply {
+        setLimitSize(limitSize)
         sendAudioInfo(sampleRate, isStereo, commandsManager.audioCodec)
       }
-      AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
+      AudioCodec.OPUS -> (audioPacket as? OpusPacket ?: OpusPacket(limitSize, psiManager)).apply {
+        setLimitSize(limitSize)
+      }
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandsManager.audioCodec.name}")
       }

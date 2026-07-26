@@ -254,6 +254,10 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
           }
         }
       }
+
+      else -> {
+        Log.e(TAG, "Unsupported codec: ${videoPacket.javaClass.name}")
+      }
     }
     if (sendInfo && recordStatus == RecordController.Status.STARTED) {
       myRequestKeyFrame = null

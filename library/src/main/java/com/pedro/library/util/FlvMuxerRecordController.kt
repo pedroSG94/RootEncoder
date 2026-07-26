@@ -218,6 +218,11 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
                 }
             }
             is Vp8Packet -> sendInfo = true
+            //vp9 video info is not in the MediaFormat, only extracted from keyframes
+            is Vp9Packet -> {}
+            else -> {
+                Log.e(TAG, "Unsupported codec: ${videoPacket?.javaClass?.name ?: "null"}")
+            }
         }
         if (sendInfo && recordStatus == RecordController.Status.STARTED) {
             myRequestKeyFrame = null
