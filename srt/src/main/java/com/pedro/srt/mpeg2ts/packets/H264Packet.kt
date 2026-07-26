@@ -29,6 +29,7 @@ import com.pedro.srt.mpeg2ts.PesType
 import com.pedro.srt.mpeg2ts.psi.PsiManager
 import com.pedro.srt.srt.packets.data.PacketPosition
 import com.pedro.srt.utils.chunkPackets
+import com.pedro.srt.utils.getPayload
 import java.nio.ByteBuffer
 
 /**
@@ -36,17 +37,15 @@ import java.nio.ByteBuffer
  *
  * Used for H264/H265
  */
-class H26XPacket(
+class H264Packet(
   limitSize: Int,
   psiManager: PsiManager,
 ): BasePacket(psiManager, limitSize) {
 
-  private val TAG = "H26XPacket"
+  private val TAG = "H264Packet"
 
   private var sps: ByteBuffer? = null
   private var pps: ByteBuffer? = null
-  private var vps: ByteBuffer? = null
-  private var codec = VideoCodec.H264
 
   override suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
@@ -54,13 +53,12 @@ class H26XPacket(
   ) {
     val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val isKeyFrame = mediaFrame.info.isKeyFrame
-    val nals = NalReader.extractNals(fixedBuffer, codec, false)
+    val nals = NalReader.extractNals(fixedBuffer, VideoCodec.H264, false)
     if (nals.isEmpty()) return
 
     val sps = this.sps
     val pps = this.pps
-    val vps = this.vps
-    if (sps == null || pps == null || (codec == VideoCodec.H265 && vps == null)) {
+    if (sps == null || pps == null) {
       Log.e(TAG, "waiting for a valid video info")
       return
     }
@@ -68,10 +66,16 @@ class H26XPacket(
     if (isKeyFrame) {
       if (!nals.contains(pps)) nals.add(0, pps.duplicate())
       if (!nals.contains(sps)) nals.add(0, sps.duplicate())
-      if (vps != null) if (!nals.contains(vps)) nals.add(0, vps.duplicate())
     }
 
-    val payload = getPayload(nals, isKeyFrame)
+    val payload = nals.getPayload {
+      ByteBuffer.allocate(6).apply {
+        putInt(0x00000001) //annex-b header
+        put(0x09.toByte())
+        put(0xf0.toByte())
+        flip()
+      }
+    }
     val pes = Pes(psiManager.getVideoPid().toInt(), isKeyFrame, PesType.VIDEO, mediaFrame.info.timestamp, payload)
     val mpeg2tsPackets = mpegTsPacketizer.write(listOf(pes)).chunkPackets(chunkSize).map { buffer ->
       MpegTsPacket(buffer, MpegType.VIDEO, PacketPosition.SINGLE, isKeyFrame)
@@ -81,56 +85,13 @@ class H26XPacket(
 
   override fun resetPacket(resetInfo: Boolean) {
     if (resetInfo) {
-      vps = null
       sps = null
       pps = null
     }
   }
 
-  fun setVideoCodec(codec: VideoCodec) {
-    if (codec != VideoCodec.H265 && codec != VideoCodec.H264) {
-      throw IllegalArgumentException("This packet only support H264 and H265")
-    }
-    this.codec = codec
-  }
-
-  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
+  fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {
     this.sps = ByteBuffer.wrap(sps.getData())
-    this.pps = pps?.let { ByteBuffer.wrap(pps.getData()) }
-    this.vps = vps?.let { ByteBuffer.wrap(vps.getData()) }
-  }
-
-  private fun getPayload(nals: List<ByteBuffer>, isKeyFrame: Boolean): ByteBuffer {
-    val nalsSize = nals.sumOf { it.remaining() }
-    val bufferSize = if (isKeyFrame) {
-      val audSize = when (codec) {
-        VideoCodec.H265 -> 7
-        else -> 6
-      }
-      audSize + nalsSize + (nals.size * 4)
-    } else nalsSize + (nals.size * 4)
-
-    val payload = ByteBuffer.allocate(bufferSize)
-    //add AUD nal
-    if (isKeyFrame) {
-      payload.putInt(0x00000001) //annex-b header
-      when (codec) {
-        VideoCodec.H265 -> {
-          payload.put(0x46.toByte())
-          payload.put(0x01.toByte())
-          payload.put(0x50.toByte())
-        }
-        else -> {
-          payload.put(0x09.toByte())
-          payload.put(0xf0.toByte())
-        }
-      }
-    }
-    nals.forEach {
-      payload.putInt(0x00000001) //annex-b header
-      payload.put(it)
-    }
-    payload.flip()
-    return payload
+    this.pps = ByteBuffer.wrap(pps.getData())
   }
 }

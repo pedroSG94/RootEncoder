@@ -19,6 +19,7 @@ package com.pedro.udp
 import android.util.Log
 import com.pedro.common.AudioCodec
 import com.pedro.common.ConnectChecker
+import com.pedro.common.VideoCodec
 import com.pedro.common.base.BaseSender
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
@@ -26,10 +27,10 @@ import com.pedro.common.validMessage
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.MpegType
-import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.packets.AacPacket
 import com.pedro.srt.mpeg2ts.packets.BasePacket
-import com.pedro.srt.mpeg2ts.packets.H26XPacket
+import com.pedro.srt.mpeg2ts.packets.H264Packet
+import com.pedro.srt.mpeg2ts.packets.H265Packet
 import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.Psi
 import com.pedro.srt.mpeg2ts.psi.PsiManager
@@ -59,7 +60,7 @@ class UdpSender(
   private val limitSize = Constants.MTU
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
   private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
-  private val videoPacket = H26XPacket(limitSize, psiManager)
+  private var videoPacket: BasePacket = H264Packet(limitSize, psiManager)
   var socket: UdpSocket? = null
 
   private fun setTrackConfig(videoEnabled: Boolean, audioEnabled: Boolean) {
@@ -71,14 +72,36 @@ class UdpSender(
   }
 
   override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
-    videoPacket.setVideoCodec(commandManager.videoCodec)
-    videoPacket.sendVideoInfo(sps, pps, vps)
+    videoPacket = when (commandManager.videoCodec) {
+      VideoCodec.H264 -> {
+        if (pps == null) throw IllegalArgumentException("pps can't be null with h264")
+        (videoPacket as? H264Packet ?: H264Packet(limitSize, psiManager)).apply {
+          setLimitSize(limitSize)
+          sendVideoInfo(sps, pps)
+        }
+      }
+      VideoCodec.H265 -> {
+        if (vps == null || pps == null) throw IllegalArgumentException("pps or vps can't be null with h265")
+        (videoPacket as? H265Packet ?: H265Packet(limitSize, psiManager)).apply {
+          setLimitSize(limitSize)
+          sendVideoInfo(sps, pps, vps)
+        }
+      }
+      else -> {
+        throw IllegalArgumentException("Unsupported codec: ${commandManager.videoCodec.name}")
+      }
+    }
   }
 
   override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {
     audioPacket = when (commandManager.audioCodec) {
-      AudioCodec.AAC, AudioCodec.HE_AAC -> AacPacket(limitSize, psiManager).apply { sendAudioInfo(sampleRate, isStereo, commandManager.audioCodec) }
-      AudioCodec.OPUS -> OpusPacket(limitSize, psiManager)
+      AudioCodec.AAC, AudioCodec.HE_AAC -> (audioPacket as? AacPacket ?: AacPacket(limitSize, psiManager)).apply {
+        setLimitSize(limitSize)
+        sendAudioInfo(sampleRate, isStereo, commandManager.audioCodec)
+      }
+      AudioCodec.OPUS -> (audioPacket as? OpusPacket ?: OpusPacket(limitSize, psiManager)).apply {
+        setLimitSize(limitSize)
+      }
       AudioCodec.G711 -> {
         throw IllegalArgumentException("Unsupported codec: ${commandManager.audioCodec.name}")
       }
