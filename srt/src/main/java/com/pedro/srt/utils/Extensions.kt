@@ -65,3 +65,22 @@ fun List<ByteArray>.chunkPackets(size: Int): List<ByteArray> {
     buffer.toByteArray()
   }
 }
+
+fun List<ByteBuffer>.getPayload(onAud: () -> ByteBuffer? = { null }): ByteBuffer {
+  val nalsSize = this.sumOf { it.remaining() }
+  val bufferSize = nalsSize + (this.size * 4)
+
+  val payload = onAud()?.let { aud ->
+    //add AUD nal
+    ByteBuffer.allocate(aud.remaining() + bufferSize).apply {
+      put(aud)
+    }
+  } ?: ByteBuffer.allocate(bufferSize)
+
+  this.forEach {
+    payload.putInt(0x00000001) //annex-b header
+    payload.put(it)
+  }
+  payload.flip()
+  return payload
+}

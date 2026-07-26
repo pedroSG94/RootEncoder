@@ -15,10 +15,10 @@ import com.pedro.library.base.recording.RecordController.RecordTracks
 import com.pedro.srt.mpeg2ts.MpegTsPacket
 import com.pedro.srt.mpeg2ts.MpegTsPacketizer
 import com.pedro.srt.mpeg2ts.MpegType
-import com.pedro.srt.mpeg2ts.Pid
 import com.pedro.srt.mpeg2ts.packets.AacPacket
 import com.pedro.srt.mpeg2ts.packets.BasePacket
-import com.pedro.srt.mpeg2ts.packets.H26XPacket
+import com.pedro.srt.mpeg2ts.packets.H264Packet
+import com.pedro.srt.mpeg2ts.packets.H265Packet
 import com.pedro.srt.mpeg2ts.packets.OpusPacket
 import com.pedro.srt.mpeg2ts.psi.Psi
 import com.pedro.srt.mpeg2ts.psi.PsiManager
@@ -51,7 +51,7 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
 
   private val mpegTsPacketizer = MpegTsPacketizer(psiManager)
   private var audioPacket: BasePacket = AacPacket(limitSize, psiManager)
-  private val videoPacket = H26XPacket(limitSize, psiManager)
+  private var videoPacket: BasePacket = H264Packet(limitSize, psiManager)
   private val chunkSize = limitSize / MpegTsPacketizer.packetSize
   private var sampleRate = 0
   private var isStereo = true
@@ -86,11 +86,14 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
         throw IOException("Unsupported AudioCodec: " + getAudioCodec().name)
       }
     }
-    if (getVideoCodec() == VideoCodec.AV1 || getVideoCodec() == VideoCodec.VP8 || getVideoCodec() == VideoCodec.VP9) {
-      throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
+    videoPacket = when (getVideoCodec()) {
+      VideoCodec.H264 -> H264Packet(limitSize, psiManager)
+      VideoCodec.H265 -> H265Packet(limitSize, psiManager)
+      else -> {
+        throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
+      }
     }
-    audioPacket.setLimitSize(limitSize)
-    videoPacket.setLimitSize(limitSize)
+    sendInfo = false
     outputStream?.let {
       val videoEnabled = tracks == RecordTracks.VIDEO || tracks == RecordTracks.ALL
       val audioEnabled = tracks == RecordTracks.AUDIO || tracks == RecordTracks.ALL
@@ -182,29 +185,29 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
   private fun getVideoInfo(buffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (info.isKeyframe() || isKeyFrame(buffer)) {
       if (!sendInfo) {
-        when (getVideoCodec()) {
-          VideoCodec.H264 -> {
+        when (videoPacket) {
+          is H264Packet -> {
             val buffers =
               VideoEncoderHelper.decodeSpsPpsFromBuffer(buffer.duplicate(), info.size)
             if (buffers != null) {
               Log.i(TAG, "manual sps/pps extraction success")
               val oldSps = buffers.first
               val oldPps = buffers.second
-              videoPacket.sendVideoInfo(oldSps, oldPps, null)
+              (videoPacket as H264Packet).sendVideoInfo(oldSps, oldPps)
               sendInfo = true
             } else {
               Log.e(TAG, "manual sps/pps extraction failed")
             }
           }
 
-          VideoCodec.H265 -> {
+          is H265Packet -> {
             val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(buffer.duplicate())
             if (byteBufferList.size == 3) {
               Log.i(TAG, "manual vps/sps/pps extraction success")
               val oldSps = byteBufferList[1]
               val oldPps = byteBufferList[2]
               val oldVps = byteBufferList[0]
-              videoPacket.sendVideoInfo(oldSps, oldPps, oldVps)
+              (videoPacket as H265Packet).sendVideoInfo(oldSps, oldPps, oldVps)
               sendInfo = true
             } else {
               Log.e(TAG, "manual vps/sps/pps extraction failed")
@@ -212,7 +215,7 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
           }
 
           else -> {
-            Log.e(TAG, "Unsupported codec: ${getVideoCodec()}")
+            Log.e(TAG, "Unsupported codec: ${videoPacket.javaClass.name}")
           }
         }
       }
@@ -228,17 +231,17 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
   }
 
   override fun setVideoFormat(videoFormat: MediaFormat) {
-    when (getVideoCodec()) {
-      VideoCodec.H264 -> {
+    when (videoPacket) {
+      is H264Packet -> {
         val sps = videoFormat.getByteBuffer("csd-0")
         val pps = videoFormat.getByteBuffer("csd-1")
         if (sps != null && pps != null) {
-          videoPacket.sendVideoInfo(sps.duplicate(), pps.duplicate(), null)
+          (videoPacket as H264Packet).sendVideoInfo(sps.duplicate(), pps.duplicate())
           sendInfo = true
         }
       }
 
-      VideoCodec.H265 -> {
+      is H265Packet -> {
         val bufferInfo = videoFormat.getByteBuffer("csd-0")
         if (bufferInfo != null) {
           val byteBufferList = VideoEncoderHelper.extractVpsSpsPpsFromH265(bufferInfo.duplicate())
@@ -246,13 +249,11 @@ class Mpeg2TsMuxerRecordController : AsyncBaseRecordController() {
             val sps = byteBufferList[1]
             val pps = byteBufferList[2]
             val vps = byteBufferList[0]
-            videoPacket.sendVideoInfo(sps, pps, vps)
+            (videoPacket as H265Packet).sendVideoInfo(sps, pps, vps)
             sendInfo = true
           }
         }
       }
-
-      else -> {}
     }
     if (sendInfo && recordStatus == RecordController.Status.STARTED) {
       myRequestKeyFrame = null

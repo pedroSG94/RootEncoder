@@ -71,6 +71,7 @@ class FlvMuxerRecordController: AsyncBaseRecordController() {
             VideoCodec.VP8 -> Vp8Packet()
             VideoCodec.VP9 -> Vp9Packet()
         }
+        sendInfo = false
         outputStream?.let {
             try {
                 it.write(createFlvFileHeader())
