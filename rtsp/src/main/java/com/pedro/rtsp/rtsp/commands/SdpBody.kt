@@ -18,6 +18,7 @@ package com.pedro.rtsp.rtsp.commands
 
 import com.pedro.common.config.AacAudioSpecificConfig
 import com.pedro.common.config.AudioObjectType
+import com.pedro.common.toInt
 import com.pedro.rtsp.utils.RtpConstants
 
 /**
@@ -25,11 +26,7 @@ import com.pedro.rtsp.utils.RtpConstants
  */
 object SdpBody {
 
-  /**
-   * Opus only support sample rate 48khz and stereo channel but Android encoder accept others values.
-   * The encoder internally transform the sample rate to 48khz and channels to stereo
-   */
-  fun createOpusBody(trackAudio: Int, secured: Boolean = false): String {
+  fun createOpusBody(trackAudio: Int, sampleRate: Int, isStereo: Boolean, secured: Boolean = false): String {
     val payload = RtpConstants.payloadType + trackAudio
     val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
     val identifier = if (secured) {
@@ -37,12 +34,12 @@ object SdpBody {
       "a=mid:$trackAudio\r\n"
     } else "a=control:streamid=$trackAudio\r\n"
     return "m=audio 0 $type ${payload}\r\n" +
-        "a=rtpmap:$payload OPUS/48000/2\r\n" +
+        "a=rtpmap:$payload OPUS/${RtpConstants.clockOpusFrequency}/2\r\n" +
+        "a=fmtp:$payload sprop-stereo=${isStereo.toInt()}; sprop-maxcapturerate=$sampleRate\r\n" +
         identifier
   }
 
-  fun createG711Body(trackAudio: Int, sampleRate: Int, isStereo: Boolean, secured: Boolean = false): String {
-    val channel = if (isStereo) 2 else 1
+  fun createG711Body(trackAudio: Int, secured: Boolean = false): String {
     val payload = RtpConstants.payloadTypeG711
     val type = if (secured) "UDP/TLS/RTP/SAVPF" else "RTP/AVP"
     val identifier = if (secured) {
@@ -50,7 +47,7 @@ object SdpBody {
       "a=mid:$trackAudio\r\n"
     } else "a=control:streamid=$trackAudio\r\n"
     return "m=audio 0 $type ${payload}\r\n" +
-        "a=rtpmap:$payload PCMA/$sampleRate/$channel\r\n" +
+        "a=rtpmap:$payload PCMA/8000/1\r\n" +
         identifier
   }
 
@@ -119,7 +116,6 @@ object SdpBody {
     } else "a=control:streamid=$trackVideo\r\n"
     return "m=video 0 $type ${payload}\r\n" +
         "a=rtpmap:$payload VP8/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:$payload\r\n" +
         identifier
   }
 
@@ -132,7 +128,6 @@ object SdpBody {
     } else "a=control:streamid=$trackVideo\r\n"
     return "m=video 0 $type ${payload}\r\n" +
         "a=rtpmap:$payload VP9/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:$payload\r\n" +
         identifier
   }
 }

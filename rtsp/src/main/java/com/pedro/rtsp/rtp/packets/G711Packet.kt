@@ -22,20 +22,18 @@ import com.pedro.rtsp.utils.RtpConstants
 
 /**
  *
- * RFC 7655.
- * Valid for G711A and G711U
+ * RFC 3551, section 4.5.14.
+ * The packetization is the same for G711A (PCMA) and G711U (PCMU) but the payload type is not,
+ * so this only handle G711A because the payload type 8 is statically mapped to PCMA.
+ * G711U would need the payload type 0 instead.
  */
 class G711Packet(track: Int): BasePacket(
-  0,
+  RtpConstants.clockG711Frequency,
   RtpConstants.payloadTypeG711
 ) {
 
   init {
     channelIdentifier = track
-  }
-
-  fun setAudioInfo(sampleRate: Int) {
-    setClock(sampleRate.toLong())
   }
 
   override suspend fun createAndSendPacket(

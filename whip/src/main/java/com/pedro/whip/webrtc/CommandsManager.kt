@@ -332,8 +332,8 @@ class CommandsManager {
         var audioBody = ""
         if (!audioDisabled) {
             val media = when (audioCodec) {
-                AudioCodec.G711 -> SdpBody.createG711Body(rtpTracks.trackAudio, sampleRate, isStereo, true)
-                AudioCodec.OPUS -> SdpBody.createOpusBody(rtpTracks.trackAudio, true)
+                AudioCodec.G711 -> SdpBody.createG711Body(rtpTracks.trackAudio, true)
+                AudioCodec.OPUS -> SdpBody.createOpusBody(rtpTracks.trackAudio, sampleRate, isStereo, true)
                 else  -> throw IllegalArgumentException("Unsupported codec: ${audioCodec.name}")
             }
             audioBody = media +

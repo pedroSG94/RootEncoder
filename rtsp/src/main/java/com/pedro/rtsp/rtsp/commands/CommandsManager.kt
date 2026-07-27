@@ -168,9 +168,9 @@ open class CommandsManager {
     var audioBody = ""
     if (!audioDisabled) {
       audioBody = when (audioCodec) {
-        AudioCodec.G711 -> createG711Body(rtpTracks.trackAudio, sampleRate, isStereo)
+        AudioCodec.G711 -> createG711Body(rtpTracks.trackAudio)
         AudioCodec.AAC, AudioCodec.HE_AAC -> createAacBody(rtpTracks.trackAudio, sampleRate, isStereo, audioCodec == AudioCodec.HE_AAC)
-        AudioCodec.OPUS -> createOpusBody(rtpTracks.trackAudio)
+        AudioCodec.OPUS -> createOpusBody(rtpTracks.trackAudio, sampleRate, isStereo)
       }
     }
     val isIpv6 = host?.contains(":") == true

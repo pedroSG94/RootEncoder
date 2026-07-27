@@ -38,9 +38,8 @@ class G711Codec {
       sampleRate, 8000
     )
     var j = 0
-    val count = buffer.size / 2
-    val out = ByteArray(count)
-    for (i in 0 until count) {
+    val out = ByteArray(validBuffer.size / 2)
+    for (i in out.indices) {
       val sample = (validBuffer[j++].toInt() and 0xff or (validBuffer[j++].toInt() shl 8)).toShort()
       out[i] = linearToALawSample(sample)
     }

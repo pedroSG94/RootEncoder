@@ -34,10 +34,27 @@ class SdpBodyTest {
     val expectedPayload = "a=rtpmap:${RtpConstants.payloadType + track}"
     val expectedTrack = "a=control:streamid=${track}"
 
-    val result = SdpBody.createOpusBody(track)
+    val result = SdpBody.createOpusBody(track, 48000, true)
     assertTrue(result.contains(expectedType))
     assertTrue(result.contains(expectedPayload))
     assertTrue(result.contains(expectedTrack))
+  }
+
+  @Test
+  fun `GIVEN opus info WHEN create opus body THEN get expected sprop parameters`() {
+    val track = 1
+    val payload = RtpConstants.payloadType + track
+
+    //rtpmap always announce 48khz stereo, the real values only go in the fmtp
+    val expectedType = "OPUS/48000/2"
+
+    val stereo48k = SdpBody.createOpusBody(track, 48000, true)
+    assertTrue(stereo48k.contains(expectedType))
+    assertTrue(stereo48k.contains("a=fmtp:$payload sprop-stereo=1; sprop-maxcapturerate=48000\r\n"))
+
+    val mono16k = SdpBody.createOpusBody(track, 16000, false)
+    assertTrue(mono16k.contains(expectedType))
+    assertTrue(mono16k.contains("a=fmtp:$payload sprop-stereo=0; sprop-maxcapturerate=16000\r\n"))
   }
 
   @Test
@@ -61,14 +78,13 @@ class SdpBodyTest {
   @Test
   fun `GIVEN g711 info WHEN create g711 body THEN get expected string`() {
     val track = 1
-    val sampleRate = 8000
-    val channels = 1
 
-    val expectedType = "PCMA/$sampleRate/$channels"
+    //the payload type 8 is statically mapped to 8khz mono so it never depends on the encoder config
+    val expectedType = "PCMA/8000/1"
     val expectedPayload = "a=rtpmap:${RtpConstants.payloadTypeG711}"
     val expectedTrack = "a=control:streamid=${track}"
 
-    val result = SdpBody.createG711Body(track, sampleRate, channels == 2)
+    val result = SdpBody.createG711Body(track)
     assertTrue(result.contains(expectedType))
     assertTrue(result.contains(expectedPayload))
     assertTrue(result.contains(expectedTrack))
