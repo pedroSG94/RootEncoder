@@ -78,13 +78,6 @@ open class CommandsManager {
   val audioServerPorts = arrayOf<Int?>(5004, 5005)
   val videoServerPorts = arrayOf<Int?>(5006, 5007)
 
-  val spsString: String
-    get() = sps?.getData()?.encodeToString() ?: ""
-  val ppsString: String
-    get() = pps?.getData()?.encodeToString() ?: ""
-  val vpsString: String
-    get() = vps?.getData()?.encodeToString() ?: ""
-
   //For auth
   var user: String? = null
     private set
@@ -158,11 +151,26 @@ open class CommandsManager {
     var videoBody = ""
     if (!videoDisabled) {
       videoBody = when (videoCodec) {
-        VideoCodec.H264 -> createH264Body(rtpTracks.trackVideo, spsString, ppsString)
-        VideoCodec.H265 -> createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString)
+        VideoCodec.H264 -> {
+          val sps = this.sps
+          val pps = this.pps
+          if (sps == null || pps == null) ""
+          else createH264Body(rtpTracks.trackVideo, sps, pps)
+        }
+        VideoCodec.H265 -> {
+          val sps = this.sps
+          val pps = this.pps
+          val vps = this.vps
+          if (sps == null || pps == null || vps == null) ""
+          else createH265Body(rtpTracks.trackVideo, sps, pps, vps)
+        }
         VideoCodec.VP8 -> createVp8Body(rtpTracks.trackVideo)
         VideoCodec.VP9 -> createVp9Body(rtpTracks.trackVideo)
-        VideoCodec.AV1 -> createAV1Body(rtpTracks.trackVideo)
+        VideoCodec.AV1 -> {
+          val sps = this.sps
+          if (sps == null) ""
+          else createAV1Body(rtpTracks.trackVideo, sps)
+        }
       }
     }
     var audioBody = ""

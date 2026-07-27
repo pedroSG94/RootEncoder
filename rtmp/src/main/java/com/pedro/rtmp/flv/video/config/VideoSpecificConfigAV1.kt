@@ -16,8 +16,7 @@
 
 package com.pedro.rtmp.flv.video.config
 
-import com.pedro.common.BitBuffer
-import com.pedro.common.av1.Av1Parser
+import com.pedro.common.av1.Av1SequenceHeaderParser
 import com.pedro.common.toInt
 import java.nio.ByteBuffer
 
@@ -51,157 +50,21 @@ import java.nio.ByteBuffer
  */
 class VideoSpecificConfigAV1(private val sequenceObu: ByteArray) {
 
-  private val av1Parser = Av1Parser()
   val size = 4 + sequenceObu.size
 
   fun write(buffer: ByteArray, offset: Int) {
-    val obuData = av1Parser.getObus(sequenceObu)[0].data
-    val bitBuffer = BitBuffer(ByteBuffer.wrap(obuData))
-
-    val seqProfile = bitBuffer.getInt(3)
-    bitBuffer.skipBool()
-    val reducedStillPictureHeader = bitBuffer.getBool()
-    var seqLevelIdx = 0
-    var seqTier = false
-    var initialDisplayDelayPresentFlag = false
-    var initialPresentationDelay = 0
-    if (reducedStillPictureHeader) {
-      seqLevelIdx = bitBuffer.getInt(5)
-    } else {
-      val timingInfoPresentFlag = bitBuffer.getBool()
-      var decoderModelInfoPresentFlag = false
-      var bufferDelayLengthMinus1 = 0
-      if (timingInfoPresentFlag) {
-        bitBuffer.skip(64)
-        val equalPictureInterval = bitBuffer.getBool()
-        if (equalPictureInterval) {
-          bitBuffer.readUVLC()
-        }
-        decoderModelInfoPresentFlag = bitBuffer.getBool()
-        if (decoderModelInfoPresentFlag) {
-          bufferDelayLengthMinus1 = bitBuffer.getInt(5)
-          bitBuffer.skip(42) //skip this
-        }
-      }
-      initialDisplayDelayPresentFlag = bitBuffer.getBool()
-      val operatingPointsCntMinus1 = bitBuffer.getInt(5)
-      for (i in 0..operatingPointsCntMinus1) {
-        bitBuffer.skip(12) //skip
-        val levelIdx = bitBuffer.getInt(5)
-        if (i == 0) seqLevelIdx = levelIdx
-        if (levelIdx > 7) {
-          val sTier = bitBuffer.getBool()
-          if (i == 0) seqTier = sTier
-        }
-        if (decoderModelInfoPresentFlag) {
-          val decoderModelPresentForThisOp = bitBuffer.getBool()
-          if (decoderModelPresentForThisOp) {
-            val n = bufferDelayLengthMinus1 + 1
-            bitBuffer.skip(n * 2 + 1) //skip this
-          }
-        }
-        if (initialDisplayDelayPresentFlag) {
-          val initialDisplayDelayPresentForThisOp = bitBuffer.getBool()
-          if (initialDisplayDelayPresentForThisOp) {
-            val initialDisplayDelayMinus1 = bitBuffer.getInt(4)
-            if (i == 0) initialPresentationDelay = initialDisplayDelayMinus1
-          }
-        }
-      }
-    }
-
-    val frameWidthBitsMinus1 = bitBuffer.getInt(4)
-    val frameHeightBitsMinus1 = bitBuffer.getInt(4)
-    bitBuffer.skip(frameWidthBitsMinus1 + 1 + frameHeightBitsMinus1 + 1)
-    var frameIdNumbersPresentFlag = false
-    if (!reducedStillPictureHeader) {
-      frameIdNumbersPresentFlag = bitBuffer.getBool()
-    }
-    if (frameIdNumbersPresentFlag) bitBuffer.skip(7)
-    bitBuffer.skip(3)
-    if (!reducedStillPictureHeader) {
-      bitBuffer.skip(4)
-      val enableOrderHint = bitBuffer.getBool()
-      if (enableOrderHint) bitBuffer.skip(2)
-      val seqChooseScreenContentTools = bitBuffer.getBool()
-      val seqForceScreenContentTools = seqChooseScreenContentTools || bitBuffer.getBool()
-      if (seqForceScreenContentTools) {
-        val seqChooseIntegerMv = bitBuffer.getBool()
-        if (!seqChooseIntegerMv) bitBuffer.skipBool()
-      }
-      if (enableOrderHint) bitBuffer.skip(3)
-    }
-    bitBuffer.skip(3)
-    //config color
-    val highBitDepth = bitBuffer.getBool()
-    var twelveBit = false
-    var bitDepth = 0
-    if (seqProfile == 2 && highBitDepth) {
-      twelveBit = bitBuffer.getBool()
-      bitDepth = if (twelveBit) 12 else 10
-    } else if (seqProfile <= 2) {
-      bitDepth = if (highBitDepth) 10 else 8
-    }
-    val monochrome = if (seqProfile == 1) {
-      false
-    } else {
-      val chrome = bitBuffer.getBool()
-      chrome
-    }
-    val colorDescriptionPresentFlag = bitBuffer.getBool()
-    var colorPrimaries = 0
-    var transferCharacteristics = 0
-    var matrixCoefficients = 0
-    if (colorDescriptionPresentFlag) {
-      colorPrimaries = bitBuffer.getInt(8)
-      transferCharacteristics = bitBuffer.getInt(8)
-      matrixCoefficients = bitBuffer.getInt(8)
-    }
-    val subsamplingX: Boolean
-    val subsamplingY: Boolean
-    var samplePosition = 0
-    if (monochrome) {
-      bitBuffer.getBool()
-      subsamplingX = true
-      subsamplingY = true
-    } else if (colorPrimaries == 1 && transferCharacteristics == 13 && matrixCoefficients == 0) {
-      subsamplingX = false
-      subsamplingY = false
-    } else {
-      bitBuffer.skipBool()
-      if (seqProfile == 0) {
-        subsamplingX = true
-        subsamplingY = true
-      } else if (seqProfile == 1) {
-        subsamplingX = false
-        subsamplingY = false
-      } else {
-        if (bitDepth == 12) {
-          subsamplingX = bitBuffer.getBool()
-          subsamplingY = if (subsamplingX) {
-            bitBuffer.getBool()
-          } else {
-            false
-          }
-        } else {
-          subsamplingX = true
-          subsamplingY = false
-        }
-      }
-      if (subsamplingX && subsamplingY) {
-        samplePosition = bitBuffer.getInt(2)
-      }
-    }
+    val sequenceHeader = Av1SequenceHeaderParser()
+    sequenceHeader.parse(sequenceObu)
     //finish config color
     val data = ByteBuffer.wrap(buffer, offset, size)
     data.put(0x81.toByte()) //marker and version
-    data.put(((seqProfile shl 5) or seqLevelIdx).toByte())
+    data.put(((sequenceHeader.seqProfile shl 5) or sequenceHeader.seqLevelIdx).toByte())
     data.put(
-      ((seqTier.toInt() shl 7) or (highBitDepth.toInt() shl 6) or (twelveBit.toInt() shl 5) or (monochrome.toInt() shl 4) or
-      (subsamplingX.toInt() shl 3) or (subsamplingY.toInt() shl 2) or samplePosition.toInt()).toByte()
+      ((sequenceHeader.seqTier.toInt() shl 7) or (sequenceHeader.highBitDepth.toInt() shl 6) or (sequenceHeader.twelveBit.toInt() shl 5) or (sequenceHeader.monochrome.toInt() shl 4) or
+      (sequenceHeader.subsamplingX.toInt() shl 3) or (sequenceHeader.subsamplingY.toInt() shl 2) or sequenceHeader.samplePosition.toInt()).toByte()
     )
     val reserved = 0
-    data.put(((reserved shl 5) or (initialDisplayDelayPresentFlag.toInt() shl 4) or initialPresentationDelay).toByte())
+    data.put(((reserved shl 5) or (sequenceHeader.initialDisplayDelayPresentFlag.toInt() shl 4) or sequenceHeader.initialPresentationDelay).toByte())
     data.put(sequenceObu)
   }
 }

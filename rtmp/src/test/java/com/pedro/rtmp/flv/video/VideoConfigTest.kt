@@ -16,7 +16,7 @@
 
 package com.pedro.rtmp.flv.video
 
-import com.pedro.rtmp.flv.video.config.SPSH265Parser
+import com.pedro.common.SpsH265Parser
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAV1
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAVC
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigHEVC
@@ -79,7 +79,7 @@ class VideoConfigTest {
       66, 1, 1, 1, 96, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, -103, -96, 15, 8, 2, -127,
       104, -76, -82, -55, 46, -26, -96, -64, -64, -64, 16
     )
-    val parser = SPSH265Parser()
+    val parser = SpsH265Parser()
     parser.parse(sps)
 
     assertEquals(0, parser.generalProfileSpace)

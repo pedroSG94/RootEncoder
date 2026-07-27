@@ -80,12 +80,6 @@ class CommandsManager {
         private set
     var audioSsrc: Long = 0L
         private set
-    val spsString: String
-        get() = sps?.getData()?.encodeToString() ?: ""
-    val ppsString: String
-        get() = pps?.getData()?.encodeToString() ?: ""
-    val vpsString: String
-        get() = vps?.getData()?.encodeToString() ?: ""
 
     companion object {
         private const val TAG = "CommandsManager"
@@ -310,10 +304,17 @@ class CommandsManager {
         if (!videoDisabled) {
             val media = when (videoCodec) {
                 VideoCodec.H264 -> {
-                    SdpBody.createH264Body(rtpTracks.trackVideo, spsString, ppsString, true)
+                    val sps = this.sps
+                    val pps = this.pps
+                    if (sps == null || pps == null) ""
+                    else SdpBody.createH264Body(rtpTracks.trackVideo, sps, pps, true)
                 }
                 VideoCodec.H265 -> {
-                    SdpBody.createH265Body(rtpTracks.trackVideo, spsString, ppsString, vpsString, true)
+                    val sps = this.sps
+                    val pps = this.pps
+                    val vps = this.vps
+                    if (sps == null || pps == null || vps == null) ""
+                    else SdpBody.createH265Body(rtpTracks.trackVideo, sps, pps, vps, true)
                 }
                 VideoCodec.VP8 -> {
                     SdpBody.createVp8Body(rtpTracks.trackVideo, true)
@@ -322,12 +323,16 @@ class CommandsManager {
                     SdpBody.createVp9Body(rtpTracks.trackVideo, true)
                 }
                 VideoCodec.AV1 -> {
-                    SdpBody.createAV1Body(rtpTracks.trackVideo, true)
+                    val sps = this.sps
+                    if (sps == null) ""
+                    else SdpBody.createAV1Body(rtpTracks.trackVideo, sps, true)
                 }
             }
-            videoBody = media +
-                "a=rtcp-mux\r\n" +
-                "a=ssrc:$videoSsrc cname:$cName\r\n"
+            if (media.isNotEmpty()) {
+                videoBody = media +
+                    "a=rtcp-mux\r\n" +
+                    "a=ssrc:$videoSsrc cname:$cName\r\n"
+            }
         }
         var audioBody = ""
         if (!audioDisabled) {
@@ -341,8 +346,8 @@ class CommandsManager {
                 "a=ssrc:$audioSsrc cname:$cName\r\n"
         }
         val bundleMids = listOfNotNull(
-            if (!videoDisabled) rtpTracks.trackVideo else null,
-            if (!audioDisabled) rtpTracks.trackAudio else null
+            if (videoBody.isNotEmpty()) rtpTracks.trackVideo else null,
+            if (audioBody.isNotEmpty()) rtpTracks.trackAudio else null
         ).joinToString(" ")
         val sdpSha256 = fingerprint.chunked(2)
             .joinToString(":") { it.uppercase() }
