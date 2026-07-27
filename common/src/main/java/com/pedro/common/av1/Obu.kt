@@ -21,10 +21,10 @@ package com.pedro.common.av1
  */
 data class Obu(
   val header: ByteArray, //header and optional extension header
-  val leb128: ByteArray?, //this is the length value encoded in leb128 mode
+  val leb128: ByteArray,//this is the length value encoded in leb128 mode
   val data: ByteArray
 ) {
   fun getFullData(): ByteArray {
-    return header.plus(leb128 ?: byteArrayOf()).plus(data)
+    return header.plus(leb128).plus(data)
   }
 }

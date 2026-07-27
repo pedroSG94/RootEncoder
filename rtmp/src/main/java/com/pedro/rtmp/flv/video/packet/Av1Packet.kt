@@ -17,17 +17,15 @@
 package com.pedro.rtmp.flv.video.packet
 
 import android.util.Log
-import com.pedro.common.av1.Av1Parser
-import com.pedro.common.av1.ObuType
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
 import com.pedro.common.toByteArray
 import com.pedro.rtmp.flv.BasePacket
 import com.pedro.rtmp.flv.FlvPacket
 import com.pedro.rtmp.flv.FlvType
-import com.pedro.rtmp.flv.video.VideoFourCCPacketType
 import com.pedro.rtmp.flv.video.VideoDataType
 import com.pedro.rtmp.flv.video.VideoFormat
+import com.pedro.rtmp.flv.video.VideoFourCCPacketType
 import com.pedro.rtmp.flv.video.config.VideoSpecificConfigAV1
 import java.nio.ByteBuffer
 
@@ -39,7 +37,6 @@ class Av1Packet: BasePacket() {
 
   private val TAG = "AV1Packet"
 
-  private val parser = Av1Parser()
   private val header = ByteArray(5)
   //first time we need send video config
   private var configSend = false
@@ -53,7 +50,7 @@ class Av1Packet: BasePacket() {
     mediaFrame: MediaFrame,
     callback: suspend (FlvPacket) -> Unit
   ) {
-    var fixedBuffer = mediaFrame.data.duplicate().removeInfo(mediaFrame.info)
+    val fixedBuffer = mediaFrame.data.duplicate().removeInfo(mediaFrame.info)
     val ts = mediaFrame.info.timestamp / 1000
 
     //header is 5 bytes length:
@@ -82,13 +79,7 @@ class Av1Packet: BasePacket() {
       callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
       configSend = true
     }
-    //remove temporal delimitered OBU if found on start
-    if (parser.getObuType(fixedBuffer.get(0)) == ObuType.TEMPORAL_DELIMITER) {
-      fixedBuffer.position(2)
-      fixedBuffer = fixedBuffer.slice()
-    }
 
-    fixedBuffer.rewind()
     val size = fixedBuffer.remaining()
     buffer = ByteArray(header.size + size)
 

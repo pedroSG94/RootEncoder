@@ -54,38 +54,45 @@ class Av1Parser {
     val obuList = mutableListOf<Obu>()
     var index = 0
     while (index < av1Data.size) {
-      val header = readHeader(av1Data, index)
+      val header = readHeader(av1Data, index) ?: break
       index += header.size
-      val leb128Value = readLeb128(av1Data, index)
-      val length = av1Data.sliceArray(index until index + leb128Value.second)
-      index += length.size
-      val data = av1Data.sliceArray(index until index + leb128Value.first.toInt())
+      val leb128 = if (((header[0].toInt() ushr 1) and 0x01) == 1) {
+        val b = readLeb128(av1Data, index) ?: break
+        index += b.size
+        b
+      } else {
+        header[0] = (header[0].toInt() or 0x02).toByte()
+        writeLeb128(av1Data.size.toLong() - index)
+      }
+      val leb128Length = leb128.leb128ToLength()
+      if (index + leb128Length > av1Data.size) break //discard obu with invalid leb128
+      val data = av1Data.sliceArray(index until index + leb128Length.toInt())
       index += data.size
-      val obu = Obu(header, length, data)
-      obuList.add(obu)
+      obuList.add(Obu(header, leb128, data))
     }
     return obuList
   }
 
-  private fun readHeader(av1Data: ByteArray, offset: Int): ByteArray {
-    val header = mutableListOf<Byte>()
+  private fun readHeader(av1Data: ByteArray, offset: Int): ByteArray? {
+    if (offset >= av1Data.size) return null
     val info = av1Data[offset]
-    header.add(info)
     val containExtended = ((info.toInt() ushr 2) and 0x01) == 1
-    if (containExtended) header.add(av1Data[offset + 1])
-    return header.toByteArray()
+    if (containExtended) {
+      if (offset + 1 >= av1Data.size) return null
+      return byteArrayOf(info, av1Data[offset + 1])
+    }
+    return byteArrayOf(info)
   }
 
-  private fun readLeb128(data: ByteArray, offset: Int): Pair<Long, Int> {
-    var result: Long = 0
+  private fun readLeb128(data: ByteArray, offset: Int): ByteArray? {
     var index = 0
     var b: Byte
     do {
+      if (index >= 8 || offset + index >= data.size) return null
       b = data[offset + index]
-      result = result or ((b.toLong() and 0x7F) shl (index * 7))
       index++
     } while (b.toInt() and 0x80 != 0)
-    return Pair(result, index)
+    return data.sliceArray(offset until offset + index)
   }
 
   fun writeLeb128(length: Long) : ByteArray {
@@ -100,5 +107,23 @@ class Av1Parser {
       result.add(byte)
     } while (remainingValue != 0L)
     return result.toByteArray()
+  }
+
+  fun leb128Size(value: Int): Int {
+    var size = 1
+    var v = value ushr 7
+    while (v != 0) {
+      size++
+      v = v ushr 7
+    }
+    return size
+  }
+
+  private fun ByteArray.leb128ToLength(): Long {
+    var result = 0L
+    for (i in this.indices) {
+      result = result or ((this[i].toLong() and 0x7F) shl (i * 7))
+    }
+    return result
   }
 }
