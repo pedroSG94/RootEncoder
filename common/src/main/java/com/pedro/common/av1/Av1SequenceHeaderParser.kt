@@ -25,8 +25,10 @@ class Av1SequenceHeaderParser {
 
   fun parse(sequenceObu: ByteArray) {
     val av1Parser = Av1Parser()
-    val obuData = av1Parser.getObus(sequenceObu)[0].data
-    val bitBuffer = BitBuffer(ByteBuffer.wrap(obuData))
+    val obu = av1Parser.getObus(sequenceObu).firstOrNull {
+      av1Parser.getObuType(it.header[0]) == ObuType.SEQUENCE_HEADER
+    } ?: throw IllegalArgumentException("sequence header obu not found")
+    val bitBuffer = BitBuffer(ByteBuffer.wrap(obu.data))
 
     seqProfile = bitBuffer.getInt(3)
     bitBuffer.skipBool()

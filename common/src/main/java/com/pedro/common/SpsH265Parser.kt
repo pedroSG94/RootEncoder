@@ -24,7 +24,7 @@ class SpsH265Parser {
   }
 
   fun parse(sps: ByteBuffer) {
-    val rbsp = BitBuffer.extractRbsp(sps, 2)
+    val rbsp = BitBuffer.extractRbsp(ByteBuffer.wrap(sps.getData()), 2)
     val bitBuffer = BitBuffer(rbsp)
     //Dropping nal_unit_header
     bitBuffer.skip(16)
@@ -51,7 +51,7 @@ class SpsH265Parser {
     }
 
     if (maxSubLayersMinus1 > 0) {
-      repeat((maxSubLayersMinus1..8).count()) {
+      repeat((maxSubLayersMinus1 until 8).count()) {
         bitBuffer.skip(2) // reserved_zero_2bits
       }
     }

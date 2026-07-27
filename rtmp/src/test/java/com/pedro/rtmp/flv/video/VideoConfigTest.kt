@@ -74,6 +74,19 @@ class VideoConfigTest {
   }
 
   @Test
+  fun `GIVEN obu sequence after a temporal delimiter WHEN create a video config THEN parse the sequence header`() {
+    val temporalDelimiter = byteArrayOf(0x12, 0x00)
+    val obuSequence = temporalDelimiter.plus(byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02))
+    //same profile/level than without the temporal delimiter, the whole buffer is still copied as configOBUs
+    val expectedConfig = byteArrayOf(0x81.toByte(), 0x04, 0x0c, 0x00).plus(obuSequence)
+
+    val config = VideoSpecificConfigAV1(obuSequence)
+    val data = ByteArray(config.size)
+    config.write(data, 0)
+    assertArrayEquals(expectedConfig, data)
+  }
+
+  @Test
   fun `GIVEN a real H265 sps WHEN parse THEN decode the profile_tier_level fields`() {
     val sps = byteArrayOf(
       66, 1, 1, 1, 96, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, 0, 3, 0, -103, -96, 15, 8, 2, -127,

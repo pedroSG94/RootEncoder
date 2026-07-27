@@ -47,4 +47,14 @@ class G711CodecTest {
     assertEquals(bufferPCM.size, result.size)
     assertArrayEquals(bufferPCM, result)
   }
+
+  @Test
+  fun `GIVEN a codec configured to 16khz stereo WHEN decode audio G711 THEN resample the decoded pcm`() {
+    val codec = G711Codec().apply { configure(16000, 2) }
+    val bufferG711 = byteArrayOf(-67, -93)
+
+    val result = codec.decode(bufferG711, 0, bufferG711.size)
+    //g711 always decodes to 8khz mono, so 2 samples become 4 frames of 2 channels
+    assertEquals(2 * 2 * 2 * 2, result.size)
+  }
 }

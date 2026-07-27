@@ -40,11 +40,11 @@ class CommandParser {
       val matcher = rtspPattern.matcher(command.text)
       if (matcher.find()) {
         if (isAudio) {
-          audioServerPorts[0] = matcher.group(1)?.toInt() ?: audioClientPorts[0]
-          audioServerPorts[1] = matcher.group(2)?.toInt() ?: audioClientPorts[1]
+          audioServerPorts[0] = matcher.group(1)?.toIntOrNull() ?: audioClientPorts[0]
+          audioServerPorts[1] = matcher.group(2)?.toIntOrNull() ?: audioClientPorts[1]
         } else {
-          videoServerPorts[0] = matcher.group(1)?.toInt() ?: videoClientPorts[0]
-          videoServerPorts[1] = matcher.group(2)?.toInt() ?: videoClientPorts[1]
+          videoServerPorts[0] = matcher.group(1)?.toIntOrNull() ?: videoClientPorts[0]
+          videoServerPorts[1] = matcher.group(2)?.toIntOrNull() ?: videoClientPorts[1]
         }
         return true
       }
@@ -84,7 +84,7 @@ class CommandParser {
   private fun getCSeq(request: String): Int {
     val cSeqMatcher = Pattern.compile("CSeq\\s*:\\s*(\\d+)", Pattern.CASE_INSENSITIVE).matcher(request)
     return if (cSeqMatcher.find()) {
-      cSeqMatcher.group(1)?.toInt() ?: -1
+      cSeqMatcher.group(1)?.toIntOrNull() ?: -1
     } else {
       Log.e(TAG, "cSeq not found")
       -1
@@ -121,7 +121,7 @@ class CommandParser {
   private fun getResponseStatus(response: String): Int {
     val matcher = Pattern.compile("RTSP/\\d.\\d (\\d+) (\\w+)", Pattern.CASE_INSENSITIVE).matcher(response)
     return if (matcher.find()) {
-      (matcher.group(1) ?: "-1").toInt()
+      matcher.group(1)?.toIntOrNull() ?: -1
     } else {
       Log.e(TAG, "status code not found")
       -1

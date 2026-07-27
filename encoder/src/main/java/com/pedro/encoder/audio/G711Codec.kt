@@ -47,19 +47,15 @@ class G711Codec {
   }
 
   fun decode(buffer: ByteArray, offset: Int, size: Int): ByteArray {
-    val validBuffer = PCMUtil.resample(
-      if (offset == 0 && size == buffer.size) buffer else buffer.copyOfRange(offset, offset + size),
-      channels, 1,
-      sampleRate, 8000
-    )
+    val aLaw = if (offset == 0 && size == buffer.size) buffer else buffer.copyOfRange(offset, offset + size)
     var j = 0
-    val out = ByteArray(validBuffer.size * 2)
-    for (i in validBuffer.indices) {
-      val s = aLawDecompressTable[validBuffer[i].toInt() and 0xff]
+    val out = ByteArray(aLaw.size * 2)
+    for (i in aLaw.indices) {
+      val s = aLawDecompressTable[aLaw[i].toInt() and 0xff]
       out[j++] = s.toByte()
       out[j++] = (s.toInt() shr 8).toByte()
     }
-    return out
+    return PCMUtil.resample(out, 1, channels, 8000, sampleRate)
   }
 
   private fun linearToALawSample(mySample: Short): Byte {
