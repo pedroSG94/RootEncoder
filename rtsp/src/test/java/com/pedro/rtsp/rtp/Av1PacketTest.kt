@@ -33,6 +33,9 @@ import java.nio.ByteBuffer
  * The aggregation header is the byte after the rtp header. W is always 0 so every obu element is
  * preceded by its length in leb128, and Z and Y say if the element comes fragmented from the
  * previous packet or continues in the next one.
+ *
+ * Each obu element travels with obu_has_size_field set to 0 and without its leb128, because the
+ * length of the aggregation is already the size of the element.
  */
 class Av1PacketTest {
 
@@ -53,13 +56,12 @@ class Av1PacketTest {
     val av1data = byteArrayOf(0x0a, 0x0d, 0x00, 0x00, 0x00, 0x24, 0x4f, 0x7e, 0x7f, 0x00, 0x68, 0x83.toByte(), 0x00, 0x83.toByte(), 0x02)
     val frames = createPackets(av1data)
 
-    //aggregation header Z=0, Y=0, W=0, N=1. With W=0 every obu element is preceded by its length
-    val aggregationHeader: Byte = 0x08
-    val obuLength = av1data.size.toByte() //15, it fits in a single leb128 byte
-    val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, aggregationHeader, obuLength).plus(av1data)
-    val expectedSize = RtpConstants.RTP_HEADER_LENGTH + 1 + 1 + av1data.size
+    //aggregation header 0x08 -> Z=0, Y=0, W=0, N=1, then the length 0x0e of the element.
+    //the element is the header 0x0a with obu_has_size_field cleared (0x08) plus the 13 bytes of data
+    val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 14,
+      8, 0, 0, 0, 36, 79, 126, 127, 0, 104, -125, 0, -125, 2)
     assertEquals(1, frames.size)
-    assertEquals(RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, 0), frames[0])
+    assertEquals(RtpFrame(expectedRtp, expectedTimeStamp, expectedRtp.size, 0), frames[0])
   }
 
   @Test
@@ -68,11 +70,11 @@ class Av1PacketTest {
     val frameObu = byteArrayOf(0x32, 0x03, 0xaa.toByte(), 0xbb.toByte(), 0xcc.toByte())
     val frames = createPackets(sequenceHeader.plus(frameObu))
 
-    //aggregation header 0x08 -> Z=0, Y=0, N=1. Length 0x04 and the 4 bytes of the sequence header
-    val expectedFirst = byteArrayOf(-128, 96, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 4, 10, 2, 17, 34)
-    //aggregation header 0x00 -> Z=0, Y=0, N=0. Length 0x05 and the 5 bytes of the frame obu.
+    //aggregation header 0x08 -> Z=0, Y=0, N=1. Length 0x03 and the element 0x08, 0x11, 0x22
+    val expectedFirst = byteArrayOf(-128, 96, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 3, 8, 17, 34)
+    //aggregation header 0x00 -> Z=0, Y=0, N=0. Length 0x04 and the element 0x30, 0xaa, 0xbb, 0xcc.
     //byte 1 is -32 instead of 96 because this is the last packet of the frame, so it carries the marker
-    val expectedSecond = byteArrayOf(-128, -32, 0, 2, 0, -87, -118, -57, 7, 91, -51, 21, 0, 5, 50, 3, -86, -69, -52)
+    val expectedSecond = byteArrayOf(-128, -32, 0, 2, 0, -87, -118, -57, 7, 91, -51, 21, 0, 4, 48, -86, -69, -52)
     assertEquals(2, frames.size)
     assertEquals(RtpFrame(expectedFirst, expectedTimeStamp, expectedFirst.size, 0), frames[0])
     assertEquals(RtpFrame(expectedSecond, expectedTimeStamp, expectedSecond.size, 0), frames[1])
@@ -85,30 +87,31 @@ class Av1PacketTest {
     val frames = createPackets(temporalDelimiter.plus(sequenceHeader))
 
     //only the sequence header is sent, the same packet than sending it alone
-    val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 4, 10, 2, 17, 34)
+    val expectedRtp = byteArrayOf(-128, -32, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 3, 8, 17, 34)
     assertEquals(1, frames.size)
     assertEquals(RtpFrame(expectedRtp, expectedTimeStamp, expectedRtp.size, 0), frames[0])
   }
 
   @Test
   fun `GIVEN an obu bigger than the mtu WHEN create rtp packets THEN fragment it chaining Z and Y`() = runTest {
-    //3003 bytes of element, it needs 3 packets with the default mtu
+    //3000 bytes of data, so 3001 of element once the leb128 is dropped. It needs 3 packets
     val obu = byteArrayOf(0x32, 0xb8.toByte(), 0x17).plus(ByteArray(3000) { 0x55 })
+    val element = byteArrayOf(0x30).plus(ByteArray(3000) { 0x55 })
     val frames = createPackets(obu)
 
-    //rtp header, aggregation header and the leb128 with the bytes of the obu carried in each packet.
+    //rtp header, aggregation header and the leb128 with the bytes of the element carried in each packet.
     //0x48 -> Z=0 Y=1 N=1, 0xC0 -> Z=1 Y=1, 0x80 -> Z=1 Y=0. Only the last packet has the marker
     val expectedFirstHeader = byteArrayOf(-128, 96, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 72, -79, 11)
     val expectedSecondHeader = byteArrayOf(-128, 96, 0, 2, 0, -87, -118, -57, 7, 91, -51, 21, -64, -79, 11)
-    val expectedThirdHeader = byteArrayOf(-128, -32, 0, 3, 0, -87, -118, -57, 7, 91, -51, 21, -128, 89)
+    val expectedThirdHeader = byteArrayOf(-128, -32, 0, 3, 0, -87, -118, -57, 7, 91, -51, 21, -128, 87)
     assertEquals(3, frames.size)
     assertArrayEquals(expectedFirstHeader, frames[0].buffer.copyOfRange(0, expectedFirstHeader.size))
     assertArrayEquals(expectedSecondHeader, frames[1].buffer.copyOfRange(0, expectedSecondHeader.size))
     assertArrayEquals(expectedThirdHeader, frames[2].buffer.copyOfRange(0, expectedThirdHeader.size))
-    //the leb128 of each packet declares 1457, 1457 and 89, that is the obu without losing a byte
-    assertArrayEquals(obu.copyOfRange(0, 1457), frames[0].buffer.copyOfRange(15, frames[0].buffer.size))
-    assertArrayEquals(obu.copyOfRange(1457, 2914), frames[1].buffer.copyOfRange(15, frames[1].buffer.size))
-    assertArrayEquals(obu.copyOfRange(2914, 3003), frames[2].buffer.copyOfRange(14, frames[2].buffer.size))
+    //the leb128 of each packet declares 1457, 1457 and 87, that is the element without losing a byte
+    assertArrayEquals(element.copyOfRange(0, 1457), frames[0].buffer.copyOfRange(15, frames[0].buffer.size))
+    assertArrayEquals(element.copyOfRange(1457, 2914), frames[1].buffer.copyOfRange(15, frames[1].buffer.size))
+    assertArrayEquals(element.copyOfRange(2914, 3001), frames[2].buffer.copyOfRange(14, frames[2].buffer.size))
   }
 
   @Test
@@ -122,14 +125,15 @@ class Av1PacketTest {
     assertEquals(4, frames.size)
     assertEquals(expectedAggregationHeaders, frames.map { it.buffer[RtpConstants.RTP_HEADER_LENGTH].toInt() and 0xff })
     //the sequence header travels complete in its own packet
-    val expectedFirst = byteArrayOf(-128, 96, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 4, 10, 2, 17, 34)
+    val expectedFirst = byteArrayOf(-128, 96, 0, 1, 0, -87, -118, -57, 7, 91, -51, 21, 8, 3, 8, 17, 34)
     assertEquals(RtpFrame(expectedFirst, expectedTimeStamp, expectedFirst.size, 0), frames[0])
   }
 
   @Test
   fun `GIVEN an obu that fills the payload exactly WHEN create rtp packets THEN don't fragment it`() = runTest {
     //1457 bytes of element plus 2 of leb128 are 1459, the payload limit with the default mtu
-    val obu = byteArrayOf(0x32, 0xae.toByte(), 0x0b).plus(ByteArray(1454) { 0x77 })
+    val obu = byteArrayOf(0x32, 0xb0.toByte(), 0x0b).plus(ByteArray(1456) { 0x77 })
+    val element = byteArrayOf(0x30).plus(ByteArray(1456) { 0x77 })
     val frames = createPackets(obu)
 
     //aggregation header 0x08 -> Z=0 Y=0 N=1, and the leb128 -79, 11 declares the 1457 bytes
@@ -137,6 +141,6 @@ class Av1PacketTest {
     assertEquals(1, frames.size)
     assertEquals(RtpConstants.MTU - 28, frames[0].buffer.size)
     assertArrayEquals(expectedHeader, frames[0].buffer.copyOfRange(0, expectedHeader.size))
-    assertArrayEquals(obu, frames[0].buffer.copyOfRange(15, frames[0].buffer.size))
+    assertArrayEquals(element, frames[0].buffer.copyOfRange(15, frames[0].buffer.size))
   }
 }
