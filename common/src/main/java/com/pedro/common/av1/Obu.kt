@@ -27,4 +27,10 @@ data class Obu(
   fun getFullData(): ByteArray {
     return header.plus(leb128).plus(data)
   }
+
+  fun getFullDataWithoutSize(): ByteArray {
+    val header = this.header.copyOf()
+    header[0] = (header[0].toInt() and 0x02.inv()).toByte()
+    return header.plus(data)
+  }
 }

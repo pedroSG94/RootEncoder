@@ -17,6 +17,7 @@
 package com.pedro.rtsp.rtp.packets
 
 import com.pedro.common.av1.Av1Parser
+import com.pedro.common.av1.Obu
 import com.pedro.common.av1.ObuType
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
@@ -43,9 +44,16 @@ class Av1Packet(track: Int): BasePacket(
 ) {
 
   private val parser = Av1Parser()
+  private var sequenceHeader: Obu? = null
 
   init {
     channelIdentifier = track
+  }
+
+  fun sendVideoInfo(sequenceHeader: ByteBuffer) {
+    this.sequenceHeader = parser.getObus(sequenceHeader.toByteArray()).firstOrNull {
+      parser.getObuType(it.header[0]) == ObuType.SEQUENCE_HEADER
+    }
   }
 
   override suspend fun createAndSendPacket(
@@ -57,12 +65,19 @@ class Av1Packet(track: Int): BasePacket(
     val obuList = parser.getObus(fixedBuffer.toByteArray()).filterNot {
       val type = parser.getObuType(it.header[0])
       type == ObuType.TEMPORAL_DELIMITER || type == ObuType.TILE_LIST
-    }
+    }.toMutableList()
     if (obuList.isEmpty()) return
+    if (mediaFrame.info.isKeyFrame) {
+      sequenceHeader?.let { sequenceHeader ->
+        if (obuList.none { parser.getObuType(it.header[0]) == ObuType.SEQUENCE_HEADER }) {
+          obuList.add(0, sequenceHeader)
+        }
+      }
+    }
     val frames = mutableListOf<RtpFrame>()
     val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()
     obuList.forEachIndexed { index, obuData ->
-      val obu = ByteBuffer.wrap(obuData.getFullData())
+      val obu = ByteBuffer.wrap(obuData.getFullDataWithoutSize())
       val size = obu.remaining()
       var sum = 0
       while (sum < size) {
