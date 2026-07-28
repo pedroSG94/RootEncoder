@@ -55,6 +55,7 @@ import com.pedro.encoder.video.GetVideoData;
 import com.pedro.encoder.video.VideoEncoder;
 import com.pedro.library.base.recording.RecordController;
 import com.pedro.library.util.AndroidMuxerRecordController;
+import com.pedro.library.util.FlvMuxerRecordController;
 import com.pedro.library.util.FpsListener;
 import com.pedro.library.util.streamclient.StreamBaseClient;
 import com.pedro.library.view.GlInterface;
@@ -130,6 +131,8 @@ public abstract class Camera1Base {
     audioEncoder = new AudioEncoder(getAudioData);
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       recordController = new AndroidMuxerRecordController();
+    } else {
+      recordController = new FlvMuxerRecordController();
     }
   }
 
