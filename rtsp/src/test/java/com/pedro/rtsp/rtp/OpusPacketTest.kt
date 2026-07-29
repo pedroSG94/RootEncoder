@@ -38,13 +38,14 @@ class OpusPacketTest {
     val rtpTracks = RtpTracks()
     val info = MediaFrame.Info(0, fakeOpus.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeOpus), info, MediaFrame.Type.AUDIO)
-    val opusPacket = OpusPacket(rtpTracks.trackAudio).apply { setAudioInfo(8000) }
+    val opusPacket = OpusPacket(rtpTracks.trackAudio)
     opusPacket.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     opusPacket.createAndSendPacket(mediaFrame) { frames.addAll(it) }
 
-    val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 15, 18, 6, 7, 91, -51, 21).plus(fakeOpus)
-    val expectedTimeStamp = 987654L
+    //timestamp always calculated with a 48khz clock, no matter the sample rate used to encode
+    val expectedRtp = byteArrayOf(-128, -31, 0, 1, 0, 90, 108, 37, 7, 91, -51, 21).plus(fakeOpus)
+    val expectedTimeStamp = 5925925L
     val expectedSize = RtpConstants.RTP_HEADER_LENGTH + info.size
     val packetResult = RtpFrame(expectedRtp, expectedTimeStamp, expectedSize, rtpTracks.trackAudio)
     assertEquals(1, frames.size)

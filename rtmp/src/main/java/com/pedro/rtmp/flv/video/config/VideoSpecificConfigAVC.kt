@@ -16,6 +16,7 @@
 
 package com.pedro.rtmp.flv.video.config
 
+import com.pedro.common.SpsH264Parser
 import java.nio.ByteBuffer
 
 /**
@@ -42,15 +43,15 @@ class VideoSpecificConfigAVC(private val sps: ByteArray, private val pps: ByteAr
   val size = calculateSize(sps, pps)
 
   fun write(buffer: ByteArray, offset: Int) {
+    val spsH264Parser = SpsH264Parser()
+    spsH264Parser.parse(sps)
+
     val data = ByteBuffer.wrap(buffer, offset, size)
     //5 bytes sps/pps header
     data.put(0x01)
-    val profileIdc = sps[1]
-    data.put(profileIdc)
-    val profileCompatibility = sps[2]
-    data.put(profileCompatibility)
-    val levelIdc = sps[3]
-    data.put(levelIdc)
+    data.put(spsH264Parser.profileIdc.toByte())
+    data.put(spsH264Parser.profileCompatibility.toByte())
+    data.put(spsH264Parser.levelIdc.toByte())
     data.put(0xff.toByte())
     //3 bytes size of sps
     data.put(0xe1.toByte())

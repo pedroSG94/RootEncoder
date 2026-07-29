@@ -70,7 +70,7 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   }
 
   protected fun updateTimeStamp(buffer: ByteArray, timestamp: Long): Long {
-    val ts = timestamp * clock / 1000000000L
+    val ts = (timestamp / 1000000000L) * clock + ((timestamp % 1000000000L) * clock) / 1000000000L
     buffer.setLong(ts, 4, 8)
     return ts
   }

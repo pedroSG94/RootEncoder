@@ -101,6 +101,20 @@ class ExtensionTest {
   }
 
   @Test
+  fun `GIVEN a ByteBuffer WHEN remove header or get data multiple times THEN don't modify the buffer received`() {
+    val fakeBuffer = ByteBuffer.wrap(byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x65, 0x02))
+    val expected = byteArrayOf(0x65, 0x02)
+
+    assertArrayEquals(expected, fakeBuffer.getData())
+    assertEquals(0, fakeBuffer.position())
+    assertEquals(ByteBuffer.wrap(expected), fakeBuffer.removeHeader())
+    assertEquals(0, fakeBuffer.position())
+    //a second call must return exactly the same
+    assertArrayEquals(expected, fakeBuffer.getData())
+    assertEquals(0, fakeBuffer.position())
+  }
+
+  @Test
   fun `GIVEN a ByteArray WHEN write uint32 in an offset THEN get array with value written in big endian`() {
     val fakeBuffer = ByteArray(8)
     fakeBuffer.writeUInt32(2, 0x01020304)

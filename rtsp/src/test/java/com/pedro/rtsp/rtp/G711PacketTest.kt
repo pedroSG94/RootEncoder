@@ -43,7 +43,7 @@ class G711PacketTest {
     val rtpTracks = RtpTracks()
     val info = MediaFrame.Info(0, fakeG711.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeG711), info, MediaFrame.Type.AUDIO)
-    val g711Packet = G711Packet(rtpTracks.trackAudio).apply { setAudioInfo(8000) }
+    val g711Packet = G711Packet(rtpTracks.trackAudio)
     g711Packet.setSSRC(123456789)
     val frames = mutableListOf<RtpFrame>()
     g711Packet.createAndSendPacket(mediaFrame) { frames.addAll(it) }
@@ -83,7 +83,6 @@ class G711PacketTest {
     val info = MediaFrame.Info(0, fakeG711.size, timestamp, false)
     val mediaFrame = MediaFrame(ByteBuffer.wrap(fakeG711), info, MediaFrame.Type.AUDIO)
     val g711Packet = G711Packet(rtpTracks.trackAudio).apply {
-      setAudioInfo(8000)
       setSSRC(ssrc)
       setCryptoProperties(CryptoProperties(authKey, sessionKey, salt))
     }

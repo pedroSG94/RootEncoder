@@ -17,6 +17,7 @@
 package com.pedro.rtsp.rtp.packets
 
 import com.pedro.common.av1.Av1Parser
+import com.pedro.common.av1.Obu
 import com.pedro.common.av1.ObuType
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
@@ -43,60 +44,67 @@ class Av1Packet(track: Int): BasePacket(
 ) {
 
   private val parser = Av1Parser()
+  private var sequenceHeader: Obu? = null
 
   init {
     channelIdentifier = track
+  }
+
+  fun sendVideoInfo(sequenceHeader: ByteBuffer) {
+    this.sequenceHeader = parser.getObus(sequenceHeader.toByteArray()).firstOrNull {
+      parser.getObuType(it.header[0]) == ObuType.SEQUENCE_HEADER
+    }
   }
 
   override suspend fun createAndSendPacket(
     mediaFrame: MediaFrame,
     callback: suspend (List<RtpFrame>) -> Unit
   ) {
-    var fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
-    //remove temporal delimitered OBU if found on start
-    if (parser.getObuType(fixedBuffer.get(0)) == ObuType.TEMPORAL_DELIMITER) {
-      fixedBuffer.position(2)
-      fixedBuffer = fixedBuffer.slice()
-    }
-    val obuList = parser.getObus(fixedBuffer.duplicate().toByteArray())
+    val fixedBuffer = mediaFrame.data.removeInfo(mediaFrame.info)
     val ts = mediaFrame.info.timestamp * 1000L
+    val obuList = parser.getObus(fixedBuffer.toByteArray()).filterNot {
+      val type = parser.getObuType(it.header[0])
+      type == ObuType.TEMPORAL_DELIMITER || type == ObuType.TILE_LIST
+    }.toMutableList()
     if (obuList.isEmpty()) return
-    var data = byteArrayOf()
-    obuList.forEachIndexed { index, obu ->
-      val obuData = obu.getFullData()
-      data = if (index == obuList.size - 1) {
-        data.plus(obuData)
-      } else {
-        data.plus(parser.writeLeb128(obuData.size.toLong()).plus(obuData))
+    if (mediaFrame.info.isKeyFrame) {
+      sequenceHeader?.let { sequenceHeader ->
+        if (obuList.none { parser.getObuType(it.header[0]) == ObuType.SEQUENCE_HEADER }) {
+          obuList.add(0, sequenceHeader)
+        }
       }
     }
-    fixedBuffer = ByteBuffer.wrap(data)
-    val size = fixedBuffer.remaining()
-    var sum = 0
     val frames = mutableListOf<RtpFrame>()
-    while (sum < size) {
-      val isFirstPacket = sum == 0
-      var isLastPacket = false
-      val length = if (size - sum > maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()) {
-        maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()
-      } else {
-        fixedBuffer.remaining()
+    val maxPayload = maxPacketSize - RtpConstants.RTP_HEADER_LENGTH - 1 - encryptSize()
+    obuList.forEachIndexed { index, obuData ->
+      val obu = ByteBuffer.wrap(obuData.getFullDataWithoutSize())
+      val size = obu.remaining()
+      var sum = 0
+      while (sum < size) {
+        val firstObuPacket = sum == 0
+        val isFirstPacket = firstObuPacket && index == 0
+        var lastObuPacket = false
+
+        var length = minOf(obu.remaining(), maxPayload - 1)
+        while (parser.leb128Size(length) + length > maxPayload) length--
+        val prefixSize = parser.leb128Size(length)
+
+        val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1 + prefixSize + encryptSize())
+        val rtpTs = updateTimeStamp(buffer, ts)
+        obu.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1 + prefixSize, length)
+        sum += length
+        // Last packet before next Obu
+        if (sum >= size) {
+          lastObuPacket = true
+          if (index == obuList.size - 1) markPacket(buffer) //mark end frame
+        }
+        buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(mediaFrame.info.isKeyFrame, firstObuPacket, lastObuPacket, isFirstPacket)
+        parser.writeLeb128(length.toLong()).copyInto(buffer, RtpConstants.RTP_HEADER_LENGTH + 1)
+        updateSeq(buffer)
+        encryptPacket(buffer)
+        val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
+        frames.add(rtpFrame)
       }
-      val buffer = getBuffer(length + RtpConstants.RTP_HEADER_LENGTH + 1 + encryptSize())
-      val rtpTs = updateTimeStamp(buffer, ts)
-      fixedBuffer.get(buffer, RtpConstants.RTP_HEADER_LENGTH + 1, length)
-      sum += length
-      // Last packet before next NAL
-      if (sum >= size) {
-        isLastPacket = true
-        markPacket(buffer) //mark end frame
-      }
-      val oSize = if (isFirstPacket) obuList.size else 1
-      buffer[RtpConstants.RTP_HEADER_LENGTH] = generateAv1AggregationHeader(mediaFrame.info.isKeyFrame, isFirstPacket, isLastPacket, oSize)
-      updateSeq(buffer)
-      encryptPacket(buffer)
-      val rtpFrame = RtpFrame(buffer, rtpTs, buffer.size, channelIdentifier)
-      frames.add(rtpFrame)
     }
     if (frames.isNotEmpty()) callback(frames)
   }
@@ -105,12 +113,11 @@ class Av1Packet(track: Int): BasePacket(
     super.reset()
   }
 
-  private fun generateAv1AggregationHeader(isKeyFrame: Boolean, isFirstPacket: Boolean, isLastPacket: Boolean, numObu: Int): Byte {
-    val z = if (isFirstPacket) 0 else 1
-    val y = if (isLastPacket) 0 else 1
-    val w = numObu
+  private fun generateAv1AggregationHeader(isKeyFrame: Boolean, firstObuPacket: Boolean, lastObuPacket: Boolean, isFirstPacket: Boolean): Byte {
+    val z = if (firstObuPacket) 0 else 1
+    val y = if (lastObuPacket) 0 else 1
+    val w = 0
     val n = if (isKeyFrame && isFirstPacket) 1 else 0
     return ((z shl 7) or (y shl 6) or (w shl 4) or (n shl 3) or 0).toByte()
   }
-
 }

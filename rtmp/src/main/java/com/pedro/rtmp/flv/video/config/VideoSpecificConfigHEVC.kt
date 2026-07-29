@@ -16,6 +16,7 @@
 
 package com.pedro.rtmp.flv.video.config
 
+import com.pedro.common.SpsH265Parser
 import com.pedro.common.toUInt64
 import java.nio.ByteBuffer
 
@@ -76,7 +77,7 @@ class VideoSpecificConfigHEVC(
     val configurationVersion = 1
     data.put(configurationVersion.toByte())
 
-    val spsParsed = SPSH265Parser()
+    val spsParsed = SpsH265Parser()
     spsParsed.parse(sps)
 
     val generalProfileSpace = spsParsed.generalProfileSpace

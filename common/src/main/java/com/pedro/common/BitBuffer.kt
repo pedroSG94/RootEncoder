@@ -93,7 +93,7 @@ class BitBuffer(val buffer: ByteBuffer) {
 
       rbsp.put(buffer, 0, headerLength)
 
-      var previous = buffer.position()
+      var previous = headerLength
       indices.forEach {
         rbsp.put(buffer, previous, it + 2 - previous)
         previous = it + 3 // skip emulation_prevention_three_byte

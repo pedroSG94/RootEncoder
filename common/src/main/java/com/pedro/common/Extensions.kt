@@ -76,7 +76,8 @@ fun ByteBuffer.toByteArray(
 }
 
 fun ByteBuffer.getStartCodeSize(): Int {
-  if (this.remaining() < 4) return 0
+  //the start code is searched using absolute indexes so the limit is the value that matters
+  if (this.limit() < 4) return 0
   var startCodeSize = 0
   if (this.get(0).toInt() == 0x00 && this.get(1).toInt() == 0x00
     && this.get(2).toInt() == 0x00 && this.get(3).toInt() == 0x01) {
@@ -348,9 +349,10 @@ fun InetAddress.addressToString(): String {
 fun ByteBuffer.getData(): ByteArray = removeHeader().toByteArray()
 
 fun ByteBuffer.removeHeader(): ByteBuffer {
-  val startCodeSize = this.getStartCodeSize()
-  this.position(startCodeSize)
-  return this.slice()
+  val buffer = this.duplicate()
+  val startCodeSize = buffer.getStartCodeSize()
+  buffer.position(startCodeSize)
+  return buffer.slice()
 }
 
 fun ByteArray.writeUInt32(offset: Int, value: Int) {
