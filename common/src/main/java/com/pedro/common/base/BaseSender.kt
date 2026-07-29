@@ -2,8 +2,10 @@ package com.pedro.common.base
 
 import android.util.Log
 import com.pedro.common.BitrateManager
+import com.pedro.common.BufferPool
 import com.pedro.common.ConnectChecker
 import com.pedro.common.StreamBlockingQueue
+import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -13,6 +15,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 
@@ -24,7 +27,8 @@ abstract class BaseSender(
     @Volatile
     protected var running = false
 
-    protected val queue = StreamBlockingQueue(400)
+    private val queue = StreamBlockingQueue(400)
+    private val bufferPool = BufferPool()
 
     protected val audioFramesSent = AtomicLong(0)
     protected val videoFramesSent = AtomicLong(0)
@@ -44,24 +48,54 @@ abstract class BaseSender(
     protected abstract suspend fun onRun()
     protected abstract suspend fun stopImp(clear: Boolean = true)
 
-    fun sendMediaFrame(mediaFrame: MediaFrame) {
-        if (running && !queue.trySend(mediaFrame)) {
-            when (mediaFrame.type) {
-                MediaFrame.Type.VIDEO -> {
-                    Log.i(TAG, "Video frame discarded")
-                    droppedVideoFrames.incrementAndGet()
-                }
-                MediaFrame.Type.AUDIO -> {
-                    Log.i(TAG, "Audio frame discarded")
-                    droppedAudioFrames.incrementAndGet()
-                }
+    fun sendMediaFrame(buffer: ByteBuffer, info: MediaFrame.Info, type: MediaFrame.Type) {
+        if (!running) return
+        val data = bufferPool.acquire(buffer.limit())
+        val mediaFrame = MediaFrame(buffer.clone(data), info, type)
+        if (!queue.trySend(mediaFrame)) {
+            countDiscardedFrame(type)
+            recycleFrame(mediaFrame)
+        }
+    }
+
+    /**
+     * Take the next frame from the queue, hand it to [consume] and recycle its buffer once
+     * consumed. Senders must read frames only through this method, the buffer is reused right
+     * after [consume] returns.
+     */
+    protected suspend fun consumeFrame(consume: suspend (MediaFrame) -> Unit) {
+        val mediaFrame = runInterruptible { queue.take() }
+        try {
+            consume(mediaFrame)
+        } finally {
+            recycleFrame(mediaFrame)
+        }
+    }
+
+    /**
+     * Every frame here was built by [sendMediaFrame], so its data is a slice of a pooled array
+     * and [java.nio.ByteBuffer.array] gives it back.
+     */
+    private fun recycleFrame(mediaFrame: MediaFrame) {
+        if (mediaFrame.data.hasArray()) bufferPool.release(mediaFrame.data.array())
+    }
+
+    private fun countDiscardedFrame(type: MediaFrame.Type) {
+        when (type) {
+            MediaFrame.Type.VIDEO -> {
+                Log.i(TAG, "Video frame discarded")
+                droppedVideoFrames.incrementAndGet()
+            }
+            MediaFrame.Type.AUDIO -> {
+                Log.i(TAG, "Audio frame discarded")
+                droppedAudioFrames.incrementAndGet()
             }
         }
     }
 
     fun start() {
         bitrateManager.reset()
-        queue.clear()
+        queue.clear { recycleFrame(it) }
         running = true
         job = scope.launch {
             val bitrateTask = async {
@@ -86,7 +120,8 @@ abstract class BaseSender(
         resetBytesSend()
         job?.cancelAndJoin()
         job = null
-        queue.clear()
+        queue.clear { recycleFrame(it) }
+        bufferPool.clear()
     }
 
     @Throws(IllegalArgumentException::class)
@@ -110,7 +145,7 @@ abstract class BaseSender(
     fun getItemsInCache(): Int = queue.getSize()
 
     fun clearCache() {
-        queue.clear()
+        queue.clear { recycleFrame(it) }
     }
 
     fun getSentAudioFrames(): Long = audioFramesSent.get()

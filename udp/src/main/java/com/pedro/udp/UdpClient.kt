@@ -245,13 +245,13 @@ class UdpClient(private val connectChecker: ConnectChecker) {
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandManager.videoDisabled) {
-      udpSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
+      udpSender.sendMediaFrame(videoBuffer, info.toMediaFrameInfo(), MediaFrame.Type.VIDEO)
     }
   }
 
   fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandManager.audioDisabled) {
-      udpSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
+      udpSender.sendMediaFrame(audioBuffer, info.toMediaFrameInfo(), MediaFrame.Type.AUDIO)
     }
   }
 

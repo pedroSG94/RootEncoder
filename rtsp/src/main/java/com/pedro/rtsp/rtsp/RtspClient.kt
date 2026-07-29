@@ -23,7 +23,6 @@ import com.pedro.common.ConnectChecker
 import com.pedro.common.ConnectionFailed
 import com.pedro.common.UrlParser
 import com.pedro.common.VideoCodec
-import com.pedro.common.clone
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.onMainThread
 import com.pedro.common.socket.base.SocketType
@@ -464,13 +463,13 @@ class RtspClient(private val connectChecker: ConnectChecker) {
 
   fun sendVideo(videoBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.videoDisabled) {
-      rtspSender.sendMediaFrame(MediaFrame(videoBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.VIDEO))
+      rtspSender.sendMediaFrame(videoBuffer, info.toMediaFrameInfo(), MediaFrame.Type.VIDEO)
     }
   }
 
   fun sendAudio(audioBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     if (!commandsManager.audioDisabled) {
-      rtspSender.sendMediaFrame(MediaFrame(audioBuffer.clone(), info.toMediaFrameInfo(), MediaFrame.Type.AUDIO))
+      rtspSender.sendMediaFrame(audioBuffer, info.toMediaFrameInfo(), MediaFrame.Type.AUDIO)
     }
   }
 

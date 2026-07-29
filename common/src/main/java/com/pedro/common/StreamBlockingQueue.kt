@@ -46,9 +46,19 @@ class StreamBlockingQueue(var capacity: Int) {
         cacheQueue.drainTo(destiny.cacheQueue)
     }
 
-    fun clear() {
-        queue.clear()
-        cacheQueue.clear()
+    /**
+     * @param onRemove called for every discarded frame, used to recycle pooled buffers.
+     */
+    fun clear(onRemove: ((MediaFrame) -> Unit)? = null) {
+        if (onRemove != null) {
+            val removed = mutableListOf<MediaFrame>()
+            queue.drainTo(removed)
+            cacheQueue.drainTo(removed)
+            removed.forEach(onRemove)
+        } else {
+            queue.clear()
+            cacheQueue.clear()
+        }
         startTs = 0L
         cacheTimeFilled.set(false)
     }
