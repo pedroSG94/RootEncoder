@@ -53,8 +53,17 @@ abstract class BaseSender(
         val data = bufferPool.acquire(buffer.limit())
         val mediaFrame = MediaFrame(buffer.clone(data), info, type)
         if (!queue.trySend(mediaFrame)) {
-            countDiscardedFrame(type)
-            recycleFrame(mediaFrame)
+            bufferPool.release(mediaFrame.data)
+            when (type) {
+                MediaFrame.Type.VIDEO -> {
+                    Log.i(TAG, "Video frame discarded")
+                    droppedVideoFrames.incrementAndGet()
+                }
+                MediaFrame.Type.AUDIO -> {
+                    Log.i(TAG, "Audio frame discarded")
+                    droppedAudioFrames.incrementAndGet()
+                }
+            }
         }
     }
 
@@ -68,34 +77,13 @@ abstract class BaseSender(
         try {
             consume(mediaFrame)
         } finally {
-            recycleFrame(mediaFrame)
-        }
-    }
-
-    /**
-     * Every frame here was built by [sendMediaFrame], so its data is a slice of a pooled array
-     * and [java.nio.ByteBuffer.array] gives it back.
-     */
-    private fun recycleFrame(mediaFrame: MediaFrame) {
-        if (mediaFrame.data.hasArray()) bufferPool.release(mediaFrame.data.array())
-    }
-
-    private fun countDiscardedFrame(type: MediaFrame.Type) {
-        when (type) {
-            MediaFrame.Type.VIDEO -> {
-                Log.i(TAG, "Video frame discarded")
-                droppedVideoFrames.incrementAndGet()
-            }
-            MediaFrame.Type.AUDIO -> {
-                Log.i(TAG, "Audio frame discarded")
-                droppedAudioFrames.incrementAndGet()
-            }
+            bufferPool.release(mediaFrame.data)
         }
     }
 
     fun start() {
         bitrateManager.reset()
-        queue.clear { recycleFrame(it) }
+        queue.clear { bufferPool.release(it.data) }
         running = true
         job = scope.launch {
             val bitrateTask = async {
@@ -120,7 +108,7 @@ abstract class BaseSender(
         resetBytesSend()
         job?.cancelAndJoin()
         job = null
-        queue.clear { recycleFrame(it) }
+        queue.clear { bufferPool.release(it.data) }
         bufferPool.clear()
     }
 
@@ -145,7 +133,7 @@ abstract class BaseSender(
     fun getItemsInCache(): Int = queue.getSize()
 
     fun clearCache() {
-        queue.clear { recycleFrame(it) }
+        queue.clear { bufferPool.release(it.data) }
     }
 
     fun getSentAudioFrames(): Long = audioFramesSent.get()

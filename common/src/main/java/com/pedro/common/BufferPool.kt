@@ -63,6 +63,10 @@ class BufferPool(
     return ByteArray(1 shl sizeClass)
   }
 
+  fun release(buffer: java.nio.ByteBuffer) {
+    if (buffer.hasArray()) release(buffer.array())
+  }
+
   /**
    * Give an array back to the pool. Arrays not created by [acquire], and arrays already released,
    * are ignored, so the same array can never be handed out to two users at once.
@@ -93,7 +97,6 @@ class BufferPool(
 
   fun getRetainedBytes(): Long = synchronized(lock) { retainedBytes }
 
-  //ceil(log2(size)) clamped to the smallest size class
   private fun sizeClassOf(size: Int): Int {
     val value = maxOf(size, 1 shl MIN_SIZE_CLASS)
     return 32 - Integer.numberOfLeadingZeros(value - 1)
