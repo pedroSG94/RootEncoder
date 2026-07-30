@@ -79,6 +79,7 @@ class AudioFileSource(
 
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
+    if (isRunning()) return
     audioDecoder.prepareAudio()
     audioDecoder.start()
     running = true
@@ -89,6 +90,7 @@ class AudioFileSource(
   }
 
   override fun stop() {
+    this.getMicrophoneData = null
     running = false
     audioDecoder.stop()
   }

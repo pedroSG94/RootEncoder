@@ -82,31 +82,29 @@ class MixAudioSource(
 
     override fun start(getMicrophoneData: GetMicrophoneData) {
         this.getMicrophoneData = getMicrophoneData
-        if (!isRunning()) {
-            handlerThread = HandlerThread(TAG)
-            handlerThread.start()
-            MediaProjectionHandler.mediaProjection?.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
-            val config = AudioPlaybackCaptureConfiguration.Builder(MediaProjectionHandler.mediaProjection!!)
-                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
-                .addMatchingUsage(AudioAttributes.USAGE_GAME)
-                .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN).build()
-            val result = microphone.createMixMicrophone(microphoneAudioSource, config, sampleRate, isStereo, echoCanceler, noiseSuppressor)
-            if (!result) {
-                throw IllegalArgumentException("Failed to create microphone audio source")
-            }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                microphone.setPreferredDevice(preferredDevice)
-            }
-            microphone.start()
+        if (isRunning()) return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            throw IllegalStateException("Using mix audio in a invalid Android version. Android 10+ is necessary")
         }
+        handlerThread = HandlerThread(TAG)
+        handlerThread.start()
+        MediaProjectionHandler.mediaProjection?.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
+        val config = AudioPlaybackCaptureConfiguration.Builder(MediaProjectionHandler.mediaProjection!!)
+            .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+            .addMatchingUsage(AudioAttributes.USAGE_GAME)
+            .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN).build()
+        val result = microphone.createMixMicrophone(microphoneAudioSource, config, sampleRate, isStereo, echoCanceler, noiseSuppressor)
+        if (!result) {
+            throw IllegalArgumentException("Failed to create microphone audio source")
+        }
+        microphone.setPreferredDevice(preferredDevice)
+        microphone.start()
     }
 
     override fun stop() {
-        if (isRunning()) {
-            getMicrophoneData = null
-            microphone.stop()
-            handlerThread.quitSafely()
-        }
+        getMicrophoneData = null
+        microphone.stop()
+        handlerThread.quitSafely()
     }
 
     override fun isRunning(): Boolean = microphone.isRunning

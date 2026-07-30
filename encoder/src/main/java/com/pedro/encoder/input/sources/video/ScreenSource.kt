@@ -82,7 +82,7 @@ class ScreenSource @JvmOverloads constructor(
     } catch (e: Exception) {
       surface.release()
       handlerThread.quitSafely()
-      throw IllegalArgumentException(e)
+      throw e
     }
     this.surface = surface
     this.handlerThread = handlerThread

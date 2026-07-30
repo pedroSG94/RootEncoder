@@ -27,6 +27,7 @@ class Media3VideoSource(
 
     private var player: ExoPlayer? = null
     private var surface: Surface? = null
+    private var running = false
 
     override fun create(width: Int, height: Int, fps: Int, rotation: Int): Boolean {
         val mediaExtractor = Media3Extractor(context)
@@ -41,6 +42,8 @@ class Media3VideoSource(
     }
 
     override fun start(surfaceTexture: SurfaceTexture) {
+        this.surfaceTexture = surfaceTexture
+        if (isRunning()) return
         surface = Surface(surfaceTexture)
         player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.VIDEO)).build().also { exoPlayer ->
             exoPlayer.setVideoSurface(surface)
@@ -56,9 +59,11 @@ class Media3VideoSource(
             }
         })
         player?.play()
+        running = true
     }
 
     override fun stop() {
+        running = false
         player?.release()
         player = null
         surface?.release()
@@ -69,7 +74,7 @@ class Media3VideoSource(
 
     }
 
-    override fun isRunning(): Boolean = player?.isPlaying == true
+    override fun isRunning(): Boolean = running
 
     override fun getOrientationConfig() = OrientationConfig(forced = OrientationForced.LANDSCAPE)
 

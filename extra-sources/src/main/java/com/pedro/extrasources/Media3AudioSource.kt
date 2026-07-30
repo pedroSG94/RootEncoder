@@ -25,6 +25,7 @@ class Media3AudioSource(
 ): AudioSource() {
 
     private var player: ExoPlayer? = null
+    private var running = false
 
     private val processor = AudioBufferProcessor { bytes ->
         val frame = Frame(bytes, 0, bytes.size, TimeUtils.getCurrentTimeMicro())
@@ -52,6 +53,7 @@ class Media3AudioSource(
 
     override fun start(getMicrophoneData: GetMicrophoneData) {
         this.getMicrophoneData = getMicrophoneData
+        if (isRunning()) return
         player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.AUDIO, processor)).build().also { exoPlayer ->
             val mediaItem = MediaItem.fromUri(path)
             exoPlayer.setMediaItem(mediaItem)
@@ -65,10 +67,12 @@ class Media3AudioSource(
             }
         })
         player?.play()
+        running = true
     }
 
     override fun stop() {
-        getMicrophoneData = null
+        this.getMicrophoneData = null
+        running = false
         player?.release()
         player = null
     }
@@ -77,7 +81,7 @@ class Media3AudioSource(
 
     }
 
-    override fun isRunning(): Boolean = player?.isPlaying == true
+    override fun isRunning(): Boolean = running
 
     fun getPlayer() = player
 }

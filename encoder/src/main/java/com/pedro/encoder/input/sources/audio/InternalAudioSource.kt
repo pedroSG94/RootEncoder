@@ -60,35 +60,31 @@ class InternalAudioSource(
 
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
-    if (!isRunning()) {
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-        handlerThread = HandlerThread(TAG)
-        handlerThread.start()
-        MediaProjectionHandler.mediaProjection?.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
-        val config = AudioPlaybackCaptureConfiguration.Builder(MediaProjectionHandler.mediaProjection!!)
-          .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
-          .addMatchingUsage(AudioAttributes.USAGE_GAME)
-          .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN).build()
-        try {
-          val result = microphone.createInternalMicrophone(config, sampleRate, isStereo,
-            echoCanceler, noiseSuppressor)
-          if (!result) throw IllegalArgumentException("Failed to create internal audio source")
-        } catch (e: UnsupportedOperationException) {
-          throw IllegalArgumentException("invalid MediaProjection used")
-        }
-      } else {
-        throw IllegalStateException("Using internal audio in a invalid Android version. Android 10+ is necessary")
-      }
-      microphone.start()
+    if (isRunning()) return
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+      throw IllegalStateException("Using internal audio in a invalid Android version. Android 10+ is necessary")
     }
+    handlerThread = HandlerThread(TAG)
+    handlerThread.start()
+    MediaProjectionHandler.mediaProjection?.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
+    val config = AudioPlaybackCaptureConfiguration.Builder(MediaProjectionHandler.mediaProjection!!)
+      .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+      .addMatchingUsage(AudioAttributes.USAGE_GAME)
+      .addMatchingUsage(AudioAttributes.USAGE_UNKNOWN).build()
+    try {
+      val result = microphone.createInternalMicrophone(config, sampleRate, isStereo,
+        echoCanceler, noiseSuppressor)
+      if (!result) throw IllegalArgumentException("Failed to create internal audio source")
+    } catch (_: UnsupportedOperationException) {
+      throw IllegalArgumentException("invalid MediaProjection used")
+    }
+    microphone.start()
   }
 
   override fun stop() {
-    if (isRunning()) {
-      this.getMicrophoneData = null
-      microphone.stop()
-      handlerThread.quitSafely()
-    }
+    this.getMicrophoneData = null
+    microphone.stop()
+    handlerThread.quitSafely()
   }
 
   override fun isRunning(): Boolean = microphone.isRunning

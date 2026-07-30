@@ -90,6 +90,7 @@ class BufferAudioSource(
 
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
+    if (isRunning()) return
     synchronized(lock) {
       buffer.fill(0)
       readIndex = 0
@@ -221,6 +222,7 @@ class BufferAudioSource(
   }
 
   override fun stop() {
+    this.getMicrophoneData = null
     running = false
     runBlocking { job?.cancelAndJoin() }
   }

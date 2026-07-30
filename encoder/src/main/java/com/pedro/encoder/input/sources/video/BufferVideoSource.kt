@@ -118,6 +118,7 @@ class BufferVideoSource(
         decoder.stop()
         queue.clear()
         surface?.release()
+        surface = null
     }
 
     override fun release() { }
