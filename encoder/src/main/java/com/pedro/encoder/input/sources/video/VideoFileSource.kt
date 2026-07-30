@@ -63,6 +63,7 @@ class VideoFileSource(
 
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
+    if (isRunning()) return
     videoDecoder.prepareVideo(Surface(surfaceTexture))
     videoDecoder.start()
     running = true

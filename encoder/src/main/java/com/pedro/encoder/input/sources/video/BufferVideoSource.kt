@@ -88,6 +88,8 @@ class BufferVideoSource(
     }
 
     override fun start(surfaceTexture: SurfaceTexture) {
+        this.surfaceTexture = surfaceTexture
+        if (isRunning()) return
         scope = CoroutineScope(Dispatchers.IO)
         queue.clear()
         running = true

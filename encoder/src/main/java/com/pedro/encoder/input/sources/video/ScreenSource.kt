@@ -43,6 +43,7 @@ class ScreenSource @JvmOverloads constructor(
 
   private val TAG = "ScreenSource"
   private var virtualDisplay: VirtualDisplay? = null
+  private var surface: Surface? = null
   private var handlerThread = HandlerThread(TAG)
   private val mediaProjectionCallback = mediaProjectionCallback ?: object : MediaProjection.Callback() {}
   private val virtualDisplayCallback = virtualDisplayCallback ?: object : VirtualDisplay.Callback() {}
@@ -58,32 +59,41 @@ class ScreenSource @JvmOverloads constructor(
 
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
-    if (!isRunning()) {
-      val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
-      //Adapt MediaProjection render to stream resolution
-      val shouldRotate = rotation == 90 || rotation == 270
-      val displayWidth = if (shouldRotate) height else width
-      val displayHeight = if (shouldRotate) width else height
-      if (shouldRotate) surfaceTexture.setDefaultBufferSize(height, width)
-      handlerThread = HandlerThread(TAG)
-      handlerThread.start()
-      MediaProjectionHandler.mediaProjection?.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
-      virtualDisplay = MediaProjectionHandler.mediaProjection?.createVirtualDisplay(TAG,
+    if (isRunning()) return
+    val flags = DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR
+    //Adapt MediaProjection render to stream resolution
+    val shouldRotate = rotation == 90 || rotation == 270
+    val displayWidth = if (shouldRotate) height else width
+    val displayHeight = if (shouldRotate) width else height
+    if (shouldRotate) surfaceTexture.setDefaultBufferSize(height, width)
+    val handlerThread = HandlerThread(TAG)
+    handlerThread.start()
+    MediaProjectionHandler.mediaProjection?.registerCallback(mediaProjectionCallback, Handler(handlerThread.looper))
+    val surface = Surface(surfaceTexture)
+    try {
+      val virtualDisplay = MediaProjectionHandler.mediaProjection?.createVirtualDisplay(TAG,
         displayWidth, displayHeight, dpi, flags,
-        Surface(surfaceTexture), virtualDisplayCallback, Handler(handlerThread.looper)
+        surface, virtualDisplayCallback, Handler(handlerThread.looper)
       )
       if (virtualDisplay == null) {
         throw IllegalArgumentException("Failed to create internal virtual display")
       }
+      this.virtualDisplay = virtualDisplay
+    } catch (e: Exception) {
+      surface.release()
+      handlerThread.quitSafely()
+      throw IllegalArgumentException(e)
     }
+    this.surface = surface
+    this.handlerThread = handlerThread
   }
 
   override fun stop() {
-    if (isRunning()) {
-      virtualDisplay?.release()
-      virtualDisplay = null
-      handlerThread.quitSafely()
-    }
+    virtualDisplay?.release()
+    virtualDisplay = null
+    surface?.release()
+    surface = null
+    handlerThread.quitSafely()
   }
 
   override fun release() {

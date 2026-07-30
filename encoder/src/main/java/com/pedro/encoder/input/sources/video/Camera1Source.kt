@@ -50,16 +50,15 @@ class Camera1Source(context: Context): VideoSource() {
 
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
-    if (!isRunning()) {
-      surfaceTexture.setDefaultBufferSize(width, height)
-      camera.setSurfaceTexture(surfaceTexture)
-      camera.start(facing, width, height, fps)
-      camera.setPreviewOrientation(90) // necessary to use the same orientation than camera2
-    }
+    if (isRunning()) return
+    surfaceTexture.setDefaultBufferSize(width, height)
+    camera.setSurfaceTexture(surfaceTexture)
+    camera.start(facing, width, height, fps)
+    camera.setPreviewOrientation(90) // necessary to use the same orientation than camera2
   }
 
   override fun stop() {
-    if (isRunning()) camera.stop()
+    camera.stop()
   }
 
   override fun release() {}
