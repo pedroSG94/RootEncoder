@@ -43,6 +43,7 @@ class CameraUvcSource: VideoSource() {
 
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
+    if (isRunning()) return
     surface = Surface(surfaceTexture)
     cameraHelper = CameraHelper()
     cameraHelper?.setStateCallback(stateCallback)

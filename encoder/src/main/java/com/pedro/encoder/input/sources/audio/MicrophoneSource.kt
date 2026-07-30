@@ -52,23 +52,20 @@ class MicrophoneSource(
 
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
-    if (!isRunning()) {
-      val result = microphone.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)
-      if (!result) {
-        throw IllegalArgumentException("Failed to create microphone audio source")
-      }
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        microphone.setPreferredDevice(preferredDevice)
-      }
-      microphone.start()
+    if (isRunning()) return
+    val result = microphone.createMicrophone(audioSource, sampleRate, isStereo, echoCanceler, noiseSuppressor)
+    if (!result) {
+      throw IllegalArgumentException("Failed to create microphone audio source")
     }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+      microphone.setPreferredDevice(preferredDevice)
+    }
+    microphone.start()
   }
 
   override fun stop() {
-    if (isRunning()) {
-      this.getMicrophoneData = null
-      microphone.stop()
-    }
+    this.getMicrophoneData = null
+    microphone.stop()
   }
 
   override fun isRunning(): Boolean = microphone.isRunning

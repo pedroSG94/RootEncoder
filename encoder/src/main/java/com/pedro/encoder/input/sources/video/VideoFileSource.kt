@@ -46,6 +46,7 @@ class VideoFileSource(
       onFinish(true)
     }
   }
+  private var surface: Surface? = null
   private var running = false
   private var videoDecoder = VideoDecoder(videoDecoderInterface, decoderInterface)
 
@@ -63,14 +64,19 @@ class VideoFileSource(
 
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
-    videoDecoder.prepareVideo(Surface(surfaceTexture))
+    if (isRunning()) return
+    val surface = Surface(surfaceTexture)
+    videoDecoder.prepareVideo(surface)
     videoDecoder.start()
     running = true
+    this.surface = surface
   }
 
   override fun stop() {
     running = false
     videoDecoder.stop()
+    this.surface?.release()
+    this.surface = null
   }
 
   override fun release() {
@@ -93,7 +99,7 @@ class VideoFileSource(
     videoDecoder.isLoopMode = enabled
   }
 
-  @Throws(IOException::class)
+  @Throws(IOException::class, IllegalStateException::class)
   fun replaceFile(context: Context, uri: Uri) {
     val wasRunning = videoDecoder.isRunning
     val videoDecoder = VideoDecoder(videoDecoderInterface, decoderInterface)
@@ -102,8 +108,12 @@ class VideoFileSource(
     this.videoDecoder.stop()
     this.videoDecoder = videoDecoder
     if (wasRunning) {
-      videoDecoder.prepareVideo(Surface(surfaceTexture))
+      val surfaceTexture = this.surfaceTexture ?: throw IllegalStateException("SurfaceTexture was not available")
+      val surface = Surface(surfaceTexture)
+      videoDecoder.prepareVideo(surface)
       videoDecoder.start()
+      this.surface?.release()
+      this.surface = surface
     }
   }
 

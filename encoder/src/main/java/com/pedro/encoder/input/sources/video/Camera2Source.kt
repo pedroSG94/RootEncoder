@@ -55,15 +55,14 @@ class Camera2Source(context: Context): VideoSource() {
 
   override fun start(surfaceTexture: SurfaceTexture) {
     this.surfaceTexture = surfaceTexture
-    if (!isRunning()) {
-      surfaceTexture.setDefaultBufferSize(width, height)
-      camera.prepareCamera(surfaceTexture, width, height, fps, facing)
-      camera.openCameraFacing(facing)
-    }
+    if (isRunning()) return
+    surfaceTexture.setDefaultBufferSize(width, height)
+    camera.prepareCamera(surfaceTexture, width, height, fps, facing)
+    camera.openCameraFacing(facing)
   }
 
   override fun stop() {
-    if (isRunning()) camera.closeCamera()
+    camera.closeCamera()
   }
 
   override fun release() {}

@@ -74,7 +74,7 @@ class Camera2ApiManager(context: Context) {
     private val TAG = "Camera2ApiManager"
 
     private var cameraDevice: CameraDevice? = null
-    private var surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() }) //input surfaceEncoder from videoEncoder
+    private var surfaceEncoder: Surface? = null
     private val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     private var cameraCaptureSession: CameraCaptureSession? = null
     var isPrepared: Boolean = false
@@ -129,6 +129,7 @@ class Camera2ApiManager(context: Context) {
     fun prepareCamera(surfaceTexture: SurfaceTexture, width: Int, height: Int, fps: Int) {
         val optimalResolution = requiredSize ?: getOptimalResolution(Size(width, height), getCameraResolutions(facing))
         Log.i(TAG, "optimal resolution set to: " + optimalResolution.width + "x" + optimalResolution.height)
+        if (!isRunning) this.surfaceEncoder?.release()
         surfaceTexture.setDefaultBufferSize(optimalResolution.width, optimalResolution.height)
         this.surfaceEncoder = Surface(surfaceTexture)
         this.fps = fps
@@ -154,8 +155,12 @@ class Camera2ApiManager(context: Context) {
 
     private fun startPreview(cameraDevice: CameraDevice, handler: Handler) {
         try {
+            val surface = surfaceEncoder ?: run {
+                cameraCallbacks?.onCameraError("You need prepare camera before open it")
+                return
+            }
             val listSurfaces = mutableListOf<Surface>()
-            listSurfaces.add(surfaceEncoder)
+            listSurfaces.add(surface)
             imageReader?.let { listSurfaces.add(it.surface) }
             val captureRequest = drawSurface(cameraDevice, listSurfaces)
             createCaptureSession(
@@ -868,9 +873,10 @@ class Camera2ApiManager(context: Context) {
     }
 
     fun reOpenCamera(cameraId: String) {
-        if (cameraDevice != null) {
+        val surface = surfaceEncoder
+        if (cameraDevice != null && surface != null) {
             closeCamera(false)
-            prepareCamera(surfaceEncoder, fps)
+            prepareCamera(surface, fps)
             openCameraId(cameraId)
         }
     }
@@ -956,7 +962,8 @@ class Camera2ApiManager(context: Context) {
         cameraDevice?.close()
         cameraDevice = null
         if (resetSurface) {
-            surfaceEncoder = Surface(SurfaceTexture(-1).apply { release() })
+            surfaceEncoder?.release()
+            surfaceEncoder = null
             builderInputSurface = null
         }
         isPrepared = false
@@ -978,8 +985,9 @@ class Camera2ApiManager(context: Context) {
             }
         }, Handler(imageThread.looper))
         this.imageReader = imageReader
-        if (wasRunning) {
-            prepareCamera(surfaceEncoder, fps)
+        val surface = surfaceEncoder
+        if (wasRunning && surface != null) {
+            prepareCamera(surface, fps)
             openLastCamera()
         }
     }
@@ -990,8 +998,9 @@ class Camera2ApiManager(context: Context) {
         if (wasRunning) closeCamera(false)
         imageReader.close()
         this.imageReader = null
-        if (wasRunning) {
-            prepareCamera(surfaceEncoder, fps)
+        val surface = surfaceEncoder
+        if (wasRunning && surface != null) {
+            prepareCamera(surface, fps)
             openLastCamera()
         }
     }

@@ -37,7 +37,6 @@ import androidx.camera.core.TorchState
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -46,7 +45,7 @@ import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
 import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResolution
 import com.pedro.encoder.input.video.CameraHelper
-import java.util.concurrent.ExecutionException
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
@@ -64,6 +63,7 @@ class CameraXSource(
   private var facing = CameraSelector.LENS_FACING_BACK
   private var cameraSelectorBuilder: CameraSelector.Builder = CameraSelector.Builder()
   private var surface: Surface? = null
+  private var executor: ExecutorService? = null
   private var autoFocusEnabled = false
   private var autoExposureEnabled = false
   private var autoWhiteBalanceEnabled = false
@@ -92,10 +92,11 @@ class CameraXSource(
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
+    this.surfaceTexture = surfaceTexture
+    if (isRunning()) return
     val facing = if (facing == CameraSelector.LENS_FACING_BACK) CameraHelper.Facing.BACK else CameraHelper.Facing.FRONT
     val optimalResolution = requiredSize ?: getOptimalResolution(Size(width, height), getCameraResolutions(facing).toTypedArray())
     surfaceTexture.setDefaultBufferSize(optimalResolution.width, optimalResolution.height)
-    this.surfaceTexture = surfaceTexture
     lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
     val cameraSelector = cameraSelectorBuilder
       .requireLensFacing(this.facing)
@@ -103,9 +104,13 @@ class CameraXSource(
 
     preview.setSurfaceProvider {
       val surface = Surface(surfaceTexture)
-      it.provideSurface(surface, Executors.newSingleThreadExecutor()) {
+      val executor = Executors.newSingleThreadExecutor()
+      it.provideSurface(surface, executor) {
+        surface.release()
+        executor.shutdown()
       }
       this.surface = surface
+      this.executor = executor
     }
     camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview)
   }
@@ -115,9 +120,11 @@ class CameraXSource(
     camera?.let {
       cameraProvider.unbindAll()
       camera = null
-      surface?.release()
-      surface = null
     }
+    surface?.release()
+    surface = null
+    executor?.shutdown()
+    executor = null
   }
 
   override fun release() {

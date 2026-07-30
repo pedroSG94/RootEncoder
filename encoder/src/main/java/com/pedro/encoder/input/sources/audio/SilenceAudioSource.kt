@@ -29,6 +29,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Created by pedro on 25/7/25.
@@ -48,16 +49,18 @@ class SilenceAudioSource: AudioSource(), GetMicrophoneData {
 
   override fun start(getMicrophoneData: GetMicrophoneData) {
     this.getMicrophoneData = getMicrophoneData
+    if (isRunning()) return
     running = true
     job = CoroutineScope(Dispatchers.IO).launch {
       while (running) {
         getMicrophoneData.inputPCMData(Frame(buffer, 0, buffer.size, TimeUtils.getCurrentTimeMicro()))
-        delay(sleepTime)
+        delay(sleepTime.milliseconds)
       }
     }
   }
 
   override fun stop() {
+    this.getMicrophoneData = null
     running = false
     runBlocking { job?.cancelAndJoin() }
   }

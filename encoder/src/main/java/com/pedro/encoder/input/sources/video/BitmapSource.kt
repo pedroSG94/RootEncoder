@@ -27,6 +27,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Created by pedro on 19/3/24.
@@ -44,6 +45,8 @@ class BitmapSource(private val bitmap: Bitmap): VideoSource() {
   }
 
   override fun start(surfaceTexture: SurfaceTexture) {
+    this.surfaceTexture = surfaceTexture
+    if (isRunning()) return
     val scaledBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true)
     surfaceTexture.setDefaultBufferSize(width, height)
     surface = Surface(surfaceTexture)
@@ -56,7 +59,7 @@ class BitmapSource(private val bitmap: Bitmap): VideoSource() {
           surface?.unlockCanvasAndPost(canvas)
         } catch (_: Exception) { }
         //sleep to emulate fps
-        delay(1000 / fps.toLong())
+        delay((1000 / fps.toLong()).milliseconds)
       }
     }
   }
