@@ -46,6 +46,8 @@ interface Extractor {
 
   fun getSleepTime(ts: Long): Long
 
+  fun resetTs() {}
+
   fun seekTo(time: Long)
 
   fun release()

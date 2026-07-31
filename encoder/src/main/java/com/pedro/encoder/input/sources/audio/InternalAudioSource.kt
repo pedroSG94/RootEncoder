@@ -85,13 +85,12 @@ class InternalAudioSource(
     this.getMicrophoneData = null
     microphone.stop()
     handlerThread.quitSafely()
+    MediaProjectionHandler.mediaProjection?.unregisterCallback(mediaProjectionCallback)
   }
 
   override fun isRunning(): Boolean = microphone.isRunning
 
-  override fun release() {
-    MediaProjectionHandler.mediaProjection?.unregisterCallback(mediaProjectionCallback)
-  }
+  override fun release() {}
 
   override fun inputPCMData(frame: Frame) {
     getMicrophoneData?.inputPCMData(frame)

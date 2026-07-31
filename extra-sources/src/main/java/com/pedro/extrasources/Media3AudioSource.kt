@@ -55,6 +55,7 @@ class Media3AudioSource(
         this.getMicrophoneData = getMicrophoneData
         if (isRunning()) return
         player = ExoPlayer.Builder(context, TracksRenderersFactory(context, MediaFrame.Type.AUDIO, processor)).build().also { exoPlayer ->
+            exoPlayer.volume = 0f
             val mediaItem = MediaItem.fromUri(path)
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.playbackParameters = PlaybackParameters(speed)
@@ -77,9 +78,7 @@ class Media3AudioSource(
         player = null
     }
 
-    override fun release() {
-
-    }
+    override fun release() {}
 
     override fun isRunning(): Boolean = running
 

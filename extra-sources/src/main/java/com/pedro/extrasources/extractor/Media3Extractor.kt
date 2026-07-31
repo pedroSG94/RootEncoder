@@ -107,6 +107,12 @@ class Media3Extractor(private val context: Context): Extractor {
     return sleepTime
   }
 
+  override fun resetTs() {
+    sleepTime = 0
+    accumulativeTs = 0
+    lastExtractorTs = 0
+  }
+
   override fun seekTo(time: Long) {
     mediaExtractor.seekTo(time, MediaExtractorCompat.SEEK_TO_PREVIOUS_SYNC)
     lastExtractorTs = getTimeStamp()

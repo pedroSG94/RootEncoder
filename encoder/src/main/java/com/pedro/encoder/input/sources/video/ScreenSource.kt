@@ -94,11 +94,10 @@ class ScreenSource @JvmOverloads constructor(
     surface?.release()
     surface = null
     handlerThread.quitSafely()
-  }
-
-  override fun release() {
     MediaProjectionHandler.mediaProjection?.unregisterCallback(mediaProjectionCallback)
   }
+
+  override fun release() {}
 
   override fun isRunning(): Boolean = virtualDisplay != null
 

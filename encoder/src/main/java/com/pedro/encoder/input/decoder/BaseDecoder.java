@@ -114,10 +114,19 @@ public abstract class BaseDecoder {
   }
 
   public void stop() {
+    stop(true);
+  }
+
+  public void stop(boolean release) {
     Log.i(TAG, "stop decoder");
     running = false;
     stopDecoder();
     startTs = 0;
+    extractor.resetTs();
+    if (release) releaseExtractor();
+  }
+
+  public void releaseExtractor() {
     extractor.release();
   }
 

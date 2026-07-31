@@ -105,6 +105,7 @@ class MixAudioSource(
         getMicrophoneData = null
         microphone.stop()
         handlerThread.quitSafely()
+        MediaProjectionHandler.mediaProjection?.unregisterCallback(mediaProjectionCallback)
     }
 
     override fun isRunning(): Boolean = microphone.isRunning

@@ -410,9 +410,14 @@ abstract class StreamBase(
       source.init(width, height, videoEncoder.fps, videoEncoder.rotation)
     }
     videoSource.stop()
-    videoSource.release()
     if (glInterface.isRunning) glInterface.surfaceTexture.tryClear()
-    if (wasRunning) source.start(glInterface.surfaceTexture)
+    if (wasRunning) {
+      runCatching { source.start(glInterface.surfaceTexture) }.getOrElse {
+        runCatching { videoSource.start(glInterface.surfaceTexture) }
+        throw it
+      }
+    }
+    videoSource.release()
     glInterface.setOrientationConfig(source.getOrientationConfig())
     videoSource = source
   }
@@ -429,8 +434,13 @@ abstract class StreamBase(
     val wasCreated = audioSource.created
     if (wasCreated) source.init(audioSource.sampleRate, audioSource.isStereo, audioSource.echoCanceler, audioSource.noiseSuppressor)
     audioSource.stop()
+    if (wasRunning) {
+      runCatching { source.start(getMicrophoneData) }.getOrElse {
+        runCatching { audioSource.start(getMicrophoneData) }
+        throw it
+      }
+    }
     audioSource.release()
-    if (wasRunning) source.start(getMicrophoneData)
     audioSource = source
   }
 
