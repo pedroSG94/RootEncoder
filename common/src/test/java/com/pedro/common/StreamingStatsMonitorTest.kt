@@ -1,0 +1,176 @@
+/*
+ * Copyright (C) 2024 pedroSG94.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.pedro.common
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
+import org.junit.runner.RunWith
+import org.mockito.Mock
+import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.times
+import org.mockito.kotlin.verify
+
+@RunWith(MockitoJUnitRunner::class)
+class StreamingStatsMonitorTest {
+
+  @OptIn(ExperimentalCoroutinesApi::class)
+  @get:Rule
+  val mainDispatcherRule = object : TestWatcher() {
+    override fun starting(description: Description) {
+      Dispatchers.setMain(UnconfinedTestDispatcher())
+    }
+
+    override fun finished(description: Description) {
+      Dispatchers.resetMain()
+    }
+  }
+
+  @Mock
+  private lateinit var connectChecker: ConnectChecker
+
+  private lateinit var monitor: StreamingStatsMonitor
+
+  @Before
+  fun setup() {
+    monitor = StreamingStatsMonitor(connectChecker)
+  }
+
+  @Test
+  fun `WHEN fewer than 3 samples THEN throughput is Unknown`() = runTest {
+    monitor.collect(
+      queueBytesOut = 100L,
+      bytesOutPerSecond = 1000L,
+      totalBytesOut = 1000L,
+      totalBytesIn = 0L,
+      smoothedBitrate = 8000L,
+    )
+    monitor.collect(
+      queueBytesOut = 200L,
+      bytesOutPerSecond = 1000L,
+      totalBytesOut = 2000L,
+      totalBytesIn = 0L,
+      smoothedBitrate = 8000L,
+    )
+
+    val captor = argumentCaptor<StreamingStatsReport>()
+    verify(connectChecker, times(2)).onStreamingStats(captor.capture())
+    captor.allValues.forEach { assertEquals(Throughput.Unknown, it.throughput) }
+  }
+
+  @Test
+  fun `WHEN queue bytes grow for 3 intervals THEN throughput is Insufficient`() = runTest {
+    repeat(2) {
+      monitor.collect(
+        queueBytesOut = (it + 1) * 100L,
+        bytesOutPerSecond = 500L,
+        totalBytesOut = 500L,
+        totalBytesIn = 0L,
+        smoothedBitrate = 4000L,
+      )
+    }
+    monitor.collect(
+      queueBytesOut = 300L,
+      bytesOutPerSecond = 500L,
+      totalBytesOut = 1500L,
+      totalBytesIn = 0L,
+      smoothedBitrate = 4000L,
+    )
+
+    val captor = argumentCaptor<StreamingStatsReport>()
+    verify(connectChecker, times(3)).onStreamingStats(captor.capture())
+    assertEquals(Throughput.Insufficient, captor.lastValue.throughput)
+    assertEquals(300L, captor.lastValue.queueBytesOut)
+    assertEquals(500L, captor.lastValue.bytesOutPerSecond)
+    assertEquals(4000L, captor.lastValue.bitrate)
+  }
+
+  @Test
+  fun `WHEN queue bytes shrink for 3 intervals THEN throughput is Sufficient`() = runTest {
+    monitor.collect(
+      queueBytesOut = 300L,
+      bytesOutPerSecond = 800L,
+      totalBytesOut = 800L,
+      totalBytesIn = 0L,
+      smoothedBitrate = 6400L,
+    )
+    monitor.collect(
+      queueBytesOut = 200L,
+      bytesOutPerSecond = 800L,
+      totalBytesOut = 1600L,
+      totalBytesIn = 0L,
+      smoothedBitrate = 6400L,
+    )
+    monitor.collect(
+      queueBytesOut = 100L,
+      bytesOutPerSecond = 800L,
+      totalBytesOut = 2400L,
+      totalBytesIn = 0L,
+      smoothedBitrate = 6400L,
+    )
+
+    val captor = argumentCaptor<StreamingStatsReport>()
+    verify(connectChecker, times(3)).onStreamingStats(captor.capture())
+    assertEquals(Throughput.Sufficient, captor.lastValue.throughput)
+  }
+
+  @Test
+  fun `WHEN queue trend is mixed THEN throughput stays Unknown`() = runTest {
+    monitor.collect(queueBytesOut = 100L, bytesOutPerSecond = 100L, totalBytesOut = 100L, totalBytesIn = 0L, smoothedBitrate = 800L)
+    monitor.collect(queueBytesOut = 200L, bytesOutPerSecond = 100L, totalBytesOut = 200L, totalBytesIn = 0L, smoothedBitrate = 800L)
+    monitor.collect(queueBytesOut = 150L, bytesOutPerSecond = 100L, totalBytesOut = 300L, totalBytesIn = 0L, smoothedBitrate = 800L)
+
+    val captor = argumentCaptor<StreamingStatsReport>()
+    verify(connectChecker, times(3)).onStreamingStats(captor.capture())
+    assertEquals(Throughput.Unknown, captor.lastValue.throughput)
+  }
+
+  @Test
+  fun `WHEN reset THEN trend window clears`() = runTest {
+    repeat(3) {
+      monitor.collect(
+        queueBytesOut = (it + 1) * 100L,
+        bytesOutPerSecond = 100L,
+        totalBytesOut = 100L,
+        totalBytesIn = 0L,
+        smoothedBitrate = 800L,
+      )
+    }
+    monitor.reset()
+    monitor.collect(
+      queueBytesOut = 400L,
+      bytesOutPerSecond = 100L,
+      totalBytesOut = 100L,
+      totalBytesIn = 0L,
+      smoothedBitrate = 800L,
+    )
+
+    val captor = argumentCaptor<StreamingStatsReport>()
+    verify(connectChecker, times(4)).onStreamingStats(captor.capture())
+    assertEquals(Throughput.Unknown, captor.lastValue.throughput)
+  }
+}

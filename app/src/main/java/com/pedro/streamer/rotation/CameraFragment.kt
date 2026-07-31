@@ -30,6 +30,8 @@ import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.pedro.common.ConnectChecker
+import com.pedro.common.StreamingStatsReport
+import com.pedro.common.Throughput
 import com.pedro.common.onMainThreadHandler
 import com.pedro.encoder.input.sources.video.Camera1Source
 import com.pedro.encoder.input.sources.video.Camera2Source
@@ -223,6 +225,20 @@ class CameraFragment: Fragment(), ConnectChecker {
     onMainThreadHandler {
       bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
       txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
+    }
+  }
+
+  override fun onStreamingStats(report: StreamingStatsReport) {
+    onMainThreadHandler {
+      if (report.throughput != Throughput.Unknown) {
+        txtBitrate.text = String.format(
+          Locale.getDefault(),
+          "%.1f mb/s [%s, queue %d KB]",
+          report.smoothedBitrate / 1000_000f,
+          report.throughput.name.lowercase(),
+          report.queueBytesOut / 1024,
+        )
+      }
     }
   }
 

@@ -6,6 +6,7 @@ import com.pedro.common.BufferPool
 import com.pedro.common.ConnectChecker
 import com.pedro.common.StreamBlockingQueue
 import com.pedro.common.clone
+import com.pedro.common.StreamingStatsMonitor
 import com.pedro.common.frame.MediaFrame
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,7 @@ abstract class BaseSender(
     private val droppedVideoFrames = AtomicLong(0)
 
     private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
+    private val streamingStatsMonitor: StreamingStatsMonitor = StreamingStatsMonitor(connectChecker)
     protected var isEnableLogs = true
     private var job: Job? = null
     protected val scope = CoroutineScope(Dispatchers.IO)
@@ -84,12 +86,20 @@ abstract class BaseSender(
     fun start() {
         bitrateManager.reset()
         queue.clear { bufferPool.release(it.data) }
+        streamingStatsMonitor.reset()
         running = true
         job = scope.launch {
             val bitrateTask = async {
                 while (scope.isActive && running) {
+                    val bytesThisSecond = bytesSendPerSecond.get()
                     //bytes to bits
-                    bitrateManager.calculateBitrate(bytesSendPerSecond.get() * 8)
+                    bitrateManager.calculateBitrate(bytesThisSecond * 8)
+                    streamingStatsMonitor.collect(
+                        queueBytesOut = queue.getTotalSize(),
+                        bytesOutPerSecond = bytesThisSecond,
+                        totalBytesOut = bytesSend.get(),
+                        totalBytesIn = 0L,
+                        smoothedBitrate = bitrateManager.getSmoothedBitrate(),
                     )
                     bytesSendPerSecond.set(0)
                     delay(timeMillis = 1000)

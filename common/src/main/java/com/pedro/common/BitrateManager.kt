@@ -43,6 +43,8 @@ open class BitrateManager(private val bitrateChecker: BitrateChecker) {
     }
   }
 
+  fun getSmoothedBitrate(): Long = bitrateOld
+
   fun reset() {
     bitrate = 0
     bitrateOld = 0

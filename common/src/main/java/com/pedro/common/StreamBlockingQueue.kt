@@ -72,4 +72,10 @@ class StreamBlockingQueue(var capacity: Int) {
     }
 
     fun getSize() = queue.size
+
+    /**
+     * Sum of [MediaFrame.info.size] for all frames in the main send queue.
+     * Delay/cache queue bytes are excluded.
+     */
+    fun getTotalSize(): Long = queue.sumOf { it.info.size.toLong() }
 }
