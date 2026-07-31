@@ -137,6 +137,8 @@ class RtmpStreamClient(
 
   override fun getItemsInCache(): Int = rtmpClient.getItemsInCache()
 
+  override fun getQueueBytesOut(): Long = rtmpClient.getQueueBytesOut()
+
   override fun getSentAudioFrames(): Long = rtmpClient.sentAudioFrames
 
   override fun getSentVideoFrames(): Long = rtmpClient.sentVideoFrames

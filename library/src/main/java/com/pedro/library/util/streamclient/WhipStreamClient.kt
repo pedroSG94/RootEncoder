@@ -79,6 +79,8 @@ class WhipStreamClient(
 
   override fun getItemsInCache(): Int = whipClient.getItemsInCache()
 
+  override fun getQueueBytesOut(): Long = whipClient.getQueueBytesOut()
+
   override fun getSentAudioFrames(): Long = whipClient.sentAudioFrames
 
   override fun getSentVideoFrames(): Long = whipClient.sentVideoFrames

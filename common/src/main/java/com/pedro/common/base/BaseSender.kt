@@ -90,6 +90,7 @@ abstract class BaseSender(
                 while (scope.isActive && running) {
                     //bytes to bits
                     bitrateManager.calculateBitrate(bytesSendPerSecond.get() * 8)
+                    )
                     bytesSendPerSecond.set(0)
                     delay(timeMillis = 1000)
                 }
@@ -131,6 +132,8 @@ abstract class BaseSender(
     fun getCacheSize(): Int = queue.capacity
 
     fun getItemsInCache(): Int = queue.getSize()
+
+    fun getQueueBytesOut(): Long = queue.getTotalSize()
 
     fun clearCache() {
         queue.clear { bufferPool.release(it.data) }
