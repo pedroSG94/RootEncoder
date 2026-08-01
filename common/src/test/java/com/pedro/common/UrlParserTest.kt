@@ -137,6 +137,17 @@ class UrlParserTest {
   }
 
   @Test
+  fun testRtmpUrlWithoutAppName() {
+    // No application name, credentials in the query. Equivalent to OBS with
+    // Server "rtmp://192.168.0.1:1935" and Key "streamName?user=a&pass=b".
+    val url = "rtmp://192.168.0.1:1935/streamName?user=a&pass=b"
+    val urlParser = UrlParser.parse(url, arrayOf("rtmp"))
+    assertEquals("", urlParser.getAppName())
+    assertEquals("streamName?user=a&pass=b", urlParser.getStreamName())
+    assertEquals("rtmp://192.168.0.1:1935", urlParser.getTcUrl())
+  }
+
+  @Test
   fun testRtspUrls() {
     try {
       val url = "rtsp://localhost:1935/live?test/fake"

@@ -273,7 +273,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
         commandsManager.appName = urlParser.getAppName()
         commandsManager.streamName = urlParser.getStreamName()
         commandsManager.tcUrl = urlParser.getTcUrl()
-        if (commandsManager.appName.isEmpty()) {
+        if (commandsManager.appName.isEmpty() && commandsManager.streamName.isEmpty()) {
           isStreaming = false
           onMainThread {
             connectChecker.onConnectionFailed(

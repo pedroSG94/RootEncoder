@@ -70,11 +70,19 @@ class UrlParser private constructor(
     val queries = getAllQueries().map { (key, value) -> "$key=$value" }.joinToString("&")
     val path = getFullPath().ifEmpty { query ?: "" }.replace(queries, "")
     val segments = path.split('/').filter { it.isNotEmpty() }
-    return when(segments.size) {
+    val appName = when(segments.size) {
       0 -> ""
       1, 2 -> segments[0]
       else -> segments.subList(0, 2).joinToString("/")
     }
+    // Removing the query from a single segment leaves a trailing "?", as in
+    // rtmp://host/mystream?user=a&pass=b. Such a URL has no application name:
+    // the whole tail is the stream name, which is what servers reading
+    // credentials from the query expect — the same split OBS makes with
+    // Server "rtmp://host" and Key "mystream?user=a&pass=b". Returning
+    // "mystream?" instead sends the credentials as part of the stream name,
+    // where the server never finds them.
+    return if (appName.endsWith("?")) "" else appName
   }
 
   fun getStreamName(): String = getFullPath().removePrefix(getAppName()).removePrefix("/").removePrefix("?")
