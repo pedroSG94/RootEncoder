@@ -40,6 +40,7 @@ class UrlParser private constructor(
     private set
   var auth: String? = null
     private set
+  private var rawAuth: String? = null
 
   init {
     scheme = uri.scheme
@@ -48,6 +49,7 @@ class UrlParser private constructor(
     path = uri.rawPath.removePrefix("/")
     query = url.substringAfter("?", "").let { it.ifEmpty { null } }
     auth = uri.userInfo
+    rawAuth = uri.rawUserInfo
   }
 
   fun getQuery(key: String): String? = getAllQueries()[key]
@@ -92,7 +94,7 @@ class UrlParser private constructor(
     val fullPath = "$path${if (query == null) "" else "?$query"}".removePrefix("?")
     if (fullPath.isEmpty()) {
       val port = if (port != null) ":$port" else ""
-      val auth = if (auth != null) "$auth@" else ""
+      val auth = if (rawAuth != null) "$rawAuth@" else ""
       return url.removePrefix("$scheme://$auth${getHostForUrl()}$port").removePrefix("/")
     }
     return fullPath

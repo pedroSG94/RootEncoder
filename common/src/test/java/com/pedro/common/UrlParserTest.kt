@@ -137,6 +137,17 @@ class UrlParserTest {
       assertEquals("localhost", urlParser12.host)
       assertEquals(1935, urlParser12.port)
       assertEquals("", urlParser12.getAppName())
+
+      val url13 = "rtmp://192.168.0.1:1935/live?"
+      val urlParser13 = UrlParser.parse(url13, arrayOf("rtmp"))
+      assertEquals("rtmp", urlParser13.scheme)
+      assertEquals("192.168.0.1", urlParser13.host)
+      assertEquals(1935, urlParser13.port)
+      assertEquals(null, urlParser13.query)
+      assertEquals("live", urlParser13.getFullPath())
+      assertEquals("live", urlParser13.getAppName())
+      assertEquals("", urlParser13.getStreamName())
+      assertEquals("rtmp://192.168.0.1:1935/live", urlParser13.getTcUrl())
     } catch (_: URISyntaxException) {
       assert(false)
     }
@@ -300,6 +311,25 @@ class UrlParserTest {
       assertEquals("live", urlParser4.getFullPath())
       assertEquals("user", urlParser4.getAuthUser())
       assertEquals("p@ss", urlParser4.getAuthPassword())
+
+      val url5 = "rtsp://user:p%40ss@192.168.0.1:1234/"
+      val urlParser5 = UrlParser.parse(url5, arrayOf("rtsp"))
+      assertEquals("rtsp", urlParser5.scheme)
+      assertEquals("192.168.0.1", urlParser5.host)
+      assertEquals(1234, urlParser5.port)
+      assertEquals("", urlParser5.getFullPath())
+      assertEquals("user", urlParser5.getAuthUser())
+      assertEquals("p@ss", urlParser5.getAuthPassword())
+
+      val url6 = "rtmp://user:p%40ss@192.168.0.1:1935/"
+      val urlParser6 = UrlParser.parse(url6, arrayOf("rtmp"))
+      assertEquals("rtmp", urlParser6.scheme)
+      assertEquals("192.168.0.1", urlParser6.host)
+      assertEquals(1935, urlParser6.port)
+      assertEquals("", urlParser6.getAppName())
+      assertEquals("", urlParser6.getStreamName())
+      assertEquals("user", urlParser6.getAuthUser())
+      assertEquals("p@ss", urlParser6.getAuthPassword())
     } catch (_: URISyntaxException) {
       assert(false)
     }
