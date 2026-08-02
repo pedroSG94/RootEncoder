@@ -688,10 +688,18 @@ class Camera2ApiManager(context: Context) {
         val builderInputSurface = this.builderInputSurface ?: return false
         try {
             if (supportedFocusModes.isNotEmpty()) {
-                //cancel any existing AF trigger
+                //cancel any existing AF trigger and clear the regions set by tapToFocus.
+                builderInputSurface.setTag("")
+                val maxRegionsAf = characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AF) ?: 0
+                if (maxRegionsAf > 0) {
+                    val clearRect = MeteringRectangle(0, 0, 0, 0, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
+                    builderInputSurface.set(CaptureRequest.CONTROL_AF_REGIONS, arrayOf(clearRect))
+                }
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL)
                 builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
-                applyRequest(builderInputSurface)
+                runCatching {
+                    cameraCaptureSession?.capture(builderInputSurface.build(), null, null)
+                }.onFailure { Log.e(TAG, "Error", it) }
                 // Prefer CONTINUOUS_VIDEO: same smooth AF as CONTINUOUS_PICTURE but defers
                 // fine adjustments to not interrupt frame delivery (no dropped frames on focus hunt).
                 if (supportedFocusModes.contains(CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO)) {
@@ -707,6 +715,7 @@ class Camera2ApiManager(context: Context) {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, supportedFocusModes[0])
                     isAutoFocusEnabled = false
                 }
+                builderInputSurface.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_IDLE)
                 applyRequest(builderInputSurface)
             }
             result = isAutoFocusEnabled
@@ -718,23 +727,20 @@ class Camera2ApiManager(context: Context) {
     }
 
     fun disableAutoFocus(): Boolean {
-        val result = false
         val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
         val supportedFocusModes = characteristics.secureGet(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES) ?: return false
         for (mode in supportedFocusModes) {
-            try {
+            runCatching {
                 if (mode == CaptureRequest.CONTROL_AF_MODE_OFF) {
                     builderInputSurface.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF)
                     applyRequest(builderInputSurface)
                     isAutoFocusEnabled = false
                     return true
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error", e)
-            }
+            }.onFailure { Log.e(TAG, "Error", it) }
         }
-        return result
+        return false
     }
 
     fun enableFaceDetection(faceDetectorCallback: FaceDetectorCallback?): Boolean {
