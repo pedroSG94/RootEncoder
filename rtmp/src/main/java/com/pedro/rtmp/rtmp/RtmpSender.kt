@@ -37,7 +37,6 @@ import com.pedro.rtmp.flv.video.packet.Vp8Packet
 import com.pedro.rtmp.flv.video.packet.Vp9Packet
 import com.pedro.rtmp.utils.socket.RtmpSocket
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
 
 /**
@@ -81,28 +80,29 @@ class RtmpSender(
   override suspend fun onRun() {
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.take() }
-        getFlvPacket(mediaFrame) { flvPacket ->
-          var size = 0L
-          if (flvPacket.type == FlvType.VIDEO) {
-            videoFramesSent.incrementAndGet()
-            socket?.let { socket ->
-              size = commandsManager.sendVideoPacket(flvPacket, socket).toLong()
-              if (isEnableLogs) {
-                Log.i(TAG, "wrote Video packet, size $size")
+        consumeFrame { mediaFrame ->
+          getFlvPacket(mediaFrame) { flvPacket ->
+            var size = 0L
+            if (flvPacket.type == FlvType.VIDEO) {
+              videoFramesSent.incrementAndGet()
+              socket?.let { socket ->
+                size = commandsManager.sendVideoPacket(flvPacket, socket).toLong()
+                if (isEnableLogs) {
+                  Log.i(TAG, "wrote Video packet, size $size")
+                }
+              }
+            } else {
+              audioFramesSent.incrementAndGet()
+              socket?.let { socket ->
+                size = commandsManager.sendAudioPacket(flvPacket, socket).toLong()
+                if (isEnableLogs) {
+                  Log.i(TAG, "wrote Audio packet, size $size")
+                }
               }
             }
-          } else {
-            audioFramesSent.incrementAndGet()
-            socket?.let { socket ->
-              size = commandsManager.sendAudioPacket(flvPacket, socket).toLong()
-              if (isEnableLogs) {
-                Log.i(TAG, "wrote Audio packet, size $size")
-              }
-            }
+            bytesSend.addAndGet(size)
+            bytesSendPerSecond.addAndGet(size)
           }
-          bytesSend.addAndGet(size)
-          bytesSendPerSecond.addAndGet(size)
         }
       }.exceptionOrNull()
       if (error != null) {

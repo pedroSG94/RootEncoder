@@ -62,10 +62,32 @@ class SrtSenderTest {
         val videoData = ByteBuffer.wrap(header.plus(ByteArray(300) { 0x00 }))
         val audioData = ByteBuffer.wrap(ByteArray(256) { 0x00 })
 
-        val videoFrame = MediaFrame(videoData, MediaFrame.Info(0, videoData.remaining(), 0, true), MediaFrame.Type.VIDEO)
-        val audioFrame = MediaFrame(audioData, MediaFrame.Info(0, audioData.remaining(), 0, false), MediaFrame.Type.AUDIO)
-        srtSender.sendMediaFrame(videoFrame)
-        srtSender.sendMediaFrame(audioFrame)
+        srtSender.sendMediaFrame(videoData, MediaFrame.Info(0, videoData.remaining(), 0, true), MediaFrame.Type.VIDEO)
+        srtSender.sendMediaFrame(audioData, MediaFrame.Info(0, audioData.remaining(), 0, false), MediaFrame.Type.AUDIO)
+        latch.await(1000, TimeUnit.MILLISECONDS)
+        srtSender.stop()
+
+        assertEquals(1692, output.toByteArray().size)
+    }
+
+    @Test
+    fun `GIVEN pooled mediaFrames WHEN send to sender THEN write the same packets than a copy`() = runTest {
+        latch = CountDownLatch(7) //writeData must be called 4 times
+        val srtSender = SrtSender(connectChecker, commandsManager)
+        srtSender.setAudioInfo(44100, true)
+        val sps = ByteBuffer.wrap(byteArrayOf(0, 0, 0, 1, 103, 100, 0, 30, -84, -76, 15, 2, -115, 53, 2, 2, 2, 7, -117, 23, 8))
+        val pps = ByteBuffer.wrap(byteArrayOf(0, 0, 0, 1, 104, -18, 13, -117))
+        srtSender.setVideoInfo(sps, pps, null)
+        srtSender.socket = socket
+        srtSender.start()
+
+        val header = byteArrayOf(0x00, 0x00, 0x00, 0x01, 0x05)
+        val videoData = ByteBuffer.wrap(header.plus(ByteArray(300) { 0x00 }))
+        val audioData = ByteBuffer.wrap(ByteArray(256) { 0x00 })
+
+        //the sender copies into a pooled buffer bigger than the frame, the output must not change
+        srtSender.sendMediaFrame(videoData, MediaFrame.Info(0, videoData.remaining(), 0, true), MediaFrame.Type.VIDEO)
+        srtSender.sendMediaFrame(audioData, MediaFrame.Info(0, audioData.remaining(), 0, false), MediaFrame.Type.AUDIO)
         latch.await(1000, TimeUnit.MILLISECONDS)
         srtSender.stop()
 

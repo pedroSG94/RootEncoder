@@ -26,7 +26,6 @@ import com.pedro.rtsp.utils.CryptoProperties
 import com.pedro.rtsp.utils.RtpConstants
 import com.pedro.whip.webrtc.CommandsManager
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runInterruptible
 import java.io.IOException
 import java.nio.ByteBuffer
 
@@ -85,32 +84,33 @@ class WhipSender(
         val isTcp = rtpSocket is RtpSocketTcp
         while (scope.isActive && running) {
             val error = runCatching {
-                val mediaFrame = runInterruptible { queue.take() }
-                getRtpPackets(mediaFrame) { rtpFrames ->
-                    var size = 0L
-                    var isVideo = false
-                    rtpFrames.forEach { rtpFrame ->
-                        rtpSocket?.sendFrame(rtpFrame)
-                        //4 is tcp header length
-                        val packetSize = (if (isTcp) rtpFrame.length + 4 else rtpFrame.length).toLong()
-                        bytesSend.addAndGet(packetSize)
-                        bytesSendPerSecond.addAndGet(packetSize)
-                        size += packetSize
-                        isVideo = rtpFrame.isVideoFrame(commandsManager.rtpTracks.trackVideo)
-                        if (isVideo) videoFramesSent.incrementAndGet()
-                        else audioFramesSent.incrementAndGet()
-                        if (baseSenderReport?.update(rtpFrame) == true) {
+                consumeFrame { mediaFrame ->
+                    getRtpPackets(mediaFrame) { rtpFrames ->
+                        var size = 0L
+                        var isVideo = false
+                        rtpFrames.forEach { rtpFrame ->
+                            rtpSocket?.sendFrame(rtpFrame)
                             //4 is tcp header length
-                            val reportSize = (if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH).toLong()
-                            bytesSend.addAndGet(reportSize)
-                            bytesSendPerSecond.addAndGet(reportSize)
-                            if (isEnableLogs) Log.i(TAG, "wrote report")
+                            val packetSize = (if (isTcp) rtpFrame.length + 4 else rtpFrame.length).toLong()
+                            bytesSend.addAndGet(packetSize)
+                            bytesSendPerSecond.addAndGet(packetSize)
+                            size += packetSize
+                            isVideo = rtpFrame.isVideoFrame(commandsManager.rtpTracks.trackVideo)
+                            if (isVideo) videoFramesSent.incrementAndGet()
+                            else audioFramesSent.incrementAndGet()
+                            if (baseSenderReport?.update(rtpFrame) == true) {
+                                //4 is tcp header length
+                                val reportSize = (if (isTcp) RtpConstants.REPORT_PACKET_LENGTH + 4 else RtpConstants.REPORT_PACKET_LENGTH).toLong()
+                                bytesSend.addAndGet(reportSize)
+                                bytesSendPerSecond.addAndGet(reportSize)
+                                if (isEnableLogs) Log.i(TAG, "wrote report")
+                            }
                         }
-                    }
-                    rtpSocket?.flush()
-                    if (isEnableLogs) {
-                        val type = if (isVideo) "Video" else "Audio"
-                        Log.i(TAG, "wrote $type packet, size $size")
+                        rtpSocket?.flush()
+                        if (isEnableLogs) {
+                            val type = if (isVideo) "Video" else "Audio"
+                            Log.i(TAG, "wrote $type packet, size $size")
+                        }
                     }
                 }
             }.exceptionOrNull()

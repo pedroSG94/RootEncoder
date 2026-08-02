@@ -358,3 +358,11 @@ fun ByteBuffer.removeHeader(): ByteBuffer {
 fun ByteArray.writeUInt32(offset: Int, value: Int) {
   value.toUInt32().copyInto(this, offset)
 }
+
+fun ByteBuffer.clone(data: ByteArray): ByteBuffer {
+  val length = limit()
+  val source = duplicate()
+  source.position(0)
+  source.get(data, 0, length)
+  return ByteBuffer.wrap(data, 0, length).slice()
+}

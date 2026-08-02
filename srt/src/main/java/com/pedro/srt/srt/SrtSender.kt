@@ -41,7 +41,6 @@ import com.pedro.srt.utils.SrtSocket
 import com.pedro.srt.utils.chunkPackets
 import com.pedro.srt.utils.toCodec
 import kotlinx.coroutines.isActive
-import kotlinx.coroutines.runInterruptible
 import java.nio.ByteBuffer
 
 /**
@@ -143,14 +142,15 @@ class SrtSender(
     sendPackets(psiPacketsConfig, MpegType.PSI)
     while (scope.isActive && running) {
       val error = runCatching {
-        val mediaFrame = runInterruptible { queue.take() }
-        getMpegTsPackets(mediaFrame) { mpegTsPackets ->
-          val isKey = mpegTsPackets[0].isKey
-          val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
-          val bytesPsi = sendPackets(psiPackets, MpegType.PSI)
-          val bytes = sendPackets(mpegTsPackets, mpegTsPackets[0].type)
-          bytesSend.addAndGet(bytesPsi + bytes)
-          bytesSendPerSecond.addAndGet(bytesPsi + bytes)
+        consumeFrame { mediaFrame ->
+          getMpegTsPackets(mediaFrame) { mpegTsPackets ->
+            val isKey = mpegTsPackets[0].isKey
+            val psiPackets = psiManager.checkSendInfo(isKey, mpegTsPacketizer, chunkSize)
+            val bytesPsi = sendPackets(psiPackets, MpegType.PSI)
+            val bytes = sendPackets(mpegTsPackets, mpegTsPackets[0].type)
+            bytesSend.addAndGet(bytesPsi + bytes)
+            bytesSendPerSecond.addAndGet(bytesPsi + bytes)
+          }
         }
       }.exceptionOrNull()
       if (error != null) {
