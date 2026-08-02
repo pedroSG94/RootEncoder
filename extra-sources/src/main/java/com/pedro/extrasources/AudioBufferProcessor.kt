@@ -2,44 +2,35 @@ package com.pedro.extrasources
 
 import android.media.AudioFormat
 import androidx.media3.common.audio.AudioProcessor
-import androidx.media3.common.audio.AudioProcessor.EMPTY_BUFFER
+import androidx.media3.common.audio.BaseAudioProcessor
 import androidx.media3.common.util.UnstableApi
-import com.pedro.common.toByteArray
 import java.nio.ByteBuffer
 
+/**
+ * Capture the decoded PCM and forward it to the callback.
+ * The data is also written to the output buffer to keep the AudioSink writing to the AudioTrack.
+ * That write is what paces the player to real time, so it must not be skipped even if the
+ * player is muted.
+ */
 @UnstableApi
 class AudioBufferProcessor(
     private val callback: (ByteArray) -> Unit
-) : AudioProcessor {
+) : BaseAudioProcessor() {
 
-    private var inputEnded = false
-
-    override fun configure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
-        return if (inputAudioFormat.encoding == AudioFormat.ENCODING_PCM_16BIT) inputAudioFormat
-        else AudioProcessor.AudioFormat.NOT_SET
+    override fun onConfigure(inputAudioFormat: AudioProcessor.AudioFormat): AudioProcessor.AudioFormat {
+        if (inputAudioFormat.encoding != AudioFormat.ENCODING_PCM_16BIT) {
+            throw AudioProcessor.UnhandledAudioFormatException(inputAudioFormat)
+        }
+        return inputAudioFormat
     }
-
-    override fun isActive(): Boolean = true
 
     override fun queueInput(inputBuffer: ByteBuffer) {
-        callback(inputBuffer.toByteArray())
-    }
-
-    override fun queueEndOfStream() {
-        inputEnded = true
-    }
-
-    override fun getOutput(): ByteBuffer {
-        return EMPTY_BUFFER
-    }
-
-    override fun isEnded(): Boolean = inputEnded
-
-    override fun flush() {
-        inputEnded = false
-    }
-
-    override fun reset() {
-        inputEnded = false
+        val size = inputBuffer.remaining()
+        if (size <= 0) return
+        val bytes = ByteArray(size)
+        //get consume the input buffer, required to indicate that the data was processed
+        inputBuffer.get(bytes)
+        callback(bytes)
+        replaceOutputBuffer(size).put(bytes).flip()
     }
 }

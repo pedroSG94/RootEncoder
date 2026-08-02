@@ -121,7 +121,7 @@ class BufferVideoSource(
         surface = null
     }
 
-    override fun release() { }
+    override fun release() {}
 
     override fun isRunning(): Boolean = running
 }

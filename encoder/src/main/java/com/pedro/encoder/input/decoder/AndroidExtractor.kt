@@ -95,6 +95,12 @@ class AndroidExtractor: Extractor {
     return sleepTime
   }
 
+  override fun resetTs() {
+    sleepTime = 0
+    accumulativeTs = 0
+    lastExtractorTs = 0
+  }
+
   override fun seekTo(time: Long) {
     mediaExtractor.seekTo(time, MediaExtractor.SEEK_TO_PREVIOUS_SYNC)
     lastExtractorTs = getTimeStamp()

@@ -70,9 +70,7 @@ class Media3VideoSource(
         surface = null
     }
 
-    override fun release() {
-
-    }
+    override fun release() {}
 
     override fun isRunning(): Boolean = running
 

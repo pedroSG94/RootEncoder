@@ -59,8 +59,7 @@ class CameraUvcSource: VideoSource() {
     running = false
   }
 
-  override fun release() {
-  }
+  override fun release() {}
 
   override fun isRunning(): Boolean = running
 

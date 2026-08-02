@@ -74,13 +74,13 @@ class VideoFileSource(
 
   override fun stop() {
     running = false
-    videoDecoder.stop()
+    videoDecoder.stop(false)
     this.surface?.release()
     this.surface = null
   }
 
   override fun release() {
-    if (running) stop()
+    videoDecoder.releaseExtractor()
   }
 
   override fun isRunning(): Boolean = running

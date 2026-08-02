@@ -92,13 +92,13 @@ class AudioFileSource(
   override fun stop() {
     this.getMicrophoneData = null
     running = false
-    audioDecoder.stop()
+    audioDecoder.stop(false)
   }
 
   override fun isRunning(): Boolean = running
 
   override fun release() {
-    if (running) stop()
+    audioDecoder.releaseExtractor()
   }
 
   fun mute() {
