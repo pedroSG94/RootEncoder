@@ -209,7 +209,9 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
         val host = urlParser.host
         val port = urlParser.port ?: 8888
-        val path = urlParser.getQuery("streamid") ?: urlParser.path
+        val path = urlParser.getQuery("streamid") ?: urlParser.path.ifEmpty {
+          if (urlParser.query == null) urlParser.getFullPath() else ""
+        }
         commandsManager.latency = urlParser.getQuery("latency")?.toIntOrNull() ?: commandsManager.latency
         val passphrase = urlParser.getQuery("passphrase") ?: ""
         if (passphrase.isNotEmpty() && passphrase.length in 10..79) {

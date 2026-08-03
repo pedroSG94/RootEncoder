@@ -226,7 +226,11 @@ open class CommandsManager {
     } else {
       "TCP;unicast;interleaved=${2 * track}-${2 * track + 1};mode=record"
     }
-    val uri = "rtsp://$urlHost:$port$path/streamid=$track"
+    val query = path?.substringAfter("?", "").let {
+      if (!it.isNullOrEmpty()) "?$it" else ""
+    }
+    val path = path?.substringBefore("?") ?: ""
+    val uri = "rtsp://$urlHost:$port$path/streamid=$track$query"
     val setup = "SETUP $uri RTSP/1.0\r\n" +
         "Transport: RTP/AVP/$params\r\n" +
         addHeaders(Method.SETUP, uri) + "\r\n"

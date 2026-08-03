@@ -95,6 +95,11 @@ abstract class CommandsManager {
     return (TimeUtils.getCurrentTimeMillis() / 1000 - timestamp).toInt()
   }
 
+  protected fun appendAuth(url: String, auth: String): String {
+    if (auth.isEmpty()) return url
+    return if (url.contains("?")) "$url&${auth.removePrefix("?")}" else "$url$auth"
+  }
+
   @Throws(IOException::class)
   suspend fun sendChunkSize(socket: RtmpSocket) {
     writeSync.withLock {

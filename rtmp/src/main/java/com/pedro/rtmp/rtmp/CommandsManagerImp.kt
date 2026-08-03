@@ -39,9 +39,9 @@ class CommandsManagerImp: CommandsManager() {
     val connect = Command("connect", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
     val connectInfo = AmfObject()
-    connectInfo.setProperty("app", appName + auth)
+    connectInfo.setProperty("app", appendAuth(appName, auth))
     connectInfo.setProperty("flashVer", flashVersion)
-    connectInfo.setProperty("tcUrl", tcUrl + auth)
+    connectInfo.setProperty("tcUrl", appendAuth(tcUrl, auth))
     val list = mutableListOf<AmfData>()
     if (!videoDisabled) {
       val codec = when (videoCodec) {

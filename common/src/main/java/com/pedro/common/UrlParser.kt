@@ -15,7 +15,7 @@ class UrlParser private constructor(
   companion object {
     @Throws(URISyntaxException::class)
     fun parse(endpoint: String, requiredProtocol: Array<String>): UrlParser {
-      val uri = URI(endpoint)
+      val uri = URI(endpoint.substringBefore("?"))
       if (uri.scheme != null && !requiredProtocol.contains(uri.scheme.trim())) {
         throw URISyntaxException(endpoint, "Invalid protocol: ${uri.scheme}")
       }
@@ -23,7 +23,7 @@ class UrlParser private constructor(
         throw URISyntaxException(endpoint, "Invalid auth. Auth must contain ':'")
       }
       if (uri.host == null) throw URISyntaxException(endpoint, "Invalid host: ${uri.host}")
-      if (uri.path == null) throw URISyntaxException(endpoint, "Invalid path: ${uri.host}")
+      if (uri.rawPath == null) throw URISyntaxException(endpoint, "Invalid path: ${uri.rawPath}")
       return UrlParser(uri, endpoint)
     }
   }
@@ -40,18 +40,16 @@ class UrlParser private constructor(
     private set
   var auth: String? = null
     private set
+  private var rawAuth: String? = null
 
   init {
-    val url = uri.toString()
     scheme = uri.scheme
     host = uri.host.removeSurrounding("[", "]")
     port = if (uri.port < 0) null else uri.port
-    path = uri.path.removePrefix("/")
-    if (uri.query != null) {
-      val i = url.indexOf("?")
-      query = url.substring(i + 1)
-    }
+    path = uri.rawPath.removePrefix("/")
+    query = url.substringAfter("?", "").let { it.ifEmpty { null } }
     auth = uri.userInfo
+    rawAuth = uri.rawUserInfo
   }
 
   fun getQuery(key: String): String? = getAllQueries()[key]
@@ -68,11 +66,13 @@ class UrlParser private constructor(
 
   fun getAppName(): String {
     val queries = getAllQueries().map { (key, value) -> "$key=$value" }.joinToString("&")
-    val path = getFullPath().ifEmpty { query ?: "" }.replace(queries, "")
+    val fullPath = getFullPath().ifEmpty { query ?: "" }
+    val path = fullPath.replace(queries, "")
     val segments = path.split('/').filter { it.isNotEmpty() }
     return when(segments.size) {
       0 -> ""
-      1, 2 -> segments[0]
+      1 -> fullPath.trimEnd('/')
+      2 -> segments[0]
       else -> segments.subList(0, 2).joinToString("/")
     }
   }
@@ -94,7 +94,8 @@ class UrlParser private constructor(
     val fullPath = "$path${if (query == null) "" else "?$query"}".removePrefix("?")
     if (fullPath.isEmpty()) {
       val port = if (port != null) ":$port" else ""
-      return url.removePrefix("$scheme://${getHostForUrl()}$port").removePrefix("/")
+      val auth = if (rawAuth != null) "$rawAuth@" else ""
+      return url.removePrefix("$scheme://$auth${getHostForUrl()}$port").removePrefix("/")
     }
     return fullPath
   }
