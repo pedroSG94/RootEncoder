@@ -34,6 +34,7 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
     bytesOutPerSecond: Long,
     totalBytesOut: Long,
     smoothedBitrate: Long,
+    queueCongested: Boolean,
   ) {
     var throughput = Throughput.UNKNOWN
     previousQueueBytesOut.add(queueBytesOut)
@@ -50,6 +51,11 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
         throughput = Throughput.SUFFICIENT
       }
       previousQueueBytesOut.removeAt(0)
+    }
+    // This library caps the queue at a fixed capacity,
+    // so a saturated queue stops growing and will return Insufficient
+    if (queueCongested) {
+      throughput = Throughput.INSUFFICIENT
     }
 
     val report = StreamingStatsReport(

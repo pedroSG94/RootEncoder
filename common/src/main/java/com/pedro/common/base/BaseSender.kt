@@ -101,6 +101,7 @@ abstract class BaseSender(
                             bytesOutPerSecond = bytesThisSecond,
                             totalBytesOut = bytesSend.get(),
                             smoothedBitrate = bitrateManager.getSmoothedBitrate(),
+                            queueCongested = hasCongestion(95f),
                         )
                         bytesSendPerSecond.set(0)
                     } catch (e: CancellationException) {

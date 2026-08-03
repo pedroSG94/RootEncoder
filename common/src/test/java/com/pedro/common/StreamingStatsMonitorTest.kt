@@ -67,12 +67,14 @@ class StreamingStatsMonitorTest {
       bytesOutPerSecond = 1000L,
       totalBytesOut = 1000L,
       smoothedBitrate = 8000L,
+      queueCongested = false,
     )
     monitor.collect(
       queueBytesOut = 200L,
       bytesOutPerSecond = 1000L,
       totalBytesOut = 2000L,
       smoothedBitrate = 8000L,
+      queueCongested = false,
     )
 
     val captor = argumentCaptor<StreamingStatsReport>()
@@ -88,6 +90,7 @@ class StreamingStatsMonitorTest {
         bytesOutPerSecond = 500L,
         totalBytesOut = 500L,
         smoothedBitrate = 4000L,
+        queueCongested = false,
       )
     }
     monitor.collect(
@@ -95,6 +98,7 @@ class StreamingStatsMonitorTest {
       bytesOutPerSecond = 500L,
       totalBytesOut = 1500L,
       smoothedBitrate = 4000L,
+      queueCongested = false,
     )
 
     val captor = argumentCaptor<StreamingStatsReport>()
@@ -112,18 +116,21 @@ class StreamingStatsMonitorTest {
       bytesOutPerSecond = 800L,
       totalBytesOut = 800L,
       smoothedBitrate = 6400L,
+      queueCongested = false,
     )
     monitor.collect(
       queueBytesOut = 200L,
       bytesOutPerSecond = 800L,
       totalBytesOut = 1600L,
       smoothedBitrate = 6400L,
+      queueCongested = false,
     )
     monitor.collect(
       queueBytesOut = 100L,
       bytesOutPerSecond = 800L,
       totalBytesOut = 2400L,
       smoothedBitrate = 6400L,
+      queueCongested = false,
     )
 
     val captor = argumentCaptor<StreamingStatsReport>()
@@ -133,9 +140,9 @@ class StreamingStatsMonitorTest {
 
   @Test
   fun `WHEN queue trend is mixed THEN throughput stays Unknown`() = runTest {
-    monitor.collect(queueBytesOut = 100L, bytesOutPerSecond = 100L, totalBytesOut = 100L, smoothedBitrate = 800L)
-    monitor.collect(queueBytesOut = 200L, bytesOutPerSecond = 100L, totalBytesOut = 200L, smoothedBitrate = 800L)
-    monitor.collect(queueBytesOut = 150L, bytesOutPerSecond = 100L, totalBytesOut = 300L, smoothedBitrate = 800L)
+    monitor.collect(queueBytesOut = 100L, bytesOutPerSecond = 100L, totalBytesOut = 100L, smoothedBitrate = 800L, queueCongested = false)
+    monitor.collect(queueBytesOut = 200L, bytesOutPerSecond = 100L, totalBytesOut = 200L, smoothedBitrate = 800L, queueCongested = false)
+    monitor.collect(queueBytesOut = 150L, bytesOutPerSecond = 100L, totalBytesOut = 300L, smoothedBitrate = 800L, queueCongested = false)
 
     val captor = argumentCaptor<StreamingStatsReport>()
     verify(connectChecker, times(3)).onStreamingStats(captor.capture())
@@ -150,6 +157,7 @@ class StreamingStatsMonitorTest {
         bytesOutPerSecond = 100L,
         totalBytesOut = 100L,
         smoothedBitrate = 800L,
+        queueCongested = false,
       )
     }
     monitor.reset()
@@ -158,10 +166,30 @@ class StreamingStatsMonitorTest {
       bytesOutPerSecond = 100L,
       totalBytesOut = 100L,
       smoothedBitrate = 800L,
+      queueCongested = false,
     )
 
     val captor = argumentCaptor<StreamingStatsReport>()
     verify(connectChecker, times(4)).onStreamingStats(captor.capture())
     assertEquals(Throughput.UNKNOWN, captor.lastValue.throughput)
+  }
+
+  @Test
+  fun `WHEN queue is congested THEN throughput is Insufficient even with a flat queue trend`() = runTest {
+    //queueBytesOut stays flat because the queue is saturated at its fixed capacity, not
+    //because throughput is healthy, so the trend alone would misread this as Sufficient
+    repeat(3) {
+      monitor.collect(
+        queueBytesOut = 1000L,
+        bytesOutPerSecond = 100L,
+        totalBytesOut = 100L,
+        smoothedBitrate = 800L,
+        queueCongested = true,
+      )
+    }
+
+    val captor = argumentCaptor<StreamingStatsReport>()
+    verify(connectChecker, times(3)).onStreamingStats(captor.capture())
+    assertEquals(Throughput.INSUFFICIENT, captor.lastValue.throughput)
   }
 }
