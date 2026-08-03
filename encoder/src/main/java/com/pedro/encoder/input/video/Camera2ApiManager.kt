@@ -411,6 +411,11 @@ class Camera2ApiManager(context: Context) {
         val builderInputSurface = this.builderInputSurface ?: return false
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES) ?: return false
         if (!modes.contains(mode)) return false
+        val maxRegionsAwb = characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AWB) ?: 0
+        if (maxRegionsAwb > 0) {
+            val clearRect = MeteringRectangle(0, 0, 0, 0, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
+            builderInputSurface.set(CaptureRequest.CONTROL_AWB_REGIONS, arrayOf(clearRect))
+        }
         builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, mode)
         isAutoWhiteBalanceEnabled = applyRequest(builderInputSurface)
         return isAutoWhiteBalanceEnabled
@@ -455,6 +460,11 @@ class Camera2ApiManager(context: Context) {
         val builderInputSurface = this.builderInputSurface ?: return false
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES) ?: return false
         if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return false
+        val maxRegionsAe = characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AE) ?: 0
+        if (maxRegionsAe > 0) {
+            val clearRect = MeteringRectangle(0, 0, 0, 0, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_REGIONS, arrayOf(clearRect))
+        }
         builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
         isAutoExposureEnabled = applyRequest(builderInputSurface)
         return isAutoExposureEnabled
