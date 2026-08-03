@@ -41,6 +41,7 @@ import com.pedro.encoder.utils.SpsColorPatcher;
 import com.pedro.encoder.utils.yuv.YUVUtil;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -198,7 +199,6 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   public void start(boolean resetTs) {
     if (resetTs) firstTimestamp = 0;
     forceKey = false;
-    shouldReset = resetTs;
     spsPpsSetted = false;
     if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
       YUVUtil.preAllocateBuffers(width * height * 3 / 2);
@@ -228,12 +228,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
-    for (int color : mediaCodecInfo.getCapabilitiesForType(type.getMime()).colorFormats) {
-      if (color == FormatVideoEncoder.YUV420PLANAR.getFormatCodec()) {
-        return FormatVideoEncoder.YUV420PLANAR;
-      } else if (color == FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec()) {
-        return FormatVideoEncoder.YUV420SEMIPLANAR;
-      }
+    List<Integer> colors = new ArrayList<>();
+    for (int color : mediaCodecInfo.getCapabilitiesForType(type.getMime()).colorFormats) colors.add(color);
+
+    if (colors.contains(FormatVideoEncoder.YUV420PLANAR.getFormatCodec())) {
+      return FormatVideoEncoder.YUV420PLANAR;
+    } else if (colors.contains(FormatVideoEncoder.YUV420SEMIPLANAR.getFormatCodec())) {
+      return FormatVideoEncoder.YUV420SEMIPLANAR;
     }
     return null;
   }
