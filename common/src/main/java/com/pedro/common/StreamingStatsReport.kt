@@ -25,6 +25,8 @@ data class StreamingStatsReport(
   val bytesOutPerSecond: Long,
   val queueBytesOut: Long,
   val totalBytesOut: Long,
+  /** Percent (0-100) of the send queue's fixed capacity currently in use. */
+  val queueCongestionPercent: Float,
   val throughput: Throughput,
   val bitrate: Long,
   val smoothedBitrate: Long,

@@ -101,7 +101,7 @@ abstract class BaseSender(
                             bytesOutPerSecond = bytesThisSecond,
                             totalBytesOut = bytesSend.get(),
                             smoothedBitrate = bitrateManager.getSmoothedBitrate(),
-                            queueCongested = hasCongestion(95f),
+                            queueCongestionPercent = queueUsagePercent(),
                         )
                         bytesSendPerSecond.set(0)
                     } catch (e: CancellationException) {
@@ -135,10 +135,14 @@ abstract class BaseSender(
     @Throws(IllegalArgumentException::class)
     fun hasCongestion(percentUsed: Float = 20f): Boolean {
         if (percentUsed !in 0.0..100.0) throw IllegalArgumentException("the value must be in range 0 to 100")
+        return queueUsagePercent() >= percentUsed
+    }
+
+    private fun queueUsagePercent(): Float {
         val size = queue.getSize().toFloat()
         val remaining = queue.remainingCapacity().toFloat()
         val capacity = size + remaining
-        return size >= capacity * (percentUsed / 100f)
+        return if (capacity <= 0f) 0f else (size / capacity) * 100f
     }
 
     fun resizeCache(newSize: Int) {

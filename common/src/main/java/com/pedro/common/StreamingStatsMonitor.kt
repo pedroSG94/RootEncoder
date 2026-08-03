@@ -23,6 +23,7 @@ package com.pedro.common
 class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
 
   private val measureInterval = 3
+  private val congestionThreshold = 95f
   private val previousQueueBytesOut: MutableList<Long> = mutableListOf()
 
   fun reset() {
@@ -34,7 +35,7 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
     bytesOutPerSecond: Long,
     totalBytesOut: Long,
     smoothedBitrate: Long,
-    queueCongested: Boolean,
+    queueCongestionPercent: Float,
   ) {
     var throughput = Throughput.UNKNOWN
     previousQueueBytesOut.add(queueBytesOut)
@@ -54,7 +55,7 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
     }
     // This library caps the queue at a fixed capacity,
     // so a saturated queue stops growing and will return Insufficient
-    if (queueCongested) {
+    if (queueCongestionPercent >= congestionThreshold) {
       throughput = Throughput.INSUFFICIENT
     }
 
@@ -62,6 +63,7 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
       bytesOutPerSecond = bytesOutPerSecond,
       queueBytesOut = queueBytesOut,
       totalBytesOut = totalBytesOut,
+      queueCongestionPercent = queueCongestionPercent,
       throughput = throughput,
       bitrate = bytesOutPerSecond * 8,
       smoothedBitrate = smoothedBitrate,
