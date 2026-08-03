@@ -230,7 +230,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onStreamingStats(report: StreamingStatsReport) {
     onMainThreadHandler {
-      if (report.throughput != Throughput.Unknown) {
+      if (report.throughput != Throughput.UNKNOWN) {
         txtBitrate.text = String.format(
           Locale.getDefault(),
           "%.1f mb/s [%s, queue %d KB]",

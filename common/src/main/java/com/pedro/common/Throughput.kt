@@ -17,7 +17,7 @@
 package com.pedro.common
 
 enum class Throughput {
-  Unknown,
-  Sufficient,
-  Insufficient,
+  UNKNOWN,
+  SUFFICIENT,
+  INSUFFICIENT,
 }

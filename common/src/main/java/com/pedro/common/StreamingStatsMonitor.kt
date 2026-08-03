@@ -35,7 +35,7 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
     totalBytesOut: Long,
     smoothedBitrate: Long,
   ) {
-    var throughput = Throughput.Unknown
+    var throughput = Throughput.UNKNOWN
     previousQueueBytesOut.add(queueBytesOut)
     if (measureInterval <= previousQueueBytesOut.size) {
       var countQueuedBytesGrowing = 0
@@ -45,9 +45,9 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
         }
       }
       if (countQueuedBytesGrowing == measureInterval - 1) {
-        throughput = Throughput.Insufficient
+        throughput = Throughput.INSUFFICIENT
       } else if (countQueuedBytesGrowing == 0) {
-        throughput = Throughput.Sufficient
+        throughput = Throughput.SUFFICIENT
       }
       previousQueueBytesOut.removeAt(0)
     }

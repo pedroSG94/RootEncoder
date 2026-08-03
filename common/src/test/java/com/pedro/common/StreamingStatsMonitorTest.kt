@@ -77,7 +77,7 @@ class StreamingStatsMonitorTest {
 
     val captor = argumentCaptor<StreamingStatsReport>()
     verify(connectChecker, times(2)).onStreamingStats(captor.capture())
-    captor.allValues.forEach { assertEquals(Throughput.Unknown, it.throughput) }
+    captor.allValues.forEach { assertEquals(Throughput.UNKNOWN, it.throughput) }
   }
 
   @Test
@@ -99,7 +99,7 @@ class StreamingStatsMonitorTest {
 
     val captor = argumentCaptor<StreamingStatsReport>()
     verify(connectChecker, times(3)).onStreamingStats(captor.capture())
-    assertEquals(Throughput.Insufficient, captor.lastValue.throughput)
+    assertEquals(Throughput.INSUFFICIENT, captor.lastValue.throughput)
     assertEquals(300L, captor.lastValue.queueBytesOut)
     assertEquals(500L, captor.lastValue.bytesOutPerSecond)
     assertEquals(4000L, captor.lastValue.bitrate)
@@ -128,7 +128,7 @@ class StreamingStatsMonitorTest {
 
     val captor = argumentCaptor<StreamingStatsReport>()
     verify(connectChecker, times(3)).onStreamingStats(captor.capture())
-    assertEquals(Throughput.Sufficient, captor.lastValue.throughput)
+    assertEquals(Throughput.SUFFICIENT, captor.lastValue.throughput)
   }
 
   @Test
@@ -139,7 +139,7 @@ class StreamingStatsMonitorTest {
 
     val captor = argumentCaptor<StreamingStatsReport>()
     verify(connectChecker, times(3)).onStreamingStats(captor.capture())
-    assertEquals(Throughput.Unknown, captor.lastValue.throughput)
+    assertEquals(Throughput.UNKNOWN, captor.lastValue.throughput)
   }
 
   @Test
@@ -162,6 +162,6 @@ class StreamingStatsMonitorTest {
 
     val captor = argumentCaptor<StreamingStatsReport>()
     verify(connectChecker, times(4)).onStreamingStats(captor.capture())
-    assertEquals(Throughput.Unknown, captor.lastValue.throughput)
+    assertEquals(Throughput.UNKNOWN, captor.lastValue.throughput)
   }
 }
