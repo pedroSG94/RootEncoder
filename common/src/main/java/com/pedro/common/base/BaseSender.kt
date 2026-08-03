@@ -8,6 +8,7 @@ import com.pedro.common.StreamBlockingQueue
 import com.pedro.common.clone
 import com.pedro.common.StreamingStatsMonitor
 import com.pedro.common.frame.MediaFrame
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -91,17 +92,25 @@ abstract class BaseSender(
         job = scope.launch {
             val bitrateTask = async {
                 while (scope.isActive && running) {
-                    val bytesThisSecond = bytesSendPerSecond.get()
-                    //bytes to bits
-                    bitrateManager.calculateBitrate(bytesThisSecond * 8)
-                    streamingStatsMonitor.collect(
-                        queueBytesOut = queue.getTotalSize(),
-                        bytesOutPerSecond = bytesThisSecond,
-                        totalBytesOut = bytesSend.get(),
-                        totalBytesIn = 0L,
-                        smoothedBitrate = bitrateManager.getSmoothedBitrate(),
-                    )
-                    bytesSendPerSecond.set(0)
+                    try {
+                        val bytesThisSecond = bytesSendPerSecond.get()
+                        //bytes to bits
+                        bitrateManager.calculateBitrate(bytesThisSecond * 8)
+                        streamingStatsMonitor.collect(
+                            queueBytesOut = queue.getTotalSize(),
+                            bytesOutPerSecond = bytesThisSecond,
+                            totalBytesOut = bytesSend.get(),
+                            totalBytesIn = 0L,
+                            smoothedBitrate = bitrateManager.getSmoothedBitrate(),
+                        )
+                        bytesSendPerSecond.set(0)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        //never let a reporting failure (e.g. no Main dispatcher, checker callback
+                        //throwing) take down the send loop
+                        Log.e(TAG, "bitrate/stats reporting failed", e)
+                    }
                     delay(timeMillis = 1000)
                 }
             }
