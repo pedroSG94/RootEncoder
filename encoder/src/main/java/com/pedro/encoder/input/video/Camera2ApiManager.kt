@@ -500,7 +500,10 @@ class Camera2ApiManager(context: Context) {
      * @return true if success, false if fail (not supported or called before start camera)
      */
     fun enableWhiteBalanceLock(): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
+        val available = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_LOCK_AVAILABLE) ?: return false
+        if (!available) return false
         builderInputSurface.set(CaptureRequest.CONTROL_AWB_LOCK, true)
         isWhiteBalanceLockEnabled = applyRequest(builderInputSurface)
         return isWhiteBalanceLockEnabled
