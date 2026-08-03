@@ -99,6 +99,8 @@ class Camera2ApiManager(context: Context) {
         private set
     var isAutoWhiteBalanceEnabled: Boolean = true
         private set
+    var isWhiteBalanceLockEnabled: Boolean = false
+        private set
     var isRunning: Boolean = false
         private set
     private var fps = 30
@@ -492,6 +494,25 @@ class Camera2ApiManager(context: Context) {
         isExposureLockEnabled = false
     }
 
+    /**
+     * Lock auto white balance to the current value. The camera will stop adjusting white balance
+     * automatically (useful to avoid color shifts from lighting changes).
+     * @return true if success, false if fail (not supported or called before start camera)
+     */
+    fun enableWhiteBalanceLock(): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_LOCK, true)
+        isWhiteBalanceLockEnabled = applyRequest(builderInputSurface)
+        return isWhiteBalanceLockEnabled
+    }
+
+    fun disableWhiteBalanceLock() {
+        val builderInputSurface = this.builderInputSurface ?: return
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_LOCK, false)
+        applyRequest(builderInputSurface)
+        isWhiteBalanceLockEnabled = false
+    }
+
     fun enableVideoStabilization(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
@@ -618,6 +639,76 @@ class Camera2ApiManager(context: Context) {
             return true
         } catch (_: Exception) {
             return false
+        }
+    }
+
+    /**
+     * Tap to meter exposure at a specific point.
+     *
+     * @param view The view where the touch event occurred
+     * @param event The touch event containing coordinates
+     * @return true if successful, false otherwise
+     */
+    fun tapToMeterExposure(view: View, event: MotionEvent): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val characteristics = cameraCharacteristics ?: return false
+        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AE) == 0) return false
+
+        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
+        val regionX = (event.x / view.width.toFloat()) * sensorArraySize.width()
+        val regionY = (event.y / view.height.toFloat()) * sensorArraySize.height()
+
+        val aeRect = MeteringRectangle(
+            (regionX - 100).toInt().coerceIn(0, sensorArraySize.width()),
+            (regionY - 100).toInt().coerceIn(0, sensorArraySize.height()),
+            (100 * 2).coerceIn(0, sensorArraySize.width()),
+            (100 * 2).coerceIn(0, sensorArraySize.height()),
+            MeteringRectangle.METERING_WEIGHT_MAX
+        )
+
+        return try {
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_REGIONS, arrayOf(aeRect))
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON)
+            isAutoExposureEnabled = applyRequest(builderInputSurface)
+            isAutoExposureEnabled
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting AE region", e)
+            false
+        }
+    }
+
+    /**
+     * Tap to meter white balance at a specific point.
+     *
+     * @param view The view where the touch event occurred
+     * @param event The touch event containing coordinates
+     * @return true if successful, false otherwise
+     */
+    fun tapToMeterWhiteBalance(view: View, event: MotionEvent): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val characteristics = cameraCharacteristics ?: return false
+        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AWB) == 0) return false
+
+        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
+        val regionX = (event.x / view.width.toFloat()) * sensorArraySize.width()
+        val regionY = (event.y / view.height.toFloat()) * sensorArraySize.height()
+
+        val awbRect = MeteringRectangle(
+            (regionX - 100).toInt().coerceIn(0, sensorArraySize.width()),
+            (regionY - 100).toInt().coerceIn(0, sensorArraySize.height()),
+            (100 * 2).coerceIn(0, sensorArraySize.width()),
+            (100 * 2).coerceIn(0, sensorArraySize.height()),
+            MeteringRectangle.METERING_WEIGHT_MAX
+        )
+
+        return try {
+            builderInputSurface.set(CaptureRequest.CONTROL_AWB_REGIONS, arrayOf(awbRect))
+            builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, CameraMetadata.CONTROL_AWB_MODE_AUTO)
+            isAutoWhiteBalanceEnabled = applyRequest(builderInputSurface)
+            isAutoWhiteBalanceEnabled
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting AWB region", e)
+            false
         }
     }
 

@@ -154,6 +154,14 @@ class Camera2Source(context: Context): VideoSource() {
     return camera.tapToFocus(view, event)
   }
 
+  fun tapToMeterExposure(view: View, event: MotionEvent): Boolean {
+    return if (isRunning()) camera.tapToMeterExposure(view, event) else false
+  }
+
+  fun tapToMeterWhiteBalance(view: View, event: MotionEvent): Boolean {
+    return if (isRunning()) camera.tapToMeterWhiteBalance(view, event) else false
+  }
+
   @JvmOverloads
   fun setZoom(event: MotionEvent, delta: Float = 0.1f) {
     if (isRunning()) camera.setZoom(event, delta)
@@ -233,6 +241,16 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   fun isExposureLockEnabled() = camera.isExposureLockEnabled
+
+  fun enableWhiteBalanceLock(): Boolean {
+    return if (isRunning()) camera.enableWhiteBalanceLock() else false
+  }
+
+  fun disableWhiteBalanceLock() {
+    if (isRunning()) camera.disableWhiteBalanceLock()
+  }
+
+  fun isWhiteBalanceLockEnabled() = camera.isWhiteBalanceLockEnabled
 
   @JvmOverloads
   fun addImageListener(
