@@ -100,7 +100,6 @@ abstract class BaseSender(
                             queueBytesOut = queue.getTotalSize(),
                             bytesOutPerSecond = bytesThisSecond,
                             totalBytesOut = bytesSend.get(),
-                            totalBytesIn = 0L,
                             smoothedBitrate = bitrateManager.getSmoothedBitrate(),
                         )
                         bytesSendPerSecond.set(0)

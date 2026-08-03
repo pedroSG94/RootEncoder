@@ -24,23 +24,17 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
 
   private val measureInterval = 3
   private val previousQueueBytesOut: MutableList<Long> = mutableListOf()
-  private var previousTotalBytesIn = 0L
 
   fun reset() {
     previousQueueBytesOut.clear()
-    previousTotalBytesIn = 0L
   }
 
   suspend fun collect(
     queueBytesOut: Long,
     bytesOutPerSecond: Long,
     totalBytesOut: Long,
-    totalBytesIn: Long,
     smoothedBitrate: Long,
   ) {
-    val bytesInPerSecond = totalBytesIn - previousTotalBytesIn
-    previousTotalBytesIn = totalBytesIn
-
     var throughput = Throughput.Unknown
     previousQueueBytesOut.add(queueBytesOut)
     if (measureInterval <= previousQueueBytesOut.size) {
@@ -62,8 +56,6 @@ class StreamingStatsMonitor(private val bitrateChecker: BitrateChecker) {
       bytesOutPerSecond = bytesOutPerSecond,
       queueBytesOut = queueBytesOut,
       totalBytesOut = totalBytesOut,
-      totalBytesIn = totalBytesIn,
-      bytesInPerSecond = bytesInPerSecond,
       throughput = throughput,
       bitrate = bytesOutPerSecond * 8,
       smoothedBitrate = smoothedBitrate,

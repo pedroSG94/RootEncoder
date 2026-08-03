@@ -25,8 +25,6 @@ data class StreamingStatsReport(
   val bytesOutPerSecond: Long,
   val queueBytesOut: Long,
   val totalBytesOut: Long,
-  val totalBytesIn: Long = 0,
-  val bytesInPerSecond: Long = 0,
   val throughput: Throughput,
   val bitrate: Long,
   val smoothedBitrate: Long,
