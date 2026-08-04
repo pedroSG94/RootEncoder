@@ -512,8 +512,10 @@ class Camera2ApiManager(context: Context) {
     fun enableWhiteBalanceLock(): Boolean {
         val characteristics = cameraCharacteristics ?: return false
         val builderInputSurface = this.builderInputSurface ?: return false
-        val available = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_LOCK_AVAILABLE) ?: return false
-        if (!available) return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val available = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_LOCK_AVAILABLE) ?: return false
+            if (!available) return false
+        }
         builderInputSurface.set(CaptureRequest.CONTROL_AWB_LOCK, true)
         isWhiteBalanceLockEnabled = applyRequest(builderInputSurface)
         return isWhiteBalanceLockEnabled
@@ -603,24 +605,30 @@ class Camera2ApiManager(context: Context) {
             return supportedExposure
         }
 
-    fun tapToFocus(view: View, event: MotionEvent): Boolean {
-        val builderInputSurface = this.builderInputSurface ?: return false
-        val characteristics = cameraCharacteristics ?: return false
-        val session = cameraCaptureSession ?: return false
-        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AF) == 0) return false
-        val focusTag = "focus"
-        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
+    private fun getTapRect(view: View, event: MotionEvent): MeteringRectangle? {
+        val characteristics = cameraCharacteristics ?: return null
+        val sensorArraySize = characteristics.secureGet(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return null
+
         val x = event.x
         val y = event.y
         val focusX = (x / view.width.toFloat()) * sensorArraySize.width()
         val focusY = (y / view.height.toFloat()) * sensorArraySize.height()
-        val focusRect = MeteringRectangle(
+        return MeteringRectangle(
             (focusX - 100).toInt().coerceIn(0, sensorArraySize.width()),
             (focusY - 100).toInt().coerceIn(0, sensorArraySize.height()),
             (100 * 2).coerceIn(0, sensorArraySize.width()),
             (100 * 2).coerceIn(0, sensorArraySize.height()),
             MeteringRectangle.METERING_WEIGHT_MAX
         )
+    }
+
+    fun tapToFocus(view: View, event: MotionEvent): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val session = cameraCaptureSession ?: return false
+        val characteristics = cameraCharacteristics ?: return false
+        if ((characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AF) ?: 0) == 0) return false
+        val focusRect = getTapRect(view, event) ?: return false
+        val focusTag = "focus"
 
         val captureCallbackHandler: CameraCaptureSession.CaptureCallback =
             object : CameraCaptureSession.CaptureCallback() {
@@ -663,21 +671,11 @@ class Camera2ApiManager(context: Context) {
      * @return true if successful, false otherwise
      */
     fun tapToMeterExposure(view: View, event: MotionEvent): Boolean {
+        if (isExposureLockEnabled) return false
         val builderInputSurface = this.builderInputSurface ?: return false
         val characteristics = cameraCharacteristics ?: return false
-        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AE) == 0) return false
-
-        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
-        val regionX = (event.x / view.width.toFloat()) * sensorArraySize.width()
-        val regionY = (event.y / view.height.toFloat()) * sensorArraySize.height()
-
-        val aeRect = MeteringRectangle(
-            (regionX - 100).toInt().coerceIn(0, sensorArraySize.width()),
-            (regionY - 100).toInt().coerceIn(0, sensorArraySize.height()),
-            (100 * 2).coerceIn(0, sensorArraySize.width()),
-            (100 * 2).coerceIn(0, sensorArraySize.height()),
-            MeteringRectangle.METERING_WEIGHT_MAX
-        )
+        if ((characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AE) ?: 0) == 0) return false
+        val aeRect = getTapRect(view, event) ?: return false
 
         return try {
             builderInputSurface.set(CaptureRequest.CONTROL_AE_REGIONS, arrayOf(aeRect))
@@ -698,21 +696,11 @@ class Camera2ApiManager(context: Context) {
      * @return true if successful, false otherwise
      */
     fun tapToMeterWhiteBalance(view: View, event: MotionEvent): Boolean {
+        if (isWhiteBalanceLockEnabled) return false
         val builderInputSurface = this.builderInputSurface ?: return false
         val characteristics = cameraCharacteristics ?: return false
-        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AWB) == 0) return false
-
-        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
-        val regionX = (event.x / view.width.toFloat()) * sensorArraySize.width()
-        val regionY = (event.y / view.height.toFloat()) * sensorArraySize.height()
-
-        val awbRect = MeteringRectangle(
-            (regionX - 100).toInt().coerceIn(0, sensorArraySize.width()),
-            (regionY - 100).toInt().coerceIn(0, sensorArraySize.height()),
-            (100 * 2).coerceIn(0, sensorArraySize.width()),
-            (100 * 2).coerceIn(0, sensorArraySize.height()),
-            MeteringRectangle.METERING_WEIGHT_MAX
-        )
+        if ((characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AWB) ?: 0) == 0) return false
+        val awbRect = getTapRect(view, event) ?: return false
 
         return try {
             builderInputSurface.set(CaptureRequest.CONTROL_AWB_REGIONS, arrayOf(awbRect))
@@ -1065,6 +1053,8 @@ class Camera2ApiManager(context: Context) {
 
     @JvmOverloads
     fun closeCamera(resetSurface: Boolean = true) {
+        isExposureLockEnabled = false
+        isWhiteBalanceLockEnabled = false
         isLanternEnabled = false
         zoomLevel = 1.0f
         cameraCaptureSession?.close()
