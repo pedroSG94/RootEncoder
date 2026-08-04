@@ -6,7 +6,9 @@ import com.pedro.common.BufferPool
 import com.pedro.common.ConnectChecker
 import com.pedro.common.StreamBlockingQueue
 import com.pedro.common.clone
+import com.pedro.common.StreamingStatsMonitor
 import com.pedro.common.frame.MediaFrame
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -36,6 +38,7 @@ abstract class BaseSender(
     private val droppedVideoFrames = AtomicLong(0)
 
     private val bitrateManager: BitrateManager = BitrateManager(connectChecker)
+    private val streamingStatsMonitor: StreamingStatsMonitor = StreamingStatsMonitor(connectChecker)
     protected var isEnableLogs = true
     private var job: Job? = null
     protected val scope = CoroutineScope(Dispatchers.IO)
@@ -81,16 +84,34 @@ abstract class BaseSender(
         }
     }
 
-    fun start() {
+    suspend fun start() {
+        running = false
+        job?.cancelAndJoin()
         bitrateManager.reset()
         queue.clear { bufferPool.release(it.data) }
+        streamingStatsMonitor.reset()
         running = true
         job = scope.launch {
             val bitrateTask = async {
                 while (scope.isActive && running) {
-                    //bytes to bits
-                    bitrateManager.calculateBitrate(bytesSendPerSecond.get() * 8)
-                    bytesSendPerSecond.set(0)
+                    try {
+                        val bytesThisSecond = bytesSendPerSecond.getAndSet(0)
+                        //bytes to bits
+                        bitrateManager.calculateBitrate(bytesThisSecond * 8)
+                        streamingStatsMonitor.collect(
+                            queueBytesOut = queue.getTotalSize(),
+                            bytesOutPerSecond = bytesThisSecond,
+                            totalBytesOut = bytesSend.get(),
+                            smoothedBitrate = bitrateManager.getSmoothedBitrate(),
+                            queueCongestionPercent = queueUsagePercent(),
+                        )
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        //never let a reporting failure (e.g. no Main dispatcher, checker callback
+                        //throwing) take down the send loop
+                        Log.e(TAG, "bitrate/stats reporting failed", e)
+                    }
                     delay(timeMillis = 1000)
                 }
             }
@@ -115,10 +136,14 @@ abstract class BaseSender(
     @Throws(IllegalArgumentException::class)
     fun hasCongestion(percentUsed: Float = 20f): Boolean {
         if (percentUsed !in 0.0..100.0) throw IllegalArgumentException("the value must be in range 0 to 100")
+        return queueUsagePercent() >= percentUsed
+    }
+
+    private fun queueUsagePercent(): Float {
         val size = queue.getSize().toFloat()
         val remaining = queue.remainingCapacity().toFloat()
         val capacity = size + remaining
-        return size >= capacity * (percentUsed / 100f)
+        return if (capacity <= 0f) 0f else (size / capacity) * 100f
     }
 
     fun resizeCache(newSize: Int) {
@@ -131,6 +156,8 @@ abstract class BaseSender(
     fun getCacheSize(): Int = queue.capacity
 
     fun getItemsInCache(): Int = queue.getSize()
+
+    fun getQueueBytesOut(): Long = queue.getTotalSize()
 
     fun clearCache() {
         queue.clear { bufferPool.release(it.data) }

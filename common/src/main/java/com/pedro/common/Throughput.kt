@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-package com.pedro.common;
+package com.pedro.common
 
-/**
- * Created by pedro on 30/5/24.
- */
-public interface BitrateChecker {
-  default void onNewBitrate(long bitrate) {}
-
-  default void onStreamingStats(StreamingStatsReport report) {}
+enum class Throughput {
+  UNKNOWN,
+  SUFFICIENT,
+  INSUFFICIENT,
 }

@@ -89,6 +89,8 @@ class SrtStreamClient(
 
   override fun getItemsInCache(): Int = srtClient.getItemsInCache()
 
+  override fun getQueueBytesOut(): Long = srtClient.getQueueBytesOut()
+
   override fun getSentAudioFrames(): Long = srtClient.sentAudioFrames
 
   override fun getSentVideoFrames(): Long = srtClient.sentVideoFrames

@@ -506,6 +506,8 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
     fun getItemsInCache(): Int = whipSender.getItemsInCache()
 
+    fun getQueueBytesOut(): Long = whipSender.getQueueBytesOut()
+
     /**
      * @param factor values from 0.1f to 1f
      * Set an exponential factor to the bitrate calculation to avoid bitrate spikes

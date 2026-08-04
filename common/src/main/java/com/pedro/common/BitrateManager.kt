@@ -37,11 +37,13 @@ open class BitrateManager(private val bitrateChecker: BitrateChecker) {
       val currentValue = (bitrate / (timeDiff / 1000f)).toLong()
       if (bitrateOld == 0L) { bitrateOld = currentValue }
       bitrateOld = (bitrateOld + exponentialFactor * (currentValue - bitrateOld)).toLong()
-      onMainThread { bitrateChecker.onNewBitrate(bitrateOld) }
       timeStamp = TimeUtils.getCurrentTimeMillis()
       bitrate = 0
+      onMainThread { bitrateChecker.onNewBitrate(bitrateOld) }
     }
   }
+
+  fun getSmoothedBitrate(): Long = bitrateOld
 
   fun reset() {
     bitrate = 0

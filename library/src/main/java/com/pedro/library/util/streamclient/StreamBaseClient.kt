@@ -51,6 +51,7 @@ abstract class StreamBaseClient {
   abstract fun clearCache()
   abstract fun getCacheSize(): Int
   abstract fun getItemsInCache(): Int
+  abstract fun getQueueBytesOut(): Long
   abstract fun getSentAudioFrames(): Long
   abstract fun getSentVideoFrames(): Long
   abstract fun getBytesSend(): Long

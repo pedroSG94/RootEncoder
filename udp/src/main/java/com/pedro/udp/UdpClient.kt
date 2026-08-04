@@ -40,6 +40,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.net.URISyntaxException
 import java.nio.ByteBuffer
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Created by pedro on 6/3/24.
@@ -228,7 +229,7 @@ class UdpClient(private val connectChecker: ConnectChecker) {
     jobRetry = scopeRetry.launch {
       reTries--
       disconnect(false)
-      delay(delay)
+      delay(delay.milliseconds)
       val reconnectUrl = backupUrl ?: url
       connect(reconnectUrl, true)
     }
@@ -299,6 +300,8 @@ class UdpClient(private val connectChecker: ConnectChecker) {
   }
 
   fun getItemsInCache(): Int = udpSender.getItemsInCache()
+
+  fun getQueueBytesOut(): Long = udpSender.getQueueBytesOut()
 
   /**
    * @param factor values from 0.1f to 1f

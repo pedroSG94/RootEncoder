@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package com.pedro.common;
+package com.pedro.common
 
 /**
- * Created by pedro on 30/5/24.
+ * Per-second streaming statistics report.
+ *
+ * Mirrors HaishinKit [NetworkMonitorReport](https://github.com/HaishinKit/HaishinKit.swift/blob/main/HaishinKit/Sources/Network/NetworkMonitorReport.swift).
  */
-public interface BitrateChecker {
-  default void onNewBitrate(long bitrate) {}
-
-  default void onStreamingStats(StreamingStatsReport report) {}
-}
+data class StreamingStatsReport(
+  val bytesOutPerSecond: Long,
+  val queueBytesOut: Long,
+  val totalBytesOut: Long,
+  /** Percent (0-100) of the send queue's fixed capacity currently in use. */
+  val queueCongestionPercent: Float,
+  val throughput: Throughput,
+  val bitrate: Long,
+  val smoothedBitrate: Long,
+)

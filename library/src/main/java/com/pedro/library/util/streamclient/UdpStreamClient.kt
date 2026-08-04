@@ -75,6 +75,8 @@ class UdpStreamClient(
 
   override fun getItemsInCache(): Int = udpClient.getItemsInCache()
 
+  override fun getQueueBytesOut(): Long = udpClient.getQueueBytesOut()
+
   override fun getSentAudioFrames(): Long = udpClient.sentAudioFrames
 
   override fun getSentVideoFrames(): Long = udpClient.sentVideoFrames
