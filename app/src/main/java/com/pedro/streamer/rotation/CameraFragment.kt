@@ -221,15 +221,9 @@ class CameraFragment: Fragment(), ConnectChecker {
     }
   }
 
-  override fun onNewBitrate(bitrate: Long) {
-    onMainThreadHandler {
-      bitrateAdapter.adaptBitrate(bitrate, genericStream.getStreamClient().hasCongestion())
-      txtBitrate.text = String.format(Locale.getDefault(), "%.1f mb/s", bitrate / 1000_000f)
-    }
-  }
-
   override fun onStreamingStats(report: StreamingStatsReport) {
     onMainThreadHandler {
+      bitrateAdapter.adaptBitrate(report.smoothedBitrate, genericStream.getStreamClient().hasCongestion())
       if (report.throughput != Throughput.UNKNOWN) {
         txtBitrate.text = String.format(
           Locale.getDefault(),

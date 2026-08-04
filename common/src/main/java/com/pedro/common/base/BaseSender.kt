@@ -84,7 +84,9 @@ abstract class BaseSender(
         }
     }
 
-    fun start() {
+    suspend fun start() {
+        running = false
+        job?.cancelAndJoin()
         bitrateManager.reset()
         queue.clear { bufferPool.release(it.data) }
         streamingStatsMonitor.reset()
@@ -93,7 +95,7 @@ abstract class BaseSender(
             val bitrateTask = async {
                 while (scope.isActive && running) {
                     try {
-                        val bytesThisSecond = bytesSendPerSecond.get()
+                        val bytesThisSecond = bytesSendPerSecond.getAndSet(0)
                         //bytes to bits
                         bitrateManager.calculateBitrate(bytesThisSecond * 8)
                         streamingStatsMonitor.collect(
@@ -103,7 +105,6 @@ abstract class BaseSender(
                             smoothedBitrate = bitrateManager.getSmoothedBitrate(),
                             queueCongestionPercent = queueUsagePercent(),
                         )
-                        bytesSendPerSecond.set(0)
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {
