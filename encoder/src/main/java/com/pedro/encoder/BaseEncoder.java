@@ -38,19 +38,23 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Created by pedro on 18/09/19.
  */
 public abstract class BaseEncoder implements EncoderCallback {
 
+  private static final int MAX_RESET_ATTEMPTS = 3;
+  private static final long RESET_ATTEMPTS_WINDOW_MS = 30_000;
+
   protected String TAG = "BaseEncoder";
   protected final G711Codec g711Codec = new G711Codec();
   private final MediaCodec.BufferInfo bufferInfo = new MediaCodec.BufferInfo();
   private HandlerThread handlerThread;
-  private ExecutorService executorService;
+  private volatile ExecutorService executorService;
   protected BlockingQueue<Frame> queue = new ArrayBlockingQueue<>(80);
-  protected MediaCodec codec;
+  protected volatile MediaCodec codec;
   protected volatile long presentTimeUs;
   protected volatile boolean running = false;
   protected boolean isBufferMode = true;
@@ -58,6 +62,8 @@ public abstract class BaseEncoder implements EncoderCallback {
   private MediaCodec.Callback callback;
   private volatile long oldTimeStamp = 0L;
   protected boolean shouldReset = true;
+  private long lastResetTimeMs = 0;
+  private int resetAttempts = 0;
   protected boolean prepared = false;
   private Handler handler;
   private CodecErrorCallback encoderErrorCallback;
@@ -82,6 +88,9 @@ public abstract class BaseEncoder implements EncoderCallback {
   public void start(long startTs) {
     if (!prepared) throw new IllegalStateException(TAG + " not prepared yet. You must call prepare method before start it");
     presentTimeUs = startTs;
+    shouldReset = true;
+    lastResetTimeMs = 0;
+    resetAttempts = 0;
     start(true);
     initCodec();
   }
@@ -111,7 +120,8 @@ public abstract class BaseEncoder implements EncoderCallback {
             getDataFromEncoder();
           } catch (IllegalStateException e) {
             Log.i(TAG, "Encoding error", e);
-            reloadCodec(e);
+            new Thread(() -> reloadCodec(e), TAG + " recovery").start();
+            return;
           }
         }
       });
@@ -144,13 +154,22 @@ public abstract class BaseEncoder implements EncoderCallback {
     }
     //Sometimes encoder crash, we will try recover it. Reset encoder a time if crash
     CodecErrorCallback callback = encoderErrorCallback;
-    if (callback != null) {
-      shouldReset = callback.onEncodeError(typeError, e);
-    }
-    if (shouldReset) {
-      Log.e(typeError.name(), "Encoder crashed, trying to recover it");
+    if (callback != null) shouldReset = callback.onEncodeError(typeError, e);
+    if (shouldReset && canReset()) {
+      Log.e(TAG, typeError.name() + ". Encoder crashed, trying to recover it", e);
       reset();
+    } else {
+      Log.e(TAG, typeError.name() + ". Encoder crashed, stopping it", e);
+      stop();
     }
+  }
+
+  private boolean canReset() {
+    long now = TimeUtils.getCurrentTimeMillis();
+    if (now - lastResetTimeMs > RESET_ATTEMPTS_WINDOW_MS) resetAttempts = 0;
+    lastResetTimeMs = now;
+    resetAttempts++;
+    return resetAttempts <= MAX_RESET_ATTEMPTS;
   }
 
   public void stop() {
@@ -165,9 +184,7 @@ public abstract class BaseEncoder implements EncoderCallback {
     stopImp();
     if (handlerThread != null) {
       if (handlerThread.getLooper() != null) {
-        if (handlerThread.getLooper().getThread() != null) {
-          handlerThread.getLooper().getThread().interrupt();
-        }
+        handlerThread.getLooper().getThread().interrupt();
         handlerThread.getLooper().quit();
       }
       handlerThread.quit();
@@ -181,7 +198,15 @@ public abstract class BaseEncoder implements EncoderCallback {
         handlerThread.getLooper().getThread().join(500);
       } catch (Exception ignored) { }
     }
-    if (executorService != null) executorService.shutdownNow();
+    ExecutorService executor = executorService;
+    if (executor != null) {
+      executor.shutdownNow();
+      try {
+        executor.awaitTermination(500, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+    }
     queue.clear();
     queue = new ArrayBlockingQueue<>(80);
     try {
@@ -202,6 +227,8 @@ public abstract class BaseEncoder implements EncoderCallback {
       processG711();
       return;
     }
+    MediaCodec codec = this.codec;
+    if (codec == null) return;
     if (isBufferMode) {
       int inBufferIndex = codec.dequeueInputBuffer(0);
       if (inBufferIndex >= 0) {
