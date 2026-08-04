@@ -99,6 +99,8 @@ class Camera2ApiManager(context: Context) {
         private set
     var isAutoWhiteBalanceEnabled: Boolean = true
         private set
+    var isWhiteBalanceLockEnabled: Boolean = false
+        private set
     var isRunning: Boolean = false
         private set
     private var fps = 30
@@ -409,6 +411,11 @@ class Camera2ApiManager(context: Context) {
         val builderInputSurface = this.builderInputSurface ?: return false
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_AVAILABLE_MODES) ?: return false
         if (!modes.contains(mode)) return false
+        val maxRegionsAwb = characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AWB) ?: 0
+        if (maxRegionsAwb > 0) {
+            val clearRect = MeteringRectangle(0, 0, 0, 0, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
+            builderInputSurface.set(CaptureRequest.CONTROL_AWB_REGIONS, arrayOf(clearRect))
+        }
         builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, mode)
         isAutoWhiteBalanceEnabled = applyRequest(builderInputSurface)
         return isAutoWhiteBalanceEnabled
@@ -453,6 +460,11 @@ class Camera2ApiManager(context: Context) {
         val builderInputSurface = this.builderInputSurface ?: return false
         val modes = characteristics.secureGet(CameraCharacteristics.CONTROL_AE_AVAILABLE_MODES) ?: return false
         if (!modes.contains(CaptureRequest.CONTROL_AE_MODE_ON)) return false
+        val maxRegionsAe = characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AE) ?: 0
+        if (maxRegionsAe > 0) {
+            val clearRect = MeteringRectangle(0, 0, 0, 0, MeteringRectangle.METERING_WEIGHT_DONT_CARE)
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_REGIONS, arrayOf(clearRect))
+        }
         builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON)
         isAutoExposureEnabled = applyRequest(builderInputSurface)
         return isAutoExposureEnabled
@@ -490,6 +502,30 @@ class Camera2ApiManager(context: Context) {
         builderInputSurface.set(CaptureRequest.CONTROL_AE_LOCK, false)
         applyRequest(builderInputSurface)
         isExposureLockEnabled = false
+    }
+
+    /**
+     * Lock auto white balance to the current value. The camera will stop adjusting white balance
+     * automatically (useful to avoid color shifts from lighting changes).
+     * @return true if success, false if fail (not supported or called before start camera)
+     */
+    fun enableWhiteBalanceLock(): Boolean {
+        val characteristics = cameraCharacteristics ?: return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val available = characteristics.secureGet(CameraCharacteristics.CONTROL_AWB_LOCK_AVAILABLE) ?: return false
+            if (!available) return false
+        }
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_LOCK, true)
+        isWhiteBalanceLockEnabled = applyRequest(builderInputSurface)
+        return isWhiteBalanceLockEnabled
+    }
+
+    fun disableWhiteBalanceLock() {
+        val builderInputSurface = this.builderInputSurface ?: return
+        builderInputSurface.set(CaptureRequest.CONTROL_AWB_LOCK, false)
+        applyRequest(builderInputSurface)
+        isWhiteBalanceLockEnabled = false
     }
 
     fun enableVideoStabilization(): Boolean {
@@ -569,24 +605,30 @@ class Camera2ApiManager(context: Context) {
             return supportedExposure
         }
 
-    fun tapToFocus(view: View, event: MotionEvent): Boolean {
-        val builderInputSurface = this.builderInputSurface ?: return false
-        val characteristics = cameraCharacteristics ?: return false
-        val session = cameraCaptureSession ?: return false
-        if (characteristics.get(CameraCharacteristics.CONTROL_MAX_REGIONS_AF) == 0) return false
-        val focusTag = "focus"
-        val sensorArraySize = characteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
+    private fun getTapRect(view: View, event: MotionEvent): MeteringRectangle? {
+        val characteristics = cameraCharacteristics ?: return null
+        val sensorArraySize = characteristics.secureGet(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return null
+
         val x = event.x
         val y = event.y
         val focusX = (x / view.width.toFloat()) * sensorArraySize.width()
         val focusY = (y / view.height.toFloat()) * sensorArraySize.height()
-        val focusRect = MeteringRectangle(
+        return MeteringRectangle(
             (focusX - 100).toInt().coerceIn(0, sensorArraySize.width()),
             (focusY - 100).toInt().coerceIn(0, sensorArraySize.height()),
             (100 * 2).coerceIn(0, sensorArraySize.width()),
             (100 * 2).coerceIn(0, sensorArraySize.height()),
             MeteringRectangle.METERING_WEIGHT_MAX
         )
+    }
+
+    fun tapToFocus(view: View, event: MotionEvent): Boolean {
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val session = cameraCaptureSession ?: return false
+        val characteristics = cameraCharacteristics ?: return false
+        if ((characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AF) ?: 0) == 0) return false
+        val focusRect = getTapRect(view, event) ?: return false
+        val focusTag = "focus"
 
         val captureCallbackHandler: CameraCaptureSession.CaptureCallback =
             object : CameraCaptureSession.CaptureCallback() {
@@ -618,6 +660,56 @@ class Camera2ApiManager(context: Context) {
             return true
         } catch (_: Exception) {
             return false
+        }
+    }
+
+    /**
+     * Tap to meter exposure at a specific point.
+     *
+     * @param view The view where the touch event occurred
+     * @param event The touch event containing coordinates
+     * @return true if successful, false otherwise
+     */
+    fun tapToMeterExposure(view: View, event: MotionEvent): Boolean {
+        if (isExposureLockEnabled) return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val characteristics = cameraCharacteristics ?: return false
+        if ((characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AE) ?: 0) == 0) return false
+        val aeRect = getTapRect(view, event) ?: return false
+
+        return try {
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_REGIONS, arrayOf(aeRect))
+            builderInputSurface.set(CaptureRequest.CONTROL_AE_MODE, CameraMetadata.CONTROL_AE_MODE_ON)
+            isAutoExposureEnabled = applyRequest(builderInputSurface)
+            isAutoExposureEnabled
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting AE region", e)
+            false
+        }
+    }
+
+    /**
+     * Tap to meter white balance at a specific point.
+     *
+     * @param view The view where the touch event occurred
+     * @param event The touch event containing coordinates
+     * @return true if successful, false otherwise
+     */
+    fun tapToMeterWhiteBalance(view: View, event: MotionEvent): Boolean {
+        if (isWhiteBalanceLockEnabled) return false
+        val builderInputSurface = this.builderInputSurface ?: return false
+        val characteristics = cameraCharacteristics ?: return false
+        if ((characteristics.secureGet(CameraCharacteristics.CONTROL_MAX_REGIONS_AWB) ?: 0) == 0) return false
+        val awbRect = getTapRect(view, event) ?: return false
+
+        return try {
+            builderInputSurface.set(CaptureRequest.CONTROL_AWB_REGIONS, arrayOf(awbRect))
+            builderInputSurface.set(CaptureRequest.CONTROL_AWB_MODE, CameraMetadata.CONTROL_AWB_MODE_AUTO)
+            isAutoWhiteBalanceEnabled = applyRequest(builderInputSurface)
+            isAutoWhiteBalanceEnabled
+        } catch (e: Exception) {
+            Log.e(TAG, "Error setting AWB region", e)
+            false
         }
     }
 
@@ -961,6 +1053,8 @@ class Camera2ApiManager(context: Context) {
 
     @JvmOverloads
     fun closeCamera(resetSurface: Boolean = true) {
+        isExposureLockEnabled = false
+        isWhiteBalanceLockEnabled = false
         isLanternEnabled = false
         zoomLevel = 1.0f
         cameraCaptureSession?.close()

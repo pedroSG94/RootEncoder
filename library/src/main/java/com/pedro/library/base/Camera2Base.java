@@ -206,6 +206,23 @@ public abstract class Camera2Base {
         return cameraManager.isExposureLockEnabled();
     }
 
+    /**
+     * Lock auto white balance to the current value. The camera will stop adjusting white balance
+     * automatically (useful to avoid color shifts from lighting changes).
+     * @return true if success, false if fail (not supported or called before start camera)
+     */
+    public boolean enableWhiteBalanceLock() {
+        return cameraManager.enableWhiteBalanceLock();
+    }
+
+    public void disableWhiteBalanceLock() {
+        cameraManager.disableWhiteBalanceLock();
+    }
+
+    public boolean isWhiteBalanceLockEnabled() {
+        return cameraManager.isWhiteBalanceLockEnabled();
+    }
+
     public void setDynamicFps(boolean enabled) {
         cameraManager.setDynamicFps(enabled);
     }
@@ -979,6 +996,14 @@ public abstract class Camera2Base {
 
     public boolean tapToFocus(View view, MotionEvent event) {
         return cameraManager.tapToFocus(view, event);
+    }
+
+    public boolean tapToMeterExposure(View view, MotionEvent event) {
+        return cameraManager.tapToMeterExposure(view, event);
+    }
+
+    public boolean tapToMeterWhiteBalance(View view, MotionEvent event) {
+        return cameraManager.tapToMeterWhiteBalance(view, event);
     }
 
     public GlInterface getGlInterface() {
