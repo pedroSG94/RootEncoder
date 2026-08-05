@@ -259,12 +259,11 @@ public abstract class BaseDecoder {
           long ts = TimeUtils.getCurrentTimeMicro() - startTs;
           sleepTime = extractor.getSleepTime(ts);
           finished = !extractor.advance();
-          if (finished) {
-            if (!loopMode) {
-              codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
-            }
+          if (finished && !loopMode) {
+            codec.queueInputBuffer(inIndex, 0, 0, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM);
           } else {
-            codec.queueInputBuffer(inIndex, 0, sampleSize, ts + sleepTime, 0);
+            codec.queueInputBuffer(inIndex, 0, Math.max(sampleSize, 0), ts + sleepTime, 0);
+            if (finished) extractor.seekTo(0);
           }
         }
         int outIndex = codec.dequeueOutputBuffer(bufferInfo, 10000);
