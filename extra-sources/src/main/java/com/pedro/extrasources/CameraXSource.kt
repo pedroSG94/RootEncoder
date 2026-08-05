@@ -45,8 +45,10 @@ import com.pedro.encoder.input.sources.video.VideoSource
 import com.pedro.encoder.input.video.Camera2ApiManager.ImageCallback
 import com.pedro.encoder.input.video.Camera2ResolutionCalculator.getOptimalResolution
 import com.pedro.encoder.input.video.CameraHelper
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * Created by pedro on 16/2/24.
@@ -69,6 +71,7 @@ class CameraXSource(
   private var autoWhiteBalanceEnabled = false
   private var fingerSpacing = 0f
   private var requiredSize: Size? = null
+  private var surfaceReleased = CountDownLatch(0)
 
   override fun getLifecycle(): Lifecycle = lifecycleRegistry
 
@@ -108,6 +111,7 @@ class CameraXSource(
       it.provideSurface(surface, executor) {
         surface.release()
         executor.shutdown()
+        surfaceReleased.countDown()
       }
       this.surface = surface
       this.executor = executor
@@ -116,11 +120,15 @@ class CameraXSource(
   }
 
   override fun stop() {
+    val wasRunning = isRunning()
+    surfaceReleased = CountDownLatch(1)
     lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
     camera?.let {
       cameraProvider.unbindAll()
       camera = null
     }
+    preview.surfaceProvider = null
+    if (wasRunning) surfaceReleased.await(500L, TimeUnit.MILLISECONDS)
     surface?.release()
     surface = null
     executor?.shutdown()
