@@ -30,6 +30,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.common.TimeUtils;
+import com.pedro.common.TimestampQuantizer;
 import com.pedro.common.VideoCodec;
 import com.pedro.encoder.BaseEncoder;
 import com.pedro.encoder.Frame;
@@ -67,6 +68,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private int rotation = 90;
   private int iFrameInterval = 2;
   private long firstTimestamp = 0;
+  private final TimestampQuantizer timestampQuantizer = new TimestampQuantizer();
   //for disable video
   private final FpsLimiter fpsLimiter = new FpsLimiter();
   private FormatVideoEncoder formatVideoEncoder = FormatVideoEncoder.YUV420Dynamical;
@@ -197,7 +199,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   public void start(boolean resetTs) {
-    if (resetTs) firstTimestamp = 0;
+    if (resetTs) {
+      firstTimestamp = 0;
+      timestampQuantizer.reset();
+    }
     forceKey = false;
     spsPpsSetted = false;
     if (formatVideoEncoder != FormatVideoEncoder.SURFACE) {
@@ -506,12 +511,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         // Buffer mode: synthesize PTS from wall clock.
         bufferInfo.presentationTimeUs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
       } else {
-        // Surface mode: EGL timestamp is camera sensor time (nanoseconds from boot ÷ 1000).
-        // It has clean, jitter-free intervals — but it's a huge absolute value that breaks RTMP.
-        // Rebase to relative by subtracting the first frame's PTS → clean intervals, starts at 0.
+        // Surface mode: the EGL timestamp is the clock read by the render thread
+        // (GlInterface#setPresentationTime), a huge absolute value that breaks RTMP.
+        // Rebase to relative by subtracting the first frame's PTS → starts at 0.
         if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
         bufferInfo.presentationTimeUs -= firstTimestamp;
       }
+      // Both cases come from the clock, so they carry the jitter of the thread that read it.
+      // Remove it to produce a constant frame rate that players can detect.
+      bufferInfo.presentationTimeUs = timestampQuantizer.quantize(bufferInfo.presentationTimeUs, fps);
     } else {
       if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
       bufferInfo.presentationTimeUs -= firstTimestamp;
