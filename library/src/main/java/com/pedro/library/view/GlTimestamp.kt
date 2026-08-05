@@ -1,14 +1,19 @@
 package com.pedro.library.view
 
+import kotlin.math.min
+
 class GlTimestamp {
 
-  private var drift = 20_000_000L
+  companion object {
+    private const val DEFAULT_DRIFT = 100_000_000L
+  }
+  private var drift = DEFAULT_DRIFT
   private var lastSourceTimestamp = 0L
   private var lastClockTimestamp = 0L
   private var currentTimestamp = 0L
 
   fun setFps(fps: Int) {
-    drift = 3000_000_000L / fps //drift of 3 frames.
+    drift = if (fps <= 0) DEFAULT_DRIFT else min(DEFAULT_DRIFT, 1000_000_000L / fps)
   }
 
   fun getTimestamp(sourceTimestamp: Long, clockTimestamp: Long): Long {
