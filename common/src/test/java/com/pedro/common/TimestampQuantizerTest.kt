@@ -46,9 +46,34 @@ class TimestampQuantizerTest {
     fun testIrregularSourceNotModified() {
         val quantizer = TimestampQuantizer()
         //a source that isn't running at the expected fps is returned as is
-        val timestamps = listOf(0L, 500000L, 1000000L, 1500000L, 2000000L, 2500000L)
+        val timestamps = listOf(0L, 45000L, 100000L, 145000L, 200000L, 245000L)
         val result = timestamps.map { quantizer.quantize(it, 30) }
         assertEquals(timestamps, result)
+    }
+
+    @Test
+    fun testFasterSourceUsesHalfGrid() {
+        val quantizer = TimestampQuantizer()
+        //60fps source in a 30fps grid dropping frames in a irregular way, like a video file
+        val timestamps = listOf(
+            0L, 17000L, 33000L, 51000L, 66000L, 100000L, 116000L, 133000L, 151000L,
+            166000L, 200000L, 216000L, 233000L, 249000L, 267000L, 283000L, 300000L,
+            317000L, 333000L, 351000L, 366000L, 400000L, 416000L, 433000L, 451000L,
+            466000L, 483000L, 500000L, 517000L, 533000L
+        )
+        val result = timestamps.map { quantizer.quantize(it, 30) }
+        val deltas = result.zipWithNext { a, b -> b - a }
+        //passes through until the rate is confirmed, then it snaps to the half grid (16666us)
+        //skipping a slot when the source drops a frame
+        assertEquals(
+            listOf(
+                17000L, 16000L, 18000L, 15000L, 34000L, 16000L, 17000L, 18000L, 15000L,
+                34000L, 16000L, 17000L, 16000L, 18000L, 16000L, 17000L, 16666L, 16667L,
+                16667L, 16666L, 33334L, 16666L, 16667L, 16667L, 16666L, 16667L, 16667L,
+                16666L, 16667L
+            ),
+            deltas
+        )
     }
 
     @Test

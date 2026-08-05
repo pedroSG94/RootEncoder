@@ -34,7 +34,12 @@ import kotlin.math.roundToLong
  * Slots can be skipped (a 15fps source in a 30fps grid is preserved) but the value is never
  * repeated or decreased.
  *
- * If the source isn't running at a rate that fits the grid the timestamp is returned
+ * A source faster than the configured fps (a 60fps video file streamed at 30fps) is snapped
+ * to half the grid instead. That case is detected checking that the frames really land on the
+ * half grid, the average interval isn't enough because those sources skip slots in a
+ * irregular way.
+ *
+ * If the source isn't running at a rate that fits any of both grids the timestamp is returned
  * untouched. This is the case of a screen source without changes on screen or a video file
  * recorded in a different frame rate, where a grid would be a lie.
  *
@@ -48,48 +53,79 @@ class TimestampQuantizer {
   private var anchorResult = 0L
   private var lastSlot = 0L
   private var averageInterval = 0.0
+  private var gridError = 0.0
+  private var halfGridError = 0.0
+  private var gridInterval = 0.0
+  private var frames = 0
+  private var halfVotes = 0
 
   fun reset() {
     lastTimestamp = NO_VALUE
     lastResult = NO_VALUE
     averageInterval = 0.0
+    gridError = 0.0
+    halfGridError = 0.0
+    gridInterval = 0.0
+    frames = 0
+    halfVotes = 0
   }
 
   fun quantize(timestamp: Long, fps: Int): Long {
     if (fps <= 0) return timestamp
-    val interval = 1_000_000.0 / fps
-    if (lastTimestamp == NO_VALUE) return anchor(timestamp, timestamp)
+    val nominal = 1_000_000.0 / fps
+    if (lastTimestamp == NO_VALUE) return anchor(timestamp, timestamp, nominal)
     val rawInterval = (timestamp - lastTimestamp).toDouble()
     lastTimestamp = timestamp
+    frames++
     averageInterval =
         if (averageInterval == 0.0) rawInterval
         else averageInterval + (rawInterval - averageInterval) / SMOOTH_FACTOR
-    //the source can produce a frame per slot or skip slots (15fps in a 30fps grid) but a
-    //rate that doesn't fit the grid (24fps in a 30fps grid) would be worse quantized
-    val ratio = averageInterval / interval
+    val half = nominal / 2
+    gridError = fitError(gridError, rawInterval / nominal)
+    halfGridError = fitError(halfGridError, rawInterval / half)
+
+    //faster than the grid and landing on the half grid (60fps file in a 30fps stream).
+    //The half grid has denser slots so it can fit a jittery source by chance: only use it if
+    //it fits clearly better than the nominal one and it does it in a sustained way
+    val fitsHalf = frames > SMOOTH_FACTOR && averageInterval >= half * MIN_FILL
+        && halfGridError <= TOLERANCE && halfGridError < gridError * BETTER_FIT
+    halfVotes = if (fitsHalf) halfVotes + 1 else 0
+
+    val ratio = averageInterval / nominal
     val slotsPerFrame = ratio.roundToLong()
-    if (slotsPerFrame < 1 || abs(ratio - slotsPerFrame) > TOLERANCE) {
-      //the source isn't running at the expected fps, use the clock as is
-      return anchor(timestamp, max(lastResult + 1, timestamp))
+    val interval = when {
+      //a frame per slot or skipping slots in a regular way (15fps in a 30fps grid)
+      slotsPerFrame >= 1 && abs(ratio - slotsPerFrame) <= TOLERANCE -> nominal
+      halfVotes >= SMOOTH_FACTOR -> half
+      //the rate doesn't fit any grid, using a grid would be a lie
+      else -> return anchor(timestamp, max(lastResult + 1, timestamp), nominal)
     }
+    if (interval != gridInterval) return anchor(timestamp, max(lastResult + 1, timestamp), interval)
     var slot = ((timestamp - anchorTimestamp) / interval).roundToLong()
     if (slot <= lastSlot) slot = lastSlot + 1
     val result = anchorResult + (slot * interval).toLong()
     //too far from the clock (frames faster than the grid), sync again to avoid desync
     if (abs(result - timestamp) > interval) {
-      return anchor(timestamp, max(lastResult + interval.toLong(), timestamp))
+      return anchor(timestamp, max(lastResult + interval.toLong(), timestamp), interval)
     }
     lastSlot = slot
     lastResult = result
     return result
   }
 
-  private fun anchor(timestamp: Long, result: Long): Long {
+  //how far the interval is from landing on a grid slot, 0 = exactly on a slot
+  private fun fitError(current: Double, slots: Double): Double {
+    val error = abs(slots - slots.roundToLong())
+    return if (current == 0.0) error else current + (error - current) / SMOOTH_FACTOR
+  }
+
+  private fun anchor(timestamp: Long, result: Long, interval: Double): Long {
     lastTimestamp = timestamp
     anchorTimestamp = timestamp
     anchorResult = result
     lastSlot = 0
     lastResult = result
+    gridInterval = interval
     return result
   }
 
@@ -99,5 +135,9 @@ class TimestampQuantizer {
     private const val SMOOTH_FACTOR = 8
     //max difference allowed between the real interval and the expected one
     private const val TOLERANCE = 0.2
+    //the half grid can't be used if the source is slower than it
+    private const val MIN_FILL = 0.8
+    //how much better the half grid must fit to be used instead of the nominal one
+    private const val BETTER_FIT = 0.75
   }
 }
