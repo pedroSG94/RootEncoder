@@ -217,7 +217,6 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
 
     private fun draw(forced: Boolean, clockTimestamp: Long) {
         if (!isRunning) return
-        val limitFps = fpsLimiter.limitFPS()
         if (!forced) forceRenderer.frameAvailable()
 
         if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -231,21 +230,24 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                 return
             }
         }
-
         if (surfaceManager.isReady && mainRender.isReady()) {
             if (!surfaceManager.makeCurrent()) return
             mainRender.updateFrame()
             mainRender.drawSource()
-            if (!limitFps) {
+        }
+        val timestamp = glTimestamp.getTimestamp(surfaceTexture.timestamp, clockTimestamp)
+        val limitFps = fpsLimiter.limitFPS(timestamp)
+
+        if (surfaceManager.isReady && mainRender.isReady() && !limitFps) {
+            if (surfaceManager.makeCurrent()) {
                 mainRender.drawFilters(true)
                 mainRender.drawScreen(
                     previewWidth, previewHeight, aspectRatioMode, 0,
                     isPreviewVerticalFlip, isPreviewHorizontalFlip, null
                 )
+                surfaceManager.swapBuffer()
             }
-            surfaceManager.swapBuffer()
         }
-        val timestamp = glTimestamp.getTimestamp(surfaceTexture.timestamp, clockTimestamp)
 
         if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
             mainRender.drawFilters(false)

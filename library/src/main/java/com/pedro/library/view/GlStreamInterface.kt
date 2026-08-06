@@ -257,7 +257,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   private fun draw(forced: Boolean, clockTimestamp: Long) {
     if (!isRunning) return
-    val limitFps = fpsLimiter.limitFPS()
     if (!forced) forceRender.frameAvailable()
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -276,9 +275,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       if (!surfaceManager.makeCurrent()) return
       mainRender.updateFrame()
       mainRender.drawSource()
-      surfaceManager.swapBuffer()
     }
     val timestamp = glTimestamp.getTimestamp(surfaceTexture.timestamp, clockTimestamp)
+    val limitFps = fpsLimiter.limitFPS(timestamp)
 
     val orientation = when (orientationForced) {
       OrientationForced.PORTRAIT -> true
