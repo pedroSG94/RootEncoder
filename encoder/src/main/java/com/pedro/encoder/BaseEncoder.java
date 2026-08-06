@@ -252,14 +252,24 @@ public abstract class BaseEncoder implements EncoderCallback {
 
   protected abstract long calculatePts(Frame frame, long presentTimeUs);
 
+  /**
+   * Copy the frame into the encoder input buffer.
+   *
+   * @return the number of bytes filled in the buffer.
+   */
+  protected int writeInput(@NonNull ByteBuffer byteBuffer, @NonNull Frame frame) {
+    int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()));
+    byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
+    return size;
+  }
+
   private void processInput(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec mediaCodec,
       int inBufferIndex) throws IllegalStateException {
     try {
       Frame frame = getInputFrame();
       while (frame == null) frame = getInputFrame();
       byteBuffer.clear();
-      int size = Math.max(0, Math.min(frame.getSize(), byteBuffer.remaining()));
-      byteBuffer.put(frame.getBuffer(), frame.getOffset(), size);
+      int size = writeInput(byteBuffer, frame);
       long pts = calculatePts(frame, presentTimeUs);
       mediaCodec.queueInputBuffer(inBufferIndex, 0, size, pts, 0);
     } catch (InterruptedException e) {

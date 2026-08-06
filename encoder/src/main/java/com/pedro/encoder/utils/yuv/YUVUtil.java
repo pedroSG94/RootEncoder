@@ -22,6 +22,8 @@ import android.media.MediaCodecInfo;
 import com.pedro.encoder.Frame;
 import com.pedro.encoder.video.FormatVideoEncoder;
 
+import java.nio.ByteBuffer;
+
 /**
  * Created by pedro on 25/01/17.
  * https://wiki.videolan.org/YUV/#I420
@@ -74,6 +76,45 @@ public class YUVUtil {
   public static void preAllocateBuffers(int length) {
     NV21Utils.preAllocateBuffers(length);
     YV12Utils.preAllocateBuffers(length);
+  }
+
+  private static int align(int value, int alignment) {
+    return (value + alignment - 1) / alignment * alignment;
+  }
+
+  /**
+   * @return the size of a YUV420 frame where each plane start aligned to the value indicated.
+   */
+  public static int getAlignedPlanesSize(int width, int height, boolean semiPlanar, int alignment) {
+    int ySize = width * height;
+    int chromaPlanes = semiPlanar ? 1 : 2;
+    int chromaSize = semiPlanar ? ySize / 2 : ySize / 4;
+    return align(ySize, alignment) + chromaPlanes * align(chromaSize, alignment);
+  }
+
+  /**
+   * Copy a packed YUV420 frame into the buffer writing each plane aligned to the value indicated.
+   * The buffer position is not modified if the copy can't be done.
+   *
+   * @return bytes filled in the buffer or -1 if the frame or the buffer are too small.
+   */
+  public static int copyAlignedPlanes(ByteBuffer byteBuffer, byte[] buffer, int offset, int size,
+      int width, int height, boolean semiPlanar, int alignment) {
+    int ySize = width * height;
+    int chromaPlanes = semiPlanar ? 1 : 2;
+    int chromaSize = semiPlanar ? ySize / 2 : ySize / 4;
+    int filled = getAlignedPlanesSize(width, height, semiPlanar, alignment);
+    if (size < ySize + chromaPlanes * chromaSize || byteBuffer.remaining() < filled) return -1;
+    int start = byteBuffer.position();
+    byteBuffer.put(buffer, offset, ySize);
+    int position = align(ySize, alignment);
+    for (int i = 0; i < chromaPlanes; i++) {
+      byteBuffer.position(start + position);
+      byteBuffer.put(buffer, offset + ySize + i * chromaSize, chromaSize);
+      position += align(chromaSize, alignment);
+    }
+    byteBuffer.position(start + filled);
+    return filled;
   }
 
   public static byte[] NV21toYUV420byColor(byte[] input, int width, int height,

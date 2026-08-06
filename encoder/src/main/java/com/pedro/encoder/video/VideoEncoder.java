@@ -74,6 +74,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private int level = -1;
   private final SpsColorPatcher spsColorPatcher = new SpsColorPatcher();
   private boolean forceBt709Color = false;
+  //OMX.SEC encoders (Samsung devices with Exynos before API 21) read the input buffer with each
+  //plane aligned to 8KB instead of packed and reading more bytes than the buffer size they report.
+  //Write the planes that way and reserve that size to avoid a buffer overflow in the encoder that
+  //crash the mediaserver process (and the camera with it in devices where both share the process).
+  private static final int PLANE_ALIGNMENT = 8 * 1024;
+  private boolean alignInputPlanes = false;
+  //resolution used to configure the encoder. Swapped related with width and height in rotation 90/270
+  private int inputWidth = 640;
+  private int inputHeight = 480;
 
   public VideoEncoder(GetVideoData getVideoData) {
     this.getVideoData = getVideoData;
@@ -131,21 +140,24 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         Log.e(TAG, "Valid encoder not found");
         return false;
       }
-      MediaFormat videoFormat;
       //if you don't use mediacodec rotation you need swap width and height in rotation 90 or 270
       // for correct encoding resolution
-      String resolution;
-      if ((rotation == 90 || rotation == 270)) {
-        resolution = height + "x" + width;
-        videoFormat = MediaFormat.createVideoFormat(type.getMime(), height, width);
-      } else {
-        resolution = width + "x" + height;
-        videoFormat = MediaFormat.createVideoFormat(type.getMime(), width, height);
-      }
-      Log.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + resolution);
+      boolean swapResolution = rotation == 90 || rotation == 270;
+      inputWidth = swapResolution ? height : width;
+      inputHeight = swapResolution ? width : height;
+      MediaFormat videoFormat = MediaFormat.createVideoFormat(type.getMime(), inputWidth, inputHeight);
+      Log.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + inputWidth + "x" + inputHeight);
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
-      videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
+      alignInputPlanes = this.formatVideoEncoder != FormatVideoEncoder.SURFACE
+          && encoder.getName().startsWith("OMX.SEC.");
+      if (alignInputPlanes) {
+        int inputSize = getAlignedInputSize();
+        Log.i(TAG, "using planes aligned to " + PLANE_ALIGNMENT + ", input buffer size: " + inputSize);
+        videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, inputSize);
+      } else {
+        videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
+      }
       videoFormat.setInteger(MediaFormat.KEY_BIT_RATE, bitRate);
       videoFormat.setInteger(MediaFormat.KEY_FRAME_RATE, fps);
       videoFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, iFrameInterval);
@@ -225,6 +237,24 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     if (!result) return false;
     restart();
     return true;
+  }
+
+  private int getAlignedInputSize() {
+    boolean semiPlanar = formatVideoEncoder == FormatVideoEncoder.YUV420SEMIPLANAR;
+    int size = YUVUtil.getAlignedPlanesSize(inputWidth, inputHeight, semiPlanar, PLANE_ALIGNMENT);
+    //memcpy in the encoder prefetch data ahead of the pointer so reserve an extra plane to
+    //make sure that the read of the last buffer never goes out of the shared memory allocated.
+    return size + PLANE_ALIGNMENT;
+  }
+
+  @Override
+  protected int writeInput(@NonNull ByteBuffer byteBuffer, @NonNull Frame frame) {
+    if (!alignInputPlanes) return super.writeInput(byteBuffer, frame);
+    boolean semiPlanar = formatVideoEncoder == FormatVideoEncoder.YUV420SEMIPLANAR;
+    int size = YUVUtil.copyAlignedPlanes(byteBuffer, frame.getBuffer(), frame.getOffset(),
+        frame.getSize(), inputWidth, inputHeight, semiPlanar, PLANE_ALIGNMENT);
+    //fallback to the packed layout if the frame or the buffer don't have the expected size
+    return size < 0 ? super.writeInput(byteBuffer, frame) : size;
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
