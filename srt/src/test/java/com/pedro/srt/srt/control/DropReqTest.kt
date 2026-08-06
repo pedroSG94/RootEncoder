@@ -54,4 +54,18 @@ class DropReqTest {
 
     Utils.assertObjectEquals(expectedPacket, packet)
   }
+
+  @Test
+  fun `GIVEN a truncated drop req buffer WHEN read buffer as drop req packet THEN discard sequence numbers`() {
+    val buffer = byteArrayOf(-128, 7, 0, 0, 0, 0, 0, 5, 0, 0, 9, -60, 0, 0, 0, 64, 0, 0, 0, 1)
+    val expectedPacket = DropReq(
+      messageNumber = 5,
+      firstPacketSequenceNumber = 0,
+      lastPacketSequenceNumber = 0
+    )
+    val packet = DropReq()
+    packet.read(ByteArrayInputStream(buffer))
+
+    Utils.assertObjectEquals(expectedPacket, packet)
+  }
 }

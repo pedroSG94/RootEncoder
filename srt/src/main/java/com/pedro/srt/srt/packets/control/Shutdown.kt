@@ -33,7 +33,7 @@ class Shutdown: ControlPacket(ControlType.SHUTDOWN) {
 
   fun read(input: InputStream) {
     super.readHeader(input)
-    input.readUInt32()
+    if (input.available() >= 4) input.readUInt32()
   }
 
   override fun toString(): String {

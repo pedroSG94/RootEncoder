@@ -46,4 +46,14 @@ class ShutdownTest {
 
     Utils.assertObjectEquals(expectedPacket, packet)
   }
+
+  @Test
+  fun `GIVEN a buffer without control info field WHEN read buffer as shutdown packet THEN get expected shutdown packet`() {
+    val buffer = byteArrayOf(-128, 5, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64)
+    val expectedPacket = Shutdown()
+    val packet = Shutdown()
+    packet.read(ByteArrayInputStream(buffer))
+
+    Utils.assertObjectEquals(expectedPacket, packet)
+  }
 }

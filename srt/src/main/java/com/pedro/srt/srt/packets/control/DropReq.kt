@@ -48,6 +48,7 @@ class DropReq(
   }
 
   private fun readBody(input: InputStream) {
+    if (input.available() < 8) return
     firstPacketSequenceNumber = input.readUInt32() and 0x7FFFFFFF //31 bits
     lastPacketSequenceNumber = input.readUInt32() and 0x7FFFFFFF //31 bits
   }

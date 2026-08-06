@@ -49,4 +49,15 @@ class Ack2Test {
     packet.read(ByteArrayInputStream(buffer))
     Utils.assertObjectEquals(packet, expectedPacket)
   }
+
+  @Test
+  fun `GIVEN a buffer without control info field WHEN read buffer as ack2 packet THEN get expected ack2 packet`() {
+    val buffer = byteArrayOf(-128, 6, 0, 0, 0, 0, 0, 5, 0, 0, 9, -60, 0, 0, 0, 64)
+    val expectedPacket = Ack2(
+      acknowledgementNumber = 5
+    )
+    val packet = Ack2()
+    packet.read(ByteArrayInputStream(buffer))
+    Utils.assertObjectEquals(packet, expectedPacket)
+  }
 }

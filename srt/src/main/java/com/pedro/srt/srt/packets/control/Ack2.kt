@@ -37,7 +37,7 @@ class Ack2(
   fun read(input: InputStream) {
     super.readHeader(input)
     acknowledgementNumber = typeSpecificInformation
-    input.readUInt32()
+    if (input.available() >= 4) input.readUInt32()
   }
 
   override fun toString(): String {

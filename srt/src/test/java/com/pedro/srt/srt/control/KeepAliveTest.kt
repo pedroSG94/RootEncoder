@@ -46,4 +46,14 @@ class KeepAliveTest {
 
     Utils.assertObjectEquals(expectedPacket, packet)
   }
+
+  @Test
+  fun `GIVEN a buffer without control info field WHEN read buffer as keep alive packet THEN get expected keep alive packet`() {
+    val buffer = byteArrayOf(-128, 1, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64)
+    val expectedPacket = KeepAlive()
+    val packet = KeepAlive()
+    packet.read(ByteArrayInputStream(buffer))
+
+    Utils.assertObjectEquals(expectedPacket, packet)
+  }
 }

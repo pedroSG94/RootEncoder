@@ -46,4 +46,14 @@ class CongestionWarningTest {
 
     Utils.assertObjectEquals(expectedPacket, packet)
   }
+
+  @Test
+  fun `GIVEN a buffer without control info field WHEN read buffer as congestion warning packet THEN get expected congestion warning packet`() {
+    val buffer = byteArrayOf(-128, 4, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64)
+    val expectedPacket = CongestionWarning()
+    val packet = CongestionWarning()
+    packet.read(ByteArrayInputStream(buffer))
+
+    Utils.assertObjectEquals(expectedPacket, packet)
+  }
 }

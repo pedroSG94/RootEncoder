@@ -373,9 +373,6 @@ class SrtClient(private val connectChecker: ConnectChecker) {
       }
       is ControlPacket -> {
         when (srtPacket) {
-          is Handshake -> {
-            //never should happens, handshake is already done
-          }
           is KeepAlive -> {
             commandsManager.writeKeepAlive(socket)
           }
@@ -394,25 +391,22 @@ class SrtClient(private val connectChecker: ConnectChecker) {
             this.packetsLost += srtPacket.getLostCount()
             commandsManager.reSendPackets(lostRanges, socket)
           }
-          is CongestionWarning -> {
-
-          }
           is Shutdown -> {
             onMainThread {
               connectChecker.onConnectionFailed("Shutdown received from server")
             }
-          }
-          is Ack2 -> {
-            //never should happens
-          }
-          is DropReq -> {
-
           }
           is PeerError -> {
             val reason = srtPacket.errorCode
             onMainThread {
               connectChecker.onConnectionFailed("PeerError: $reason")
             }
+          }
+          is Handshake -> {
+            //this never should happen, handshake is already done
+          }
+          is Ack2, is DropReq, is CongestionWarning -> {
+            //this never should happen
           }
         }
       }
