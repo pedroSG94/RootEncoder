@@ -228,8 +228,11 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   private FormatVideoEncoder chooseColorDynamically(MediaCodecInfo mediaCodecInfo) {
+    MediaCodecInfo.CodecCapabilities codecCapabilities =
+        CodecUtil.getCapabilities(mediaCodecInfo, type.getMime());
+    if (codecCapabilities == null || codecCapabilities.colorFormats == null) return null;
     List<Integer> colors = new ArrayList<>();
-    for (int color : mediaCodecInfo.getCapabilitiesForType(type.getMime()).colorFormats) colors.add(color);
+    for (int color : codecCapabilities.colorFormats) colors.add(color);
 
     if (colors.contains(FormatVideoEncoder.YUV420PLANAR.getFormatCodec())) {
       return FormatVideoEncoder.YUV420PLANAR;
@@ -393,7 +396,8 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     Log.i(TAG, mediaCodecInfoList.size() + " encoders found");
     for (MediaCodecInfo mci : mediaCodecInfoList) {
       Log.i(TAG, "Encoder " + mci.getName());
-      MediaCodecInfo.CodecCapabilities codecCapabilities = mci.getCapabilitiesForType(mime);
+      MediaCodecInfo.CodecCapabilities codecCapabilities = CodecUtil.getCapabilities(mci, mime);
+      if (codecCapabilities == null || codecCapabilities.colorFormats == null) continue;
       for (int color : codecCapabilities.colorFormats) {
         Log.i(TAG, "Color supported: " + color);
         if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
