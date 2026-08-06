@@ -20,6 +20,7 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.SurfaceTexture
 import android.view.Surface
+import com.pedro.common.TimeUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -27,7 +28,9 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.nanoseconds
 
 /**
  * Created by pedro on 19/3/24.
@@ -52,14 +55,22 @@ class BitmapSource(private val bitmap: Bitmap): VideoSource() {
     surface = Surface(surfaceTexture)
     running = true
     job = CoroutineScope(Dispatchers.IO).launch {
+      val frameInterval = 1_000_000_000L / fps
+      var time = TimeUtils.getCurrentTimeNano()
       while (running) {
         try {
           val canvas = surface?.lockCanvas(null)
           canvas?.drawBitmap(scaledBitmap, 0f, 0f, paint)
           surface?.unlockCanvasAndPost(canvas)
-        } catch (_: Exception) { }
-        //sleep to emulate fps
-        delay((1000 / fps.toLong()).milliseconds)
+        } catch (_: Exception) {
+        } finally {
+          //sleep to emulate fps
+          time += frameInterval
+          val now = TimeUtils.getCurrentTimeNano()
+          //if render is too slow, avoid draw multiple frames without sleep
+          if (now - time > frameInterval) time = now
+          delay(max(time - now, 0).nanoseconds)
+        }
       }
     }
   }
