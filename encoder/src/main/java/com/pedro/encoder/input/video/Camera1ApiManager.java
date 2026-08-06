@@ -189,7 +189,7 @@ public class Camera1ApiManager implements Camera.PreviewCallback, Camera.FaceDet
       Camera.Parameters parameters = camera.getParameters();
       parameters.setPreviewSize(width, height);
       parameters.setPreviewFormat(imageFormat);
-      int[] range = FpsUtils.INSTANCE.adaptFpsRange(fps, parameters.getSupportedPreviewFpsRange());
+      int[] range = FpsUtils.INSTANCE.adaptFpsRange(fps * 1000, parameters.getSupportedPreviewFpsRange());
       Log.i(TAG, "fps: " + range[0] + " - " + range[1]);
       parameters.setPreviewFpsRange(range[0], range[1]);
 
