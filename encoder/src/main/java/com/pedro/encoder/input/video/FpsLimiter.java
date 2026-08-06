@@ -24,10 +24,8 @@ import com.pedro.common.TimeUtils;
 
 public class FpsLimiter {
 
-  private long startTS = TimeUtils.getCurrentTimeMillis();
-  private long ratioF = 1000 / 30;
-  private long ratio = 1000 / 30;
-  private long frameStartTS = 0;
+  private long interval = 1_000_000_000L / 30;
+  private long time = 0;
   private boolean configured = false;
 
   public void setFPS(int fps) {
@@ -37,26 +35,18 @@ public class FpsLimiter {
     } else {
       configured = true;
     }
-    startTS = TimeUtils.getCurrentTimeMillis();
-    ratioF = 1000 / fps;
-    ratio = 1000 / fps;
+    interval = 1_000_000_000L / fps;
   }
 
-  public boolean limitFPS() {
+  public boolean limitFPS(long timestamp) {
     if (!configured) return false;
-    long lastFrameTimestamp = TimeUtils.getCurrentTimeMillis() - startTS;
-    if (ratio < lastFrameTimestamp) {
-      ratio += ratioF;
+    if (time == 0) {
+      time = timestamp;
       return false;
     }
-    return true;
-  }
-
-  public void setFrameStartTs() {
-    frameStartTS = TimeUtils.getCurrentTimeMillis();
-  }
-
-  public long getSleepTime() {
-    return Math.max(0, ratioF - (TimeUtils.getCurrentTimeMillis() - frameStartTS));
+    if (timestamp - time < interval - (interval / 4)) return true;
+    time += interval;
+    if (timestamp - time > interval) time = timestamp;
+    return false;
   }
 }

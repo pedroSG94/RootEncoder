@@ -78,6 +78,8 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     private val forceRenderer = ForceRenderer()
     private var renderErrorCallback: RenderErrorCallback? = null
     private var surfaceHandlerThread: HandlerThread? = null
+    private val sync = Any()
+    private val glTimestamp = GlTimestamp()
 
     constructor(context: Context?) : super(context) {
         holder.addCallback(this)
@@ -141,6 +143,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun forceFpsLimit(fps: Int) {
+        glTimestamp.setFps(fps)
         fpsLimiter.setFPS(fps)
     }
 
@@ -212,9 +215,8 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
         this.takePhotoCallback = takePhotoCallback
     }
 
-    private fun draw(forced: Boolean) {
+    private fun draw(forced: Boolean, clockTimestamp: Long) {
         if (!isRunning) return
-        val limitFps = fpsLimiter.limitFPS()
         if (!forced) forceRenderer.frameAvailable()
 
         if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -228,21 +230,24 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
                 return
             }
         }
-
         if (surfaceManager.isReady && mainRender.isReady()) {
             if (!surfaceManager.makeCurrent()) return
             mainRender.updateFrame()
             mainRender.drawSource()
-            if (!limitFps) {
+        }
+        val timestamp = glTimestamp.getTimestamp(surfaceTexture.timestamp, clockTimestamp)
+        val limitFps = fpsLimiter.limitFPS(timestamp)
+
+        if (surfaceManager.isReady && mainRender.isReady() && !limitFps) {
+            if (surfaceManager.makeCurrent()) {
                 mainRender.drawFilters(true)
                 mainRender.drawScreen(
                     previewWidth, previewHeight, aspectRatioMode, 0,
                     isPreviewVerticalFlip, isPreviewHorizontalFlip, null
                 )
+                surfaceManager.swapBuffer()
             }
-            surfaceManager.swapBuffer()
         }
-        val timestamp = TimeUtils.getCurrentTimeNano()
 
         if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
             mainRender.drawFilters(false)
@@ -310,6 +315,7 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
     }
 
     override fun start() {
+        glTimestamp.reset()
         threadQueue.clear()
         executor?.shutdownNow()
         executor = null
@@ -332,11 +338,14 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
               mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
             }
             forceRenderer.start {
-                executor?.execute {
-                    try {
-                        draw(true)
-                    } catch (e: RuntimeException) {
-                        renderErrorCallback?.onRenderError(e) ?: throw e
+                synchronized(sync) {
+                    val timestamp = TimeUtils.getCurrentTimeNano()
+                    executor?.execute {
+                        try {
+                            draw(true, timestamp)
+                        } catch (e: RuntimeException) {
+                            renderErrorCallback?.onRenderError(e) ?: throw e
+                        }
                     }
                 }
             }
@@ -367,11 +376,14 @@ open class OpenGlView : SurfaceView, GlInterface, OnFrameAvailableListener, Surf
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture) {
         if (!isRunning) return
-        executor?.execute {
-            try {
-                draw(false)
-            } catch (e: RuntimeException) {
-                renderErrorCallback?.onRenderError(e) ?: throw e
+        synchronized(sync) {
+            val timestamp = TimeUtils.getCurrentTimeNano()
+            executor?.execute {
+                try {
+                    draw(false, timestamp)
+                } catch (e: RuntimeException) {
+                    renderErrorCallback?.onRenderError(e) ?: throw e
+                }
             }
         }
     }
