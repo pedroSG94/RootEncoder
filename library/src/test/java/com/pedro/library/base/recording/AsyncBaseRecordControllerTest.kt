@@ -6,6 +6,7 @@ import com.pedro.common.frame.MediaFrame
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.FileDescriptor
 import java.nio.ByteBuffer
@@ -32,6 +33,9 @@ class AsyncBaseRecordControllerTest {
     override suspend fun onWriteFrame(frame: MediaFrame) {
       //keep the array identity and the capacity, the buffer itself is recycled right after
       written.add(frame.data.array() to frame.data.capacity())
+    }
+
+    override fun onFrameRecycled() {
       latch.countDown()
     }
 
@@ -42,7 +46,7 @@ class AsyncBaseRecordControllerTest {
     }
 
     fun awaitFrames(count: Int) {
-      latch.await(1000, TimeUnit.MILLISECONDS)
+      assertTrue(latch.await(1000, TimeUnit.MILLISECONDS))
       latch = CountDownLatch(count)
     }
   }

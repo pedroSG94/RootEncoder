@@ -185,6 +185,7 @@ abstract class AsyncBaseRecordController : RecordController {
           onWriteFrame(frame)
         } finally {
           bufferPool.release(frame.data)
+          onFrameRecycled()
         }
       }
     }
@@ -222,4 +223,10 @@ abstract class AsyncBaseRecordController : RecordController {
   abstract fun startRecordImp(path: String, listener: RecordController.Listener?, tracks: RecordTracks)
   abstract fun stopRecordImp()
   abstract suspend fun onWriteFrame(frame: MediaFrame)
+
+  /**
+   * Called once the frame buffer went back to the pool, right after onWriteFrame.
+   * Only meant to let a test sync with the recycling, does nothing by default.
+   */
+  protected open fun onFrameRecycled() {}
 }
