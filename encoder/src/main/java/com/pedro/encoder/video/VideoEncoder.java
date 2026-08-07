@@ -38,6 +38,7 @@ import com.pedro.encoder.input.video.FpsLimiter;
 import com.pedro.encoder.input.video.GetCameraData;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.utils.SpsColorPatcher;
+import com.pedro.encoder.utils.yuv.SamsungTiledUtil;
 import com.pedro.encoder.utils.yuv.YUVUtil;
 
 import java.nio.ByteBuffer;
@@ -74,11 +75,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   private int level = -1;
   private final SpsColorPatcher spsColorPatcher = new SpsColorPatcher();
   private boolean forceBt709Color = false;
-  //OMX.SEC encoders (Samsung devices with Exynos before API 21) read the input buffer with each
-  //plane aligned to 8KB instead of packed and reading more bytes than the buffer size they report.
-  //Write the planes that way and reserve that size to avoid a buffer overflow in the encoder that
-  //crash the mediaserver process (and the camera with it in devices where both share the process).
+  //OMX.SEC encoders (Samsung devices with Exynos before API 21) don't read the input buffer as
+  //packed planes, they consume it with the tiled layout of the MFC and read more bytes than the
+  //buffer size they report. Writing packed planes overflows the buffer and crash the mediaserver
+  //process (and the camera with it in devices where both share the process) and, once the size is
+  //reserved, produces a scrambled image. Write the layout they really expect.
   private static final int PLANE_ALIGNMENT = 8 * 1024;
+  private boolean tiledInput = false;
   private boolean alignInputPlanes = false;
   //resolution used to configure the encoder. Swapped related with width and height in rotation 90/270
   private int inputWidth = 640;
@@ -149,11 +152,15 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
       Log.i(TAG, "Prepare video info: " + this.formatVideoEncoder.name() + ", " + inputWidth + "x" + inputHeight);
       videoFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT,
           this.formatVideoEncoder.getFormatCodec());
-      alignInputPlanes = this.formatVideoEncoder != FormatVideoEncoder.SURFACE
+      boolean samsungInput = this.formatVideoEncoder != FormatVideoEncoder.SURFACE
           && encoder.getName().startsWith("OMX.SEC.");
-      if (alignInputPlanes) {
-        int inputSize = getAlignedInputSize();
-        Log.i(TAG, "using planes aligned to " + PLANE_ALIGNMENT + ", input buffer size: " + inputSize);
+      tiledInput = samsungInput && SamsungTiledUtil.isSupported(inputWidth, inputHeight);
+      //the tiled layout needs an even number of tiles per row. If the resolution can't use it at
+      //least reserve the size they read to avoid the crash, the image will be scrambled.
+      alignInputPlanes = samsungInput && !tiledInput;
+      if (samsungInput) {
+        int inputSize = getSamsungInputSize();
+        Log.i(TAG, "using " + (tiledInput ? "tiled" : "8KB aligned") + " input, buffer size: " + inputSize);
         videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, inputSize);
       } else {
         videoFormat.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 0);
@@ -239,9 +246,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     return true;
   }
 
-  private int getAlignedInputSize() {
+  private int getSamsungInputSize() {
     boolean semiPlanar = formatVideoEncoder == FormatVideoEncoder.YUV420SEMIPLANAR;
-    int size = YUVUtil.getAlignedPlanesSize(inputWidth, inputHeight, semiPlanar, PLANE_ALIGNMENT);
+    int size = tiledInput ? SamsungTiledUtil.getSize(inputWidth, inputHeight)
+        : YUVUtil.getAlignedPlanesSize(inputWidth, inputHeight, semiPlanar, PLANE_ALIGNMENT);
     //memcpy in the encoder prefetch data ahead of the pointer so reserve an extra plane to
     //make sure that the read of the last buffer never goes out of the shared memory allocated.
     return size + PLANE_ALIGNMENT;
@@ -249,10 +257,13 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
 
   @Override
   protected int writeInput(@NonNull ByteBuffer byteBuffer, @NonNull Frame frame) {
-    if (!alignInputPlanes) return super.writeInput(byteBuffer, frame);
+    if (!tiledInput && !alignInputPlanes) return super.writeInput(byteBuffer, frame);
     boolean semiPlanar = formatVideoEncoder == FormatVideoEncoder.YUV420SEMIPLANAR;
-    int size = YUVUtil.copyAlignedPlanes(byteBuffer, frame.getBuffer(), frame.getOffset(),
-        frame.getSize(), inputWidth, inputHeight, semiPlanar, PLANE_ALIGNMENT);
+    int size = tiledInput
+        ? SamsungTiledUtil.copy(byteBuffer, frame.getBuffer(), frame.getOffset(), frame.getSize(),
+            inputWidth, inputHeight, semiPlanar)
+        : YUVUtil.copyAlignedPlanes(byteBuffer, frame.getBuffer(), frame.getOffset(),
+            frame.getSize(), inputWidth, inputHeight, semiPlanar, PLANE_ALIGNMENT);
     //fallback to the packed layout if the frame or the buffer don't have the expected size
     return size < 0 ? super.writeInput(byteBuffer, frame) : size;
   }
