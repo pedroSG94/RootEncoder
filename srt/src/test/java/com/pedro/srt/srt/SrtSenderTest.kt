@@ -9,6 +9,7 @@ import com.pedro.srt.utils.Constants
 import com.pedro.srt.utils.SrtSocket
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,7 +32,7 @@ class SrtSenderTest {
     @Mock
     lateinit var commandsManager: CommandsManager
     private val output = ByteArrayOutputStream()
-    private var latch = CountDownLatch(7)
+    private var latch = CountDownLatch(4)
 
     @Before
     fun setup() = runTest {
@@ -49,7 +50,7 @@ class SrtSenderTest {
 
     @Test
     fun `GIVEN video and audio mediaFrames WHEN send to sender THEN write the expected packets`() = runTest {
-        latch = CountDownLatch(7) //writeData must be called 4 times
+        latch = CountDownLatch(4) //writeData must be called 4 times
         val srtSender = SrtSender(connectChecker, commandsManager)
         srtSender.setAudioInfo(44100, true)
         val sps = ByteBuffer.wrap(byteArrayOf(0, 0, 0, 1, 103, 100, 0, 30, -84, -76, 15, 2, -115, 53, 2, 2, 2, 7, -117, 23, 8))
@@ -64,7 +65,7 @@ class SrtSenderTest {
 
         srtSender.sendMediaFrame(videoData, MediaFrame.Info(0, videoData.remaining(), 0, true), MediaFrame.Type.VIDEO)
         srtSender.sendMediaFrame(audioData, MediaFrame.Info(0, audioData.remaining(), 0, false), MediaFrame.Type.AUDIO)
-        latch.await(1000, TimeUnit.MILLISECONDS)
+        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS))
         srtSender.stop()
 
         assertEquals(1692, output.toByteArray().size)
@@ -72,7 +73,7 @@ class SrtSenderTest {
 
     @Test
     fun `GIVEN pooled mediaFrames WHEN send to sender THEN write the same packets than a copy`() = runTest {
-        latch = CountDownLatch(7) //writeData must be called 4 times
+        latch = CountDownLatch(4) //writeData must be called 4 times
         val srtSender = SrtSender(connectChecker, commandsManager)
         srtSender.setAudioInfo(44100, true)
         val sps = ByteBuffer.wrap(byteArrayOf(0, 0, 0, 1, 103, 100, 0, 30, -84, -76, 15, 2, -115, 53, 2, 2, 2, 7, -117, 23, 8))
@@ -88,7 +89,7 @@ class SrtSenderTest {
         //the sender copies into a pooled buffer bigger than the frame, the output must not change
         srtSender.sendMediaFrame(videoData, MediaFrame.Info(0, videoData.remaining(), 0, true), MediaFrame.Type.VIDEO)
         srtSender.sendMediaFrame(audioData, MediaFrame.Info(0, audioData.remaining(), 0, false), MediaFrame.Type.AUDIO)
-        latch.await(1000, TimeUnit.MILLISECONDS)
+        assertTrue(latch.await(1000, TimeUnit.MILLISECONDS))
         srtSender.stop()
 
         assertEquals(1692, output.toByteArray().size)
