@@ -445,27 +445,19 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
   }
 
   /**
-   * Surface mode: the EGL timestamp is a huge absolute value that would break RTMP, so it has to be
-   * rebased to something relative. Rebase it against the start the encoders were given, not against
-   * this encoder's own first frame.
-   *
-   * GlStreamInterface stamps every frame through GlTimestamp, which anchors to TimeUtils — the same
-   * clock StreamBase reads to start both encoders — so subtracting presentTimeUs is meaningful and
-   * mirrors what AudioEncoder.calculatePts already does.
-   *
-   * Rebasing on the first frame instead put the two timelines on different zeros: audio counted from
-   * the moment the stream started, video from the moment its first frame came out of the encoder.
-   * Everything in between — opening the camera, warming up GL — turned into a fixed offset with audio
-   * behind the picture. On a Samsung SM-A065F that offset measured 470 ms (18 clap pairs, 427-517 ms),
-   * plainly visible as lips moving before the sound. It is the same in both TimestampMode branches,
-   * which is why switching modes never helped.
-   *
-   * Falls back to the old behaviour when the encoder was started without a shared origin.
+   * Surface mode: rebase the timestamp to something relative. The GlInterface stamps the surface
+   * with the TimeUtils clock, so we share the origin with the audio encoder. A surface fed directly
+   * (decoder in FromFileBase, MediaProjection in DisplayBase without opengl) uses another time base
+   * and must be rebased against its own first frame.
+   * Using 1 second to difference both ways.
    */
-  private long rebaseSurfacePts(long ptsUs) {
-    if (presentTimeUs > 0) return Math.max(0, ptsUs - presentTimeUs);
-    if (firstTimestamp == 0) firstTimestamp = ptsUs;
-    return Math.max(0, ptsUs - firstTimestamp);
+  private long rebaseSurfacePts(long pts) {
+    if (firstTimestamp == 0) {
+      boolean sharedClock = presentTimeUs > 0
+          && Math.abs(pts - TimeUtils.getCurrentTimeMicro()) < 1_000_000;
+      firstTimestamp = sharedClock ? presentTimeUs : pts;
+    }
+    return Math.max(0, pts - firstTimestamp);
   }
 
   @Override
