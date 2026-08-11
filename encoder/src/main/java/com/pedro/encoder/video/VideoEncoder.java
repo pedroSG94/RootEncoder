@@ -453,8 +453,7 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
    */
   private long rebaseSurfacePts(long pts) {
     if (firstTimestamp == 0) {
-      boolean sharedClock = presentTimeUs > 0
-          && Math.abs(pts - TimeUtils.getCurrentTimeMicro()) < 1_000_000;
+      boolean sharedClock = presentTimeUs > 0 && Math.abs(pts - TimeUtils.getCurrentTimeMicro()) < 1_000_000;
       firstTimestamp = sharedClock ? presentTimeUs : pts;
     }
     return Math.max(0, pts - firstTimestamp);
