@@ -444,6 +444,30 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     spsPpsSetted = sendSPSandPPS(mediaFormat);
   }
 
+  /**
+   * Surface mode: the EGL timestamp is a huge absolute value that would break RTMP, so it has to be
+   * rebased to something relative. Rebase it against the start the encoders were given, not against
+   * this encoder's own first frame.
+   *
+   * GlStreamInterface stamps every frame through GlTimestamp, which anchors to TimeUtils — the same
+   * clock StreamBase reads to start both encoders — so subtracting presentTimeUs is meaningful and
+   * mirrors what AudioEncoder.calculatePts already does.
+   *
+   * Rebasing on the first frame instead put the two timelines on different zeros: audio counted from
+   * the moment the stream started, video from the moment its first frame came out of the encoder.
+   * Everything in between — opening the camera, warming up GL — turned into a fixed offset with audio
+   * behind the picture. On a Samsung SM-A065F that offset measured 470 ms (18 clap pairs, 427-517 ms),
+   * plainly visible as lips moving before the sound. It is the same in both TimestampMode branches,
+   * which is why switching modes never helped.
+   *
+   * Falls back to the old behaviour when the encoder was started without a shared origin.
+   */
+  private long rebaseSurfacePts(long ptsUs) {
+    if (presentTimeUs > 0) return Math.max(0, ptsUs - presentTimeUs);
+    if (firstTimestamp == 0) firstTimestamp = ptsUs;
+    return Math.max(0, ptsUs - firstTimestamp);
+  }
+
   @Override
   protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec.BufferInfo bufferInfo) {
     if (forceKey && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -510,12 +534,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         // Buffer mode: synthesize PTS from wall clock.
         bufferInfo.presentationTimeUs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
       } else {
-        // Surface mode: EGL timestamp is camera sensor time (nanoseconds from boot ÷ 1000).
-        // It has clean, jitter-free intervals — but it's a huge absolute value that breaks RTMP.
-        // Rebase to relative by subtracting the first frame's PTS → clean intervals, starts at 0.
-        if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
-        bufferInfo.presentationTimeUs -= firstTimestamp;
+        bufferInfo.presentationTimeUs = rebaseSurfacePts(bufferInfo.presentationTimeUs);
       }
+    } else if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+      bufferInfo.presentationTimeUs = rebaseSurfacePts(bufferInfo.presentationTimeUs);
     } else {
       if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
       bufferInfo.presentationTimeUs -= firstTimestamp;
