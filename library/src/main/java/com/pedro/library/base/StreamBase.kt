@@ -503,7 +503,11 @@ abstract class StreamBase(
     return glInterface.surfaceTexture
   }
 
-  protected fun getVideoResolution() = Size(videoEncoder.width, videoEncoder.height)
+  protected fun getVideoResolution(): Size {
+    val portrait = videoEncoder.rotation == 90 || videoEncoder.rotation == 270
+    return if (portrait) Size(videoEncoder.height, videoEncoder.width)
+    else Size(videoEncoder.width, videoEncoder.height)
+  }
 
   protected fun getVideoFps() = videoEncoder.fps
 
