@@ -18,7 +18,7 @@ coroutines = "1.11.0"
 junit = "4.13.2"
 mockito = "6.3.0"
 uvcandroid = "1.0.13"
-media3 = "1.10.1"
+media3 = "1.11.0"
 bouncycastle = "1.84"
 
 [libraries]
