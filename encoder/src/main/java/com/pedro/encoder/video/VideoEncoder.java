@@ -444,6 +444,21 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
     spsPpsSetted = sendSPSandPPS(mediaFormat);
   }
 
+  /**
+   * Surface mode: rebase the timestamp to something relative. The GlInterface stamps the surface
+   * with the TimeUtils clock, so we share the origin with the audio encoder. A surface fed directly
+   * (decoder in FromFileBase, MediaProjection in DisplayBase without opengl) uses another time base
+   * and must be rebased against its own first frame.
+   * Using 1 second to difference both ways.
+   */
+  private long rebaseSurfacePts(long pts) {
+    if (firstTimestamp == 0) {
+      boolean sharedClock = presentTimeUs > 0 && Math.abs(pts - TimeUtils.getCurrentTimeMicro()) < 1_000_000;
+      firstTimestamp = sharedClock ? presentTimeUs : pts;
+    }
+    return Math.max(0, pts - firstTimestamp);
+  }
+
   @Override
   protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer, @NonNull MediaCodec.BufferInfo bufferInfo) {
     if (forceKey && Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -510,12 +525,10 @@ public class VideoEncoder extends BaseEncoder implements GetCameraData {
         // Buffer mode: synthesize PTS from wall clock.
         bufferInfo.presentationTimeUs = TimeUtils.getCurrentTimeMicro() - presentTimeUs;
       } else {
-        // Surface mode: EGL timestamp is camera sensor time (nanoseconds from boot ÷ 1000).
-        // It has clean, jitter-free intervals — but it's a huge absolute value that breaks RTMP.
-        // Rebase to relative by subtracting the first frame's PTS → clean intervals, starts at 0.
-        if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
-        bufferInfo.presentationTimeUs -= firstTimestamp;
+        bufferInfo.presentationTimeUs = rebaseSurfacePts(bufferInfo.presentationTimeUs);
       }
+    } else if (formatVideoEncoder == FormatVideoEncoder.SURFACE) {
+      bufferInfo.presentationTimeUs = rebaseSurfacePts(bufferInfo.presentationTimeUs);
     } else {
       if (firstTimestamp == 0) firstTimestamp = bufferInfo.presentationTimeUs;
       bufferInfo.presentationTimeUs -= firstTimestamp;
