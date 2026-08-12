@@ -171,6 +171,7 @@ public abstract class DisplayBase {
         glStreamInterface.setIsPortrait(isPortrait);
       }
     }
+    forceFpsLimit(true);
     return videoInitialized;
   }
 

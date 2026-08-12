@@ -364,8 +364,10 @@ public abstract class Camera2Base {
                 iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
             if (!result) return false;
         }
-        return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+        boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
                 iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
+        forceFpsLimit(true);
+        return result;
     }
 
     public boolean prepareVideo(

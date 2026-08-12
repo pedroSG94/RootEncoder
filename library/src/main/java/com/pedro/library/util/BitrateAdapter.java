@@ -21,6 +21,8 @@ package com.pedro.library.util;
  */
 public class BitrateAdapter {
 
+  private static final float MAX_BITRATE_TOLERANCE = 0.95f;
+
   public interface Listener {
     void onBitrateAdapted(int bitrate);
   }
@@ -74,7 +76,8 @@ public class BitrateAdapter {
   private int getBitrateAdapted(int bitrate) {
     if (bitrate >= maxBitrate) { //You have high speed and max bitrate. Keep max speed
       oldBitrate = maxBitrate;
-    } else if (bitrate <= oldBitrate * 0.9f) { //You have low speed and bitrate too high. Reduce bitrate by 10%.
+    } else if (bitrate <= oldBitrate * 0.9f || isStuckAtMaxBitrate(bitrate)) {
+      //You have low speed and bitrate too high. Reduce bitrate by 10%.
       oldBitrate = (int) (bitrate * decreaseRange);
     } else { //You have high speed and bitrate too low. Increase bitrate by 10%.
       oldBitrate = (int) (bitrate * increaseRange);
@@ -83,8 +86,12 @@ public class BitrateAdapter {
     return oldBitrate;
   }
 
+  private boolean isStuckAtMaxBitrate(int bitrate) {
+    return oldBitrate >= maxBitrate && bitrate < maxBitrate * MAX_BITRATE_TOLERANCE;
+  }
+
   private int getBitrateAdapted(int bitrate, boolean hasCongestion) {
-    if (bitrate >= maxBitrate) { //You have high speed and max bitrate. Keep max speed
+    if (bitrate >= maxBitrate && !hasCongestion) { //You have high speed and max bitrate. Keep max speed
       oldBitrate = maxBitrate;
     } else if (hasCongestion) { //You have low speed and bitrate too high. Reduce bitrate by 10%.
       oldBitrate = (int) (bitrate * decreaseRange);
