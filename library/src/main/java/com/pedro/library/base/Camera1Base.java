@@ -293,7 +293,6 @@ public abstract class Camera1Base {
     }
     FormatVideoEncoder formatVideoEncoder =
         glInterface == null ? FormatVideoEncoder.YUV420Dynamical : FormatVideoEncoder.SURFACE;
-
     boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation, iFrameInterval,
         formatVideoEncoder, profile, level);
     forceFpsLimit(true);
