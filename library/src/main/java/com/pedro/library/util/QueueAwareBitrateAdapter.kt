@@ -52,21 +52,35 @@ class QueueAwareBitrateAdapter(
     const val HOLD_SECONDS = 4
     const val CEILING_MARGIN = 0.97f
     const val CEILING_TTL = 60
+    //a transient must not define the link, so the capacity is the best second of this window
+    const val CAPACITY_WINDOW = 15
+    //and even a real drop cannot halve the ceiling twice in a row
+    const val MAX_CEILING_DROP = 0.5f
+    //each probe closes part of the distance to the ceiling, so recovering from a deep drop
+    //does not take minutes
+    const val GAP_CLOSE = 0.25f
   }
 
   private val floor = minBitrate.coerceIn(1, maxBitrate)
+  private val recent = ArrayDeque<Long>()
   private var target = maxBitrate
   private var ceiling = maxBitrate
   private var good = 0
   private var age = 0
 
   fun onStreamingStats(report: StreamingStatsReport) {
+    //BitrateManager reports 0 until its first window closes, that is not a measurement
+    if (report.smoothedBitrate > 0) {
+      recent.addLast(report.smoothedBitrate)
+      if (recent.size > CAPACITY_WINDOW) recent.removeFirst()
+    }
     val alertBytes = (target / 8) * QUEUE_ALERT_FRACTION
     val congested = report.throughput == Throughput.INSUFFICIENT || report.queueBytesOut > alertBytes
     if (congested) {
-      //BitrateManager reports 0 until its first window closes, that is not a measurement
-      if (report.smoothedBitrate > 0) {
-        ceiling = minOf(ceiling.toLong(), report.smoothedBitrate).toInt()
+      val measured = recent.maxOrNull()
+      if (measured != null) {
+        val dropped = minOf(ceiling.toLong(), measured).toInt()
+        ceiling = maxOf(dropped, (ceiling * MAX_CEILING_DROP).toInt())
         target = (ceiling * BACKOFF).toInt().coerceAtLeast(floor)
         good = 0
         age = 0
@@ -77,7 +91,8 @@ class QueueAwareBitrateAdapter(
       if (good >= HOLD_SECONDS) {
         good = 0
         val cap = if (ceiling >= maxBitrate) maxBitrate else (ceiling * CEILING_MARGIN).toInt()
-        val next = minOf((target * PROBE).toInt(), cap)
+        val gapStep = target + ((cap - target) * GAP_CLOSE).toInt()
+        val next = minOf(maxOf(gapStep, (target * PROBE).toInt()), cap)
         if (next != target) {
           target = next
           listener.onBitrateAdapted(target)
@@ -95,6 +110,7 @@ class QueueAwareBitrateAdapter(
     ceiling = maxBitrate
     good = 0
     age = 0
+    recent.clear()
     listener.onBitrateAdapted(target)
   }
 }

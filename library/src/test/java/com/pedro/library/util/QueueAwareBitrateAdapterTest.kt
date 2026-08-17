@@ -69,11 +69,23 @@ class QueueAwareBitrateAdapterTest {
   }
 
   @Test
-  fun `GIVEN a single bad second WHEN it recovers THEN never go under the floor`() {
+  fun `GIVEN a single terrible second WHEN it is the only measurement THEN do not collapse`() {
     var last = 0
     val adapter = QueueAwareBitrateAdapter(maxBitrate) { last = it }
+    //a second delivering 50 kbps used to define the link and drop the bitrate to the floor
     adapter.onStreamingStats(report(50000, 900000, Throughput.INSUFFICIENT))
-    assertEquals(maxBitrate / 10, last)
+    assertEquals(1468800, last)
+    assertTrue("collapsed to $last", last > maxBitrate / 4)
+  }
+
+  @Test
+  fun `GIVEN a healthy stretch WHEN one second goes bad THEN keep the capacity seen before`() {
+    var last = 0
+    val adapter = QueueAwareBitrateAdapter(maxBitrate) { last = it }
+    repeat(10) { adapter.onStreamingStats(healthy(3000000)) }
+    adapter.onStreamingStats(report(50000, 900000, Throughput.INSUFFICIENT))
+    //the window still remembers the good seconds, so the transient is ignored
+    assertEquals(2700000, last)
   }
 
   @Test
