@@ -39,7 +39,7 @@ import com.pedro.extrasources.CameraXSource
 import com.pedro.library.base.StreamBase
 import com.pedro.library.base.recording.RecordController
 import com.pedro.library.generic.GenericStream
-import com.pedro.library.util.BitrateAdapter
+import com.pedro.library.util.QueueAwareBitrateAdapter
 import com.pedro.streamer.R
 import com.pedro.streamer.utils.PathUtils
 import com.pedro.streamer.utils.toast
@@ -95,10 +95,8 @@ class CameraFragment: Fragment(), ConnectChecker {
   private val aBitrate = 128 * 1000
   private var recordPath = ""
   //Bitrate adapter used to change the bitrate on fly depend of the bandwidth.
-  private val bitrateAdapter = BitrateAdapter {
-    genericStream.setVideoBitrateOnFly(it)
-  }.apply {
-    setMaxBitrate(vBitrate + aBitrate)
+  private val bitrateAdapter = QueueAwareBitrateAdapter(maxBitrate = vBitrate + aBitrate) {
+    genericStream.setVideoBitrateOnFly(it - aBitrate)
   }
 
   @SuppressLint("ClickableViewAccessibility")
@@ -203,6 +201,7 @@ class CameraFragment: Fragment(), ConnectChecker {
   }
 
   override fun onConnectionStarted(url: String) {
+    bitrateAdapter.reset()
   }
 
   override fun onConnectionSuccess() {
@@ -223,7 +222,7 @@ class CameraFragment: Fragment(), ConnectChecker {
 
   override fun onStreamingStats(report: StreamingStatsReport) {
     onMainThreadHandler {
-      bitrateAdapter.adaptBitrate(report.smoothedBitrate, genericStream.getStreamClient().hasCongestion())
+      bitrateAdapter.onStreamingStats(report)
       if (report.throughput != Throughput.UNKNOWN) {
         txtBitrate.text = String.format(
           Locale.getDefault(),
