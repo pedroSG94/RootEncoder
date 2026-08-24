@@ -25,7 +25,6 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.view.Surface
 import androidx.annotation.RequiresApi
-import com.pedro.common.TimeUtils
 import com.pedro.common.newSingleThreadExecutor
 import com.pedro.common.secureSubmit
 import com.pedro.encoder.input.gl.FilterAction
@@ -96,8 +95,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   private var previewViewPort: ViewPort? = null
   private var streamViewPort: ViewPort? = null
   private var surfaceHandlerThread: HandlerThread? = null
-  private val sync = Any()
-  private val glTimestamp = GlTimestamp()
 
   private val sensorRotationManager = SensorRotationManager(context, true, true) { orientation, isPortrait ->
     if (autoHandleOrientation && shouldHandleOrientation) {
@@ -187,7 +184,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun start() {
-    glTimestamp.reset()
     threadQueue.clear()
     executor?.shutdownNow()
     executor = null
@@ -213,14 +209,11 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         mainRender.getSurfaceTexture().setOnFrameAvailableListener(this)
       }
       forceRender.start {
-        synchronized(sync) {
-          val timestamp = TimeUtils.getCurrentTimeNano()
-          executor?.execute {
-            try {
-              draw(true, timestamp)
-            } catch (e: RuntimeException) {
-              renderErrorCallback?.onRenderError(e) ?: throw e
-            }
+        executor?.execute {
+          try {
+            draw(true)
+          } catch (e: RuntimeException) {
+            renderErrorCallback?.onRenderError(e) ?: throw e
           }
         }
       }
@@ -229,34 +222,37 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
 
   override fun stop() {
     running.set(false)
-    forceRender.stop()
+    val latch = java.util.concurrent.CountDownLatch(1)
+    executor?.submit {
+      forceRender.stop()
+      sensorRotationManager.stop()
+      surfaceManagerPhoto.release()
+      surfaceManagerEncoder.release()
+      surfaceManagerEncoderRecord.release()
+      multiPreviewSurfaceManagers.values.forEach { info ->
+        info.surfaceManager.release()
+      }
+      multiPreviewSurfaceManagers.clear()
+      surfaceManager.release()
+      mainRender.release()
+      latch.countDown()
+    }
+    // wait for executor to finish releasing EGL surfaces
+    try {
+      latch.await(1000, java.util.concurrent.TimeUnit.MILLISECONDS)
+    } catch (e: InterruptedException) {
+      e.printStackTrace()
+    }
     surfaceHandlerThread?.quitSafely()
     surfaceHandlerThread = null
     threadQueue.clear()
-    val executor = this.executor
-    if (executor != null) {
-      executor.secureSubmit(100) { releaseSurfaceManagers() }
-      executor.shutdownNow()
-      this.executor = null
-    } else releaseSurfaceManagers()
+    executor?.shutdownNow()
+    executor = null
   }
 
-  private fun releaseSurfaceManagers() {
-    sensorRotationManager.stop()
-    surfaceManagerPhoto.release()
-    surfaceManagerEncoder.release()
-    surfaceManagerEncoderRecord.release()
-    multiPreviewSurfaceManagers.values.forEach { info ->
-      info.surfaceManager.release()
-    }
-    multiPreviewSurfaceManagers.clear()
-    surfaceManagerPreview.release()
-    surfaceManager.release()
-    mainRender.release()
-  }
-
-  private fun draw(forced: Boolean, clockTimestamp: Long) {
+  private fun draw(forced: Boolean) {
     if (!isRunning) return
+    val limitFps = fpsLimiter.limitFPS()
     if (!forced) forceRender.frameAvailable()
 
     if (!filterQueue.isEmpty() && mainRender.isReady()) {
@@ -275,9 +271,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       if (!surfaceManager.makeCurrent()) return
       mainRender.updateFrame()
       mainRender.drawSource()
+      surfaceManager.swapBuffer()
     }
-    val timestamp = glTimestamp.getTimestamp(surfaceTexture.timestamp, clockTimestamp)
-    val limitFps = fpsLimiter.limitFPS(timestamp)
 
     val orientation = when (orientationForced) {
       OrientationForced.PORTRAIT -> true
@@ -289,43 +284,8 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       OrientationForced.LANDSCAPE -> false
       OrientationForced.NONE -> isPortraitPreview
     }
-    if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
-      mainRender.drawFilters(false)
-    }
-    // render VideoEncoder (stream and record)
-    if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
-      val w = if (muteVideo) 0 else encoderWidth
-      val h = if (muteVideo) 0 else encoderHeight
-      if (surfaceManagerEncoder.makeCurrent()) {
-        mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
-          isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
-        surfaceManagerEncoder.setPresentationTime(timestamp)
-        surfaceManagerEncoder.swapBuffer()
-      }
-    }
-    // render VideoEncoder (record if the resolution is different than stream)
-    if (surfaceManagerEncoderRecord.isReady && mainRender.isReady() && !limitFps) {
-      val w = if (muteVideo) 0 else encoderRecordWidth
-      val h = if (muteVideo) 0 else encoderRecordHeight
-      if (surfaceManagerEncoderRecord.makeCurrent()) {
-        mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
-          isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
-        // Fix: same timestamp fix for the dedicated record surface
-        surfaceManagerEncoderRecord.setPresentationTime(timestamp)
-        surfaceManagerEncoderRecord.swapBuffer()
-      }
-    }
-    //render surface photo if request photo
-    if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
-      if (surfaceManagerPhoto.makeCurrent()) {
-        mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
-          streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
-        takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
-        takePhotoCallback = null
-        surfaceManagerPhoto.swapBuffer()
-      }
-    }
-    // render preview
+
+    // === RENDER PREVIEW FIRST so encoder back-pressure never freezes it ===
     if (surfaceManagerPreview.isReady && mainRender.isReady() && !limitFps) {
       val w =  if (previewWidth == 0) encoderWidth else previewWidth
       val h =  if (previewHeight == 0) encoderHeight else previewHeight
@@ -352,7 +312,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
       previewSnapshot.forEach { info ->
         if (info.surfaceManager.isReady) {
           if (info.surfaceManager.makeCurrent()) {
-            // Each preview uses its own isPortrait and viewPort configuration
             mainRender.drawScreenPreview(info.config.width, info.config.height, info.config.isPortrait, info.config.aspectRatioMode, 0,
               info.config.verticalFlip, info.config.horizontalFlip, info.config.viewPort)
             info.surfaceManager.swapBuffer()
@@ -360,18 +319,62 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
         }
       }
     }
+
+    // === THEN RENDER ENCODER SURFACES (may block on hardware encoder back-pressure) ===
+    if (surfaceManagerEncoder.isReady || surfaceManagerEncoderRecord.isReady || surfaceManagerPhoto.isReady) {
+      mainRender.drawFilters(false)
+    }
+    // render VideoEncoder (stream and record)
+    if (surfaceManagerEncoder.isReady && mainRender.isReady() && !limitFps) {
+      val w = if (muteVideo) 0 else encoderWidth
+      val h = if (muteVideo) 0 else encoderHeight
+      try {
+        if (surfaceManagerEncoder.makeCurrent()) {
+          mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
+            isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
+          var ts = System.nanoTime()
+          surfaceManagerEncoder.setPresentationTime(ts)
+          surfaceManagerEncoder.swapBuffer()
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("GlStreamInterface", "Encoder swapBuffer error", e)
+      }
+    }
+    // render VideoEncoder (record if the resolution is different than stream)
+    if (surfaceManagerEncoderRecord.isReady && mainRender.isReady() && !limitFps) {
+      val w = if (muteVideo) 0 else encoderRecordWidth
+      val h = if (muteVideo) 0 else encoderRecordHeight
+      try {
+        if (surfaceManagerEncoderRecord.makeCurrent()) {
+          mainRender.drawScreenEncoder(w, h, orientation, streamOrientation,
+            isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
+          var ts = System.nanoTime()
+          surfaceManagerEncoderRecord.setPresentationTime(ts)
+          surfaceManagerEncoderRecord.swapBuffer()
+        }
+      } catch (e: Exception) {
+        android.util.Log.e("GlStreamInterface", "Record encoder swapBuffer error", e)
+      }
+    }
+    //render surface photo if request photo
+    if (takePhotoCallback != null && surfaceManagerPhoto.isReady && mainRender.isReady()) {
+      if (surfaceManagerPhoto.makeCurrent()) {
+        mainRender.drawScreen(encoderWidth, encoderHeight, AspectRatioMode.NONE,
+          streamOrientation, isStreamVerticalFlip, isStreamHorizontalFlip, streamViewPort)
+        takePhotoCallback?.onTakePhoto(GlUtil.getBitmap(encoderWidth, encoderHeight))
+        takePhotoCallback = null
+        surfaceManagerPhoto.swapBuffer()
+      }
+    }
   }
 
   override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {
     if (!isRunning) return
-    synchronized(sync) {
-      val timestamp = TimeUtils.getCurrentTimeNano()
-      executor?.execute {
-        try {
-          draw(false, timestamp)
-        } catch (e: RuntimeException) {
-          renderErrorCallback?.onRenderError(e) ?: throw e
-        }
+    executor?.execute {
+      try {
+        draw(false)
+      } catch (e: RuntimeException) {
+        renderErrorCallback?.onRenderError(e) ?: throw e
       }
     }
   }
@@ -546,7 +549,6 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   }
 
   override fun forceFpsLimit(fps: Int) {
-    glTimestamp.setFps(fps)
     fpsLimiter.setFPS(fps)
   }
 

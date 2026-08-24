@@ -522,7 +522,15 @@ abstract class StreamBase(
   protected fun getVideoFps() = videoEncoder.fps
 
   private fun startSources() {
-    if (!glInterface.isRunning) glInterface.start()
+    if (!glInterface.isRunning) {
+      glInterface.start()
+      var maxWait = 200 // 200 * 10ms = 2 seconds
+      while (!glInterface.isRunning && maxWait > 0) {
+        Thread.sleep(10)
+        maxWait--
+      }
+      android.util.Log.d("StreamBase", "glInterface running after wait: ${glInterface.isRunning}")
+    }
     if (!videoSource.isRunning()) {
       videoSource.start(glInterface.surfaceTexture)
     }
@@ -536,15 +544,40 @@ abstract class StreamBase(
   }
 
   private fun stopSources() {
-    if (!isOnPreview) videoSource.stop()
-    audioSource.stop()
+    android.util.Log.d("StreamBase", "stopSources: entered")
+    
+    // Remove encoder surfaces from GL FIRST to stop the draw loop from rendering to them
+    android.util.Log.d("StreamBase", "stopSources: removeMediaCodecSurface()")
     glInterface.removeMediaCodecSurface()
+    android.util.Log.d("StreamBase", "stopSources: removeMediaCodecRecordSurface()")
     glInterface.removeMediaCodecRecordSurface()
-    if (!isOnPreview) glInterface.stop()
+    
+    // Small delay to let the GL thread process the surface removal
+    try { Thread.sleep(50) } catch (_: InterruptedException) {}
+    
+    if (!isOnPreview) {
+        android.util.Log.d("StreamBase", "stopSources: videoSource.stop()")
+        videoSource.stop()
+    }
+    android.util.Log.d("StreamBase", "stopSources: audioSource.stop()")
+    audioSource.stop()
+    android.util.Log.d("StreamBase", "stopSources: videoEncoder.stop()")
     videoEncoder.stop()
+    android.util.Log.d("StreamBase", "stopSources: videoEncoderRecord.stop()")
     videoEncoderRecord.stop()
+    android.util.Log.d("StreamBase", "stopSources: audioEncoder.stop()")
     audioEncoder.stop()
-    if (!isRecording) recordController.resetFormats()
+    
+    if (!isOnPreview) {
+        android.util.Log.d("StreamBase", "stopSources: glInterface.stop()")
+        glInterface.stop()
+    }
+    
+    if (!isRecording) {
+        android.util.Log.d("StreamBase", "stopSources: recordController.resetFormats()")
+        recordController.resetFormats()
+    }
+    android.util.Log.d("StreamBase", "stopSources: finished")
   }
 
   /**
