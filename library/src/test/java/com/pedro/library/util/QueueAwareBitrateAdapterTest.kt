@@ -79,13 +79,14 @@ class QueueAwareBitrateAdapterTest {
   }
 
   @Test
-  fun `GIVEN a healthy stretch WHEN one second goes bad THEN keep the capacity seen before`() {
+  fun `GIVEN backlogged seconds WHEN one goes bad THEN average them instead of trusting the worst`() {
     var last = 0
     val adapter = QueueAwareBitrateAdapter(maxBitrate) { last = it }
-    repeat(10) { adapter.onStreamingStats(healthy(3000000)) }
+    //seconds with frames waiting are real link measurements, they build the capacity window
+    repeat(10) { adapter.onStreamingStats(report(3000000, 500000, Throughput.INSUFFICIENT)) }
     adapter.onStreamingStats(report(50000, 900000, Throughput.INSUFFICIENT))
-    //the window still remembers the good seconds, so the transient is ignored
-    assertEquals(2700000, last)
+    //the average absorbs the transient instead of letting it define the link
+    assertTrue("collapsed to $last", last > 2000000)
   }
 
   @Test
@@ -116,5 +117,30 @@ class QueueAwareBitrateAdapterTest {
     }
     //it re-tests the link once every CEILING_TTL, so it goes over briefly by design
     assertTrue("over the link $secondsOverTheLink seconds of 600", secondsOverTheLink < 60)
+  }
+
+  @Test
+  fun `GIVEN a bursty link WHEN the queue drains in a burst THEN do not read the burst as capacity`() {
+    var last = 0
+    val adapter = QueueAwareBitrateAdapter(maxBitrate) { last = it }
+    //a shaped link stalls and then drains the backlog at twice the rate. Taking the best second
+    //would read 6 Mbps as capacity on a link that only carries 2.5
+    val pattern = listOf(2500000L, 0L, 6000000L, 2500000L, 1000000L, 6000000L, 2500000L)
+    repeat(3) {
+      pattern.forEach { adapter.onStreamingStats(report(it, 500000, Throughput.INSUFFICIENT)) }
+    }
+    assertTrue("aimed at $last, above what the link carries", last < 2500000)
+  }
+
+  @Test
+  fun `GIVEN an empty queue WHEN adapt THEN do not use it as a capacity measurement`() {
+    var last = 0
+    val adapter = QueueAwareBitrateAdapter(maxBitrate) { last = it }
+    //ten healthy seconds at max, the link was never the limit so they say nothing about capacity
+    repeat(10) { adapter.onStreamingStats(healthy(maxBitrate)) }
+    //now the link backs up and only delivers 1 Mbps. Had the healthy seconds been used as
+    //measurements the window would average near maxBitrate and barely reduce anything
+    adapter.onStreamingStats(report(1000000, 500000, Throughput.INSUFFICIENT))
+    assertEquals(1468800, last)
   }
 }

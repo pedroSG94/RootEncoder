@@ -52,7 +52,7 @@ class QueueAwareBitrateAdapter(
     const val HOLD_SECONDS = 4
     const val CEILING_MARGIN = 0.97f
     const val CEILING_TTL = 60
-    //a transient must not define the link, so the capacity is the best second of this window
+    //a transient must not define the link, so the capacity is averaged over this window
     const val CAPACITY_WINDOW = 15
     //and even a real drop cannot halve the ceiling twice in a row
     const val MAX_CEILING_DROP = 0.5f
@@ -69,15 +69,15 @@ class QueueAwareBitrateAdapter(
   private var age = 0
 
   fun onStreamingStats(report: StreamingStatsReport) {
-    //BitrateManager reports 0 until its first window closes, that is not a measurement
-    if (report.smoothedBitrate > 0) {
+    if (report.smoothedBitrate > 0 && report.queueBytesOut > 0) {
       recent.addLast(report.smoothedBitrate)
       if (recent.size > CAPACITY_WINDOW) recent.removeFirst()
     }
     val alertBytes = (target / 8) * QUEUE_ALERT_FRACTION
     val congested = report.throughput == Throughput.INSUFFICIENT || report.queueBytesOut > alertBytes
     if (congested) {
-      val measured = recent.maxOrNull()
+      val measured = if (recent.isNotEmpty()) recent.average().toLong()
+      else report.smoothedBitrate.takeIf { it > 0 }
       if (measured != null) {
         val dropped = minOf(ceiling.toLong(), measured).toInt()
         ceiling = maxOf(dropped, (ceiling * MAX_CEILING_DROP).toInt())
