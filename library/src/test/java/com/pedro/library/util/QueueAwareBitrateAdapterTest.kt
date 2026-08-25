@@ -143,4 +143,40 @@ class QueueAwareBitrateAdapterTest {
     adapter.onStreamingStats(report(1000000, 500000, Throughput.INSUFFICIENT))
     assertEquals(1468800, last)
   }
+
+  @Test
+  fun `GIVEN a link that collapses WHEN it probes back up THEN never go under the floor`() {
+    val emitted = mutableListOf<Int>()
+    val adapter = QueueAwareBitrateAdapter(maxBitrate) { emitted.add(it) }
+    //a link that keeps failing drives the ceiling down; the probe branch used to cap the
+    //target at the collapsed ceiling, ignoring the floor and reaching zero
+    repeat(40) {
+      adapter.onStreamingStats(report(20000, 900000, Throughput.INSUFFICIENT))
+      repeat(5) { adapter.onStreamingStats(healthy(20000)) }
+    }
+    val lowest = emitted.min()
+    assertTrue("emitted $lowest, under the floor", lowest >= maxBitrate / 10)
+  }
+
+  @Test
+  fun `GIVEN a link that stalls WHEN frames are waiting THEN count the stall as a measurement`() {
+    var last = 0
+    val adapter = QueueAwareBitrateAdapter(maxBitrate) { last = it }
+    //one real value first, so the adapter knows BitrateManager is producing measurements
+    adapter.onStreamingStats(report(2000000, 500000, Throughput.INSUFFICIENT))
+    val afterSlowLink = last
+    //now the link stops delivering entirely while frames pile up
+    repeat(10) { adapter.onStreamingStats(report(0, 900000, Throughput.INSUFFICIENT)) }
+    assertTrue("stalls did not lower the estimate: $afterSlowLink -> $last", last < afterSlowLink)
+  }
+
+  @Test
+  fun `GIVEN no measurement yet WHEN the queue piles up THEN ignore the zero as a capacity value`() {
+    var last = 0
+    val adapter = QueueAwareBitrateAdapter(maxBitrate) { last = it }
+    //BitrateManager reports 0 until its first window closes; with a queue already growing that
+    //zero must not be read as "the link delivers nothing"
+    adapter.onStreamingStats(report(0, 900000, Throughput.INSUFFICIENT))
+    assertEquals(0, last)
+  }
 }

@@ -63,13 +63,15 @@ class QueueAwareBitrateAdapter(
 
   private val floor = minBitrate.coerceIn(1, maxBitrate)
   private val recent = ArrayDeque<Long>()
+  private var hasMeasured = false
   private var target = maxBitrate
   private var ceiling = maxBitrate
   private var good = 0
   private var age = 0
 
   fun onStreamingStats(report: StreamingStatsReport) {
-    if (report.smoothedBitrate > 0 && report.queueBytesOut > 0) {
+    if (report.smoothedBitrate > 0) hasMeasured = true
+    if (report.queueBytesOut > 0 && hasMeasured) {
       recent.addLast(report.smoothedBitrate)
       if (recent.size > CAPACITY_WINDOW) recent.removeFirst()
     }
@@ -90,7 +92,8 @@ class QueueAwareBitrateAdapter(
       good++
       if (good >= HOLD_SECONDS) {
         good = 0
-        val cap = if (ceiling >= maxBitrate) maxBitrate else (ceiling * CEILING_MARGIN).toInt()
+        val cap = if (ceiling >= maxBitrate) maxBitrate
+        else (ceiling * CEILING_MARGIN).toInt().coerceAtLeast(floor)
         val gapStep = target + ((cap - target) * GAP_CLOSE).toInt()
         val next = minOf(maxOf(gapStep, (target * PROBE).toInt()), cap)
         if (next != target) {
@@ -111,6 +114,7 @@ class QueueAwareBitrateAdapter(
     good = 0
     age = 0
     recent.clear()
+    hasMeasured = false
     listener.onBitrateAdapted(target)
   }
 }
