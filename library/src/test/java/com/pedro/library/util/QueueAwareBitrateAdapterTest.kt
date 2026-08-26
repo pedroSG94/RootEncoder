@@ -179,4 +179,43 @@ class QueueAwareBitrateAdapterTest {
     adapter.onStreamingStats(report(0, 900000, Throughput.INSUFFICIENT))
     assertEquals(0, last)
   }
+
+  @Test
+  fun `GIVEN a ttl of zero WHEN the link stays the same THEN never climb over it again`() {
+    val link = 2800000
+    var configured = maxBitrate
+    val adapter = QueueAwareBitrateAdapter(maxBitrate, maxBitrate / 10, 0) { configured = it }
+    var secondsOverTheLink = 0
+    repeat(1800) {
+      val over = configured > link
+      if (over) secondsOverTheLink++
+      adapter.onStreamingStats(
+        if (over) report(link.toLong(), 500000, Throughput.INSUFFICIENT)
+        else healthy(configured)
+      )
+    }
+    //without re-testing it settles under the link and stays there
+    assertTrue("over the link $secondsOverTheLink seconds of 1800", secondsOverTheLink < 30)
+    assertTrue("settled at $configured, over the link", configured <= link)
+  }
+
+  @Test
+  fun `GIVEN the default ttl WHEN the link stays the same THEN re-test it now and then`() {
+    val link = 2800000
+    var configured = maxBitrate
+    val adapter = QueueAwareBitrateAdapter(maxBitrate) { configured = it }
+    var overshoots = 0
+    var wasOver = false
+    repeat(1800) {
+      val over = configured > link
+      if (over && !wasOver) overshoots++
+      wasOver = over
+      adapter.onStreamingStats(
+        if (over) report(link.toLong(), 500000, Throughput.INSUFFICIENT)
+        else healthy(configured)
+      )
+    }
+    //1800 seconds at the default ttl of 300 leaves a handful of re-tests, not one per minute
+    assertTrue("re-tested $overshoots times in 1800s", overshoots in 1..8)
+  }
 }

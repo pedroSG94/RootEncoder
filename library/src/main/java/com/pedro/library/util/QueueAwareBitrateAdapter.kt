@@ -36,29 +36,38 @@ import com.pedro.common.Throughput
 class QueueAwareBitrateAdapter(
   private val maxBitrate: Int,
   minBitrate: Int,
+  /**
+   * Seconds to check if the network improved doing set bitrate to max and decrease again if the network still is bad.
+   * Use 0 or less if you never want check if the network improved. 300s by default
+   */
+  private val ceilingTtl: Int,
   private val listener: Listener
 ) {
 
-  constructor(maxBitrate: Int, listener: Listener): this(maxBitrate, maxBitrate / 10, listener)
+  constructor(maxBitrate: Int, listener: Listener):
+      this(maxBitrate, maxBitrate / 10, DEFAULT_CEILING_TTL, listener)
+
+  constructor(maxBitrate: Int, minBitrate: Int, listener: Listener):
+      this(maxBitrate, minBitrate, DEFAULT_CEILING_TTL, listener)
 
   fun interface Listener {
     fun onBitrateAdapted(bitrate: Int)
   }
 
-  private companion object {
-    const val QUEUE_ALERT_FRACTION = 0.15f //seconds of video allowed in queue
-    const val BACKOFF = 0.90f
-    const val PROBE = 1.05f
-    const val HOLD_SECONDS = 4
-    const val CEILING_MARGIN = 0.97f
-    const val CEILING_TTL = 60
+  companion object {
+    const val DEFAULT_CEILING_TTL = 300
+    private const val QUEUE_ALERT_FRACTION = 0.15f //seconds of video allowed in queue
+    private const val BACKOFF = 0.90f
+    private const val PROBE = 1.05f
+    private const val HOLD_SECONDS = 4
+    private const val CEILING_MARGIN = 0.97f
     //a transient must not define the link, so the capacity is averaged over this window
-    const val CAPACITY_WINDOW = 15
+    private const val CAPACITY_WINDOW = 15
     //and even a real drop cannot halve the ceiling twice in a row
-    const val MAX_CEILING_DROP = 0.5f
+    private const val MAX_CEILING_DROP = 0.5f
     //each probe closes part of the distance to the ceiling, so recovering from a deep drop
     //does not take minutes
-    const val GAP_CLOSE = 0.25f
+    private const val GAP_CLOSE = 0.25f
   }
 
   private val floor = minBitrate.coerceIn(1, maxBitrate)
@@ -102,7 +111,7 @@ class QueueAwareBitrateAdapter(
         }
       }
     }
-    if (++age > CEILING_TTL) {
+    if (ceilingTtl > 0 && ++age > ceilingTtl) {
       ceiling = maxBitrate
       age = 0
     }
