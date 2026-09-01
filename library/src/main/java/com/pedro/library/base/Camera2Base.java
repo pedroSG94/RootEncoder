@@ -19,6 +19,8 @@ package com.pedro.library.base;
 import android.content.Context;
 import android.graphics.Point;
 import android.hardware.camera2.CameraCharacteristics;
+import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
 import android.media.MediaCodec;
 import android.media.MediaFormat;
 import android.media.MediaRecorder;
@@ -66,6 +68,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
+
+import kotlin.Unit;
 
 /**
  * Wrapper to stream with camera2 api and microphone. Support stream with SurfaceView, TextureView,
@@ -149,6 +153,29 @@ public abstract class Camera2Base {
      */
     public void setCustomAudioEffect(CustomAudioEffect customAudioEffect) {
         microphoneManager.setCustomAudioEffect(customAudioEffect);
+    }
+
+    public interface RequestListener {
+        void onRequest(CaptureRequest.Builder builder);
+    }
+
+    public interface CaptureResultListener {
+        void onCaptureResult(TotalCaptureResult result);
+    }
+
+    public boolean setCustomRequest(RequestListener listener) {
+        return cameraManager.setCustomRequest((builder) -> {
+            if (listener != null) listener.onRequest(builder);
+            return Unit.INSTANCE;
+        });
+    }
+
+    public void setCustomOnCaptureCompletedCallback(CaptureResultListener listener) {
+        cameraManager.setCustomOnCaptureCompletedCallback(listener == null ? null :
+            (session, request, result) -> {
+                listener.onCaptureResult(result);
+                return Unit.INSTANCE;
+        });
     }
 
     /**
@@ -364,8 +391,10 @@ public abstract class Camera2Base {
                 iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
             if (!result) return false;
         }
-        return videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
+        boolean result = videoEncoder.prepareVideoEncoder(width, height, fps, bitrate, rotation,
                 iFrameInterval, FormatVideoEncoder.SURFACE, profile, level);
+        forceFpsLimit(true);
+        return result;
     }
 
     public boolean prepareVideo(

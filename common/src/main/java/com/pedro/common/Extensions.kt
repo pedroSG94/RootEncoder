@@ -26,9 +26,11 @@ import android.media.MediaFormat
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.pedro.common.frame.MediaFrame
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -47,6 +49,7 @@ import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Created by pedro on 3/11/23.
@@ -365,4 +368,14 @@ fun ByteBuffer.clone(data: ByteArray): ByteBuffer {
   source.position(0)
   source.get(data, 0, length)
   return ByteBuffer.wrap(data, 0, length).slice()
+}
+
+@JvmOverloads
+fun getSuspendContext(dispatcher: CoroutineDispatcher = Dispatchers.IO) = object: Continuation<Any?> {
+  override val context: CoroutineContext
+    get() = dispatcher
+
+  override fun resumeWith(result: Result<Any?>) {
+    result.exceptionOrNull()?.let { Log.e("getSuspendContext", "Error", it) }
+  }
 }

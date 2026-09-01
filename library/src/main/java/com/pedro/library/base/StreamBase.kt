@@ -540,10 +540,10 @@ abstract class StreamBase(
     audioSource.stop()
     glInterface.removeMediaCodecSurface()
     glInterface.removeMediaCodecRecordSurface()
-    if (!isOnPreview) glInterface.stop()
     videoEncoder.stop()
     videoEncoderRecord.stop()
     audioEncoder.stop()
+    if (!isOnPreview) glInterface.stop()
     if (!isRecording) recordController.resetFormats()
   }
 

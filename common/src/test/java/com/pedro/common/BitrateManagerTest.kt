@@ -23,6 +23,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -89,5 +90,37 @@ class BitrateManagerTest {
     verify(connectChecker, times(1)).onNewBitrate(resultValue.capture())
     val marginError = 20
     assertTrue(expectedResult - marginError <= resultValue.firstValue && resultValue.firstValue <= expectedResult + marginError)
+  }
+
+  @Test
+  fun `GIVEN an idle instance WHEN reset and measure a second THEN report the real bitrate`() = runTest {
+    val bitrateManager = BitrateManager(connectChecker)
+    //the instance is created when the client is built, the stream may start much later
+    fakeTime += 300_000
+    bitrateManager.reset()
+
+    fakeTime += 1000
+    bitrateManager.calculateBitrate(3_000_000L)
+
+    val resultValue = argumentCaptor<Long>()
+    verify(connectChecker, times(1)).onNewBitrate(resultValue.capture())
+    assertEquals(3_000_000L, resultValue.firstValue)
+  }
+
+  @Test
+  fun `GIVEN a measured bitrate WHEN reset THEN start a new window instead of averaging the pause`() = runTest {
+    val bitrateManager = BitrateManager(connectChecker)
+    fakeTime += 1000
+    bitrateManager.calculateBitrate(1_000_000L)
+
+    //a reconnection: the sender is stopped for a while and started again
+    fakeTime += 120_000
+    bitrateManager.reset()
+    fakeTime += 1000
+    bitrateManager.calculateBitrate(2_000_000L)
+
+    val resultValue = argumentCaptor<Long>()
+    verify(connectChecker, times(2)).onNewBitrate(resultValue.capture())
+    assertEquals(2_000_000L, resultValue.secondValue)
   }
 }

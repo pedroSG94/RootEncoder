@@ -214,6 +214,7 @@ public abstract class FromFileBase {
     if (!result) return false;
     result = videoDecoder.prepareVideo(videoEncoder.getInputSurface());
     videoEnabled = result;
+    forceFpsLimit(true);
     return result;
   }
 
