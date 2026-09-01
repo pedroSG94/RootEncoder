@@ -1,6 +1,6 @@
 allprojects {
   group = "com.github.pedroSG94"
-  version = "2.8.0"
+  version = "2.8.1"
 
   plugins.withType<PublishingPlugin> {
     configure<com.android.build.api.dsl.LibraryExtension> {
