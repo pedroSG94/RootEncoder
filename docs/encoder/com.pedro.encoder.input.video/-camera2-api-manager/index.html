@@ -38,7 +38,7 @@
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
-        <div class="library-version" id="library-version">2.8.0
+        <div class="library-version" id="library-version">2.8.1
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
@@ -93,7 +93,7 @@
   <div class="breadcrumbs"><a href="../../index.html">encoder</a><span class="delimiter">/</span><a href="../index.html">com.pedro.encoder.input.video</a><span class="delimiter">/</span><span class="current">Camera2ApiManager</span></div>
   <div class="cover ">
     <h1 class="cover"><span>Camera2Api</span><wbr><span><span>Manager</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">21</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="index.html">Camera2ApiManager</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></span></span><span class="token punctuation">)</span> : <a href="https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraDevice.StateCallback.html">CameraDevice.StateCallback</a></div><p class="paragraph">Created by pedro on 4/03/17.</p><p class="paragraph">Class for use surfaceEncoder to buffer encoder. Advantage = you can use all resolutions. Disadvantages = you cant control fps of the stream, because you cant know when the inputSurface was renderer.</p><p class="paragraph">Note: you can use opengl for surfaceEncoder to buffer encoder on devices 21 &lt; API &gt; 16: https://github.com/google/grafika</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><div class="block"><div class="block"><span class="token annotation builtin">@</span><a href="https://developer.android.com/reference/kotlin/androidx/annotation/RequiresApi.html"><span class="token annotation builtin">RequiresApi</span></a><span class="token punctuation">(</span><span>api<span class="token operator"> = </span><span class="breakable-word"><span class="token constant">21</span></span></span><wbr><span class="token punctuation">)</span></div></div><span class="token keyword">class </span><a href="index.html">Camera2ApiManager</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">context<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/content/Context.html">Context</a></span></span><span class="token punctuation">)</span></div><p class="paragraph">Created by pedro on 4/03/17.</p><p class="paragraph">Class for use surfaceEncoder to buffer encoder. Advantage = you can use all resolutions. Disadvantages = you cant control fps of the stream, because you cant know when the inputSurface was renderer.</p><p class="paragraph">Note: you can use opengl for surfaceEncoder to buffer encoder on devices 21 &lt; API &gt; 16: https://github.com/google/grafika</p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -393,6 +393,21 @@
               </div>
             </div>
           </div>
+<a data-name="1639914124%2FProperties%2F-1957510034" anchor-label="isWhiteBalanceLockEnabled" id="1639914124%2FProperties%2F-1957510034" data-filterable-set=":encoder/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="is-white-balance-lock-enabled.html"><span>is</span><wbr><span>White</span><wbr><span>Balance</span><wbr><span>Lock</span><wbr><span><span>Enabled</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1639914124%2FProperties%2F-1957510034"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">var </span><a href="is-white-balance-lock-enabled.html">isWhiteBalanceLockEnabled</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="825954091%2FProperties%2F-1957510034" anchor-label="levelSupported" id="825954091%2FProperties%2F-1957510034" data-filterable-set=":encoder/release"></a>
           <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
             <div class="main-subrow keyValue ">
@@ -622,6 +637,21 @@
               </div>
             </div>
           </div>
+<a data-name="-373319041%2FFunctions%2F-1957510034" anchor-label="disableWhiteBalanceLock" id="-373319041%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="disable-white-balance-lock.html"><span>disable</span><wbr><span>White</span><wbr><span>Balance</span><wbr><span><span>Lock</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-373319041%2FFunctions%2F-1957510034"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="disable-white-balance-lock.html"><span class="token function">disableWhiteBalanceLock</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="-1447133540%2FFunctions%2F-1957510034" anchor-label="enableAutoExposure" id="-1447133540%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
           <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
             <div class="main-subrow keyValue ">
@@ -757,6 +787,21 @@
               </div>
             </div>
           </div>
+<a data-name="1137929908%2FFunctions%2F-1957510034" anchor-label="enableWhiteBalanceLock" id="1137929908%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="enable-white-balance-lock.html"><span>enable</span><wbr><span>White</span><wbr><span>Balance</span><wbr><span><span>Lock</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1137929908%2FFunctions%2F-1957510034"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="enable-white-balance-lock.html"><span class="token function">enableWhiteBalanceLock</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Lock auto white balance to the current value. The camera will stop adjusting white balance automatically (useful to avoid color shifts from lighting changes).</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
 <a data-name="762275668%2FFunctions%2F-1957510034" anchor-label="getAutoWhiteBalanceModesAvailable" id="762275668%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
           <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
             <div class="main-subrow keyValue ">
@@ -888,66 +933,6 @@
               <div>
                 <div class="title">
                   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="is-face-detection-enabled.html"><span class="token function">isFaceDetectionEnabled</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-1722503760%2FFunctions%2F-1957510034" anchor-label="onClosed" id="-1722503760%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
-          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="index.html#-1722503760%2FFunctions%2F-1957510034"><span>on</span><wbr><span><span>Closed</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1722503760%2FFunctions%2F-1957510034"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="index.html#-1722503760%2FFunctions%2F-1957510034"><span class="token function">onClosed</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">camera<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraDevice.html">CameraDevice</a></span></span><span class="token punctuation">)</span></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="1406780516%2FFunctions%2F-1957510034" anchor-label="onDisconnected" id="1406780516%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
-          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="on-disconnected.html"><span>on</span><wbr><span><span>Disconnected</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1406780516%2FFunctions%2F-1957510034"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-disconnected.html"><span class="token function">onDisconnected</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraDevice<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraDevice.html">CameraDevice</a></span></span><span class="token punctuation">)</span></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="-1690763974%2FFunctions%2F-1957510034" anchor-label="onError" id="-1690763974%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
-          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="on-error.html"><span>on</span><wbr><span><span>Error</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1690763974%2FFunctions%2F-1957510034"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-error.html"><span class="token function">onError</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraDevice<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraDevice.html">CameraDevice</a><span class="token punctuation">, </span></span><span class="parameter ">i<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="21549906%2FFunctions%2F-1957510034" anchor-label="onOpened" id="21549906%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
-          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="on-opened.html"><span>on</span><wbr><span><span>Opened</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="21549906%2FFunctions%2F-1957510034"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">override </span><span class="token keyword">fun </span><a href="on-opened.html"><span class="token function">onOpened</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">cameraDevice<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/hardware/camera2/CameraDevice.html">CameraDevice</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
@@ -1278,6 +1263,36 @@
               <div>
                 <div class="title">
                   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="tap-to-focus.html"><span class="token function">tapToFocus</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">view<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/View.html">View</a><span class="token punctuation">, </span></span><span class="parameter ">event<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/MotionEvent.html">MotionEvent</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1161641493%2FFunctions%2F-1957510034" anchor-label="tapToMeterExposure" id="1161641493%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="tap-to-meter-exposure.html"><span>tap</span><wbr><span>To</span><wbr><span>Meter</span><wbr><span><span>Exposure</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1161641493%2FFunctions%2F-1957510034"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="tap-to-meter-exposure.html"><span class="token function">tapToMeterExposure</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">view<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/View.html">View</a><span class="token punctuation">, </span></span><span class="parameter ">event<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/MotionEvent.html">MotionEvent</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Tap to meter exposure at a specific point.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1239702185%2FFunctions%2F-1957510034" anchor-label="tapToMeterWhiteBalance" id="1239702185%2FFunctions%2F-1957510034" data-filterable-set=":encoder/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":encoder/release" data-filterable-set=":encoder/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="tap-to-meter-white-balance.html"><span>tap</span><wbr><span>To</span><wbr><span>Meter</span><wbr><span>White</span><wbr><span><span>Balance</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1239702185%2FFunctions%2F-1957510034"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":encoder/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="tap-to-meter-white-balance.html"><span class="token function">tapToMeterWhiteBalance</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">view<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/View.html">View</a><span class="token punctuation">, </span></span><span class="parameter ">event<span class="token operator">: </span><a href="https://developer.android.com/reference/kotlin/android/view/MotionEvent.html">MotionEvent</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-boolean/index.html">Boolean</a></div><div class="brief "><p class="paragraph">Tap to meter white balance at a specific point.</p></div></div></div>
                 </div>
               </div>
             </div>

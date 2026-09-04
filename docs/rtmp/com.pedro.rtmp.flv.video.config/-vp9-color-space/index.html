@@ -1,0 +1,408 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>Vp9ColorSpace</title>
+<link href="../../../images/logo-icon.svg" rel="icon" type="image/svg"><script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js", "js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+      if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      } else {
+        const savedDarkMode = JSON.parse(storage)
+        if (savedDarkMode === true) {
+          document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+      }
+    </script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../ui-kit/ui-kit.min.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/safe-local-storage_blocking.js"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async></script>
+<script type="text/javascript" src="../../../ui-kit/ui-kit.min.js" defer></script></head>
+<body>
+<div class="root">
+    <header class="navigation theme-dark" id="navigation-wrapper" role="banner">
+<a class="library-name--link" href="../../../index.html" tabindex="1">
+                    RootEncoder
+            </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
+        </button>
+        <div class="navigation-controls--break ui-kit_mobile-only"></div>
+        <div class="library-version" id="library-version">2.8.1
+        </div>
+        <div class="navigation-controls">
+        <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
+                <button class="platform-tag platform-selector jvm-like" data-active="" aria-pressed="true" data-filter=":rtmp/release">release</button>
+            <div class="dropdown filter-section--dropdown" data-role="dropdown" id="filter-section-dropdown">
+                <button class="button button_dropdown filter-section--dropdown-toggle" role="combobox" data-role="dropdown-toggle" aria-controls="platform-tags-listbox" aria-haspopup="listbox" aria-expanded="false" aria-label="Toggle source sets"></button>
+                <ul role="listbox" id="platform-tags-listbox" class="dropdown--list" data-role="dropdown-listbox" aria-label="Target filter">
+                    <div class="dropdown--header"><span>Target filter</span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close target filter">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                        <li role="option" class="dropdown--option platform-selector-option jvm-like" tabindex="0">
+                            <label class="checkbox">
+                                <input type="checkbox" class="checkbox--input" id=":rtmp/release" data-filter=":rtmp/release">
+                                <span class="checkbox--icon"></span>
+                                release
+                            </label>
+                        </li>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </ul>
+            <button class="navigation-controls--btn navigation-controls--btn_theme" id="theme-toggle-button" type="button">Switch theme
+            </button>
+            <div class="navigation-controls--btn navigation-controls--btn_search" id="searchBar" role="button">Search in
+                API
+            </div>
+        </div>
+    </header>
+    <div id="container">
+        <nav id="leftColumn" class="sidebar" data-item-type="SECTION" data-item-config="{&quot;defaultSize&quot;: 280, &quot;minSize&quot;: 200, &quot;maxSize&quot;: 400}">
+            <a class="toc--skip-link" href="#main">Skip to content</a>
+            <div class="dropdown theme-dark_mobile" data-role="dropdown" id="toc-dropdown">
+                <ul role="listbox" id="toc-listbox" class="dropdown--list dropdown--list_toc-list" data-role="dropdown-listbox" aria-label="Table of contents">
+                    <div class="dropdown--header">
+                            <span>
+                                    RootEncoder
+                            </span>
+                        <button class="button" data-role="dropdown-toggle" aria-label="Close table of contents">
+                            <i class="ui-kit-icon ui-kit-icon_cross"></i>
+                        </button>
+                    </div>
+                    <div class="sidebar--inner" id="sideMenu"></div>
+                </ul>
+                <div class="dropdown--overlay"></div>
+            </div>
+        </nav>
+        <div id="resizer" class="resizer" data-item-type="BAR"></div>
+        <div id="main" data-item-type="SECTION" role="main">
+<div class="main-content" data-page-type="classlike" id="content" pageids="rtmp::com.pedro.rtmp.flv.video.config/Vp9ColorSpace///PointingToDeclaration//-2061415437">
+  <div class="breadcrumbs"><a href="../../index.html">rtmp</a><span class="delimiter">/</span><a href="../index.html">com.pedro.rtmp.flv.video.config</a><span class="delimiter">/</span><span class="current">Vp9ColorSpace</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Vp9Color</span><wbr><span><span>Space</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">enum </span><a href="index.html">Vp9ColorSpace</a> : <a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="index.html">Vp9ColorSpace</a><span class="token operator">&gt; </span></div><p class="paragraph">VP9 color spaces defined in VP9 Bitstream &amp; Decoding Process Specification, section 6.2.2.</p><p class="paragraph">The bitstream only signals this 3 bits value but VPCodecConfigurationRecord requires the three ISO/IEC 23001-8 codes, so each color space is mapped to its equivalent combination. UNKNOWN and RESERVED are mapped to 2 (unspecified).</p></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button><button class="section-tab" data-togglable="ENTRY">Entries</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="ENTRY">
+        <h2 class="tableheader">Entries</h2>
+        <div class="table"><a data-name="2026850832%2FClasslikes%2F-2061415437" anchor-label="UNKNOWN" id="2026850832%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-u-n-k-n-o-w-n/index.html">UNKNOWN</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2026850832%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-u-n-k-n-o-w-n/index.html">UNKNOWN</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1410873524%2FClasslikes%2F-2061415437" anchor-label="BT_601" id="-1410873524%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-b-t_601/index.html">BT_601</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1410873524%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-b-t_601/index.html">BT_601</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="672045397%2FClasslikes%2F-2061415437" anchor-label="BT_709" id="672045397%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-b-t_709/index.html">BT_709</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="672045397%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-b-t_709/index.html">BT_709</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-713310184%2FClasslikes%2F-2061415437" anchor-label="SMPTE_170" id="-713310184%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-s-m-p-t-e_170/index.html">SMPTE_170</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-713310184%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-s-m-p-t-e_170/index.html">SMPTE_170</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-310178692%2FClasslikes%2F-2061415437" anchor-label="SMPTE_240" id="-310178692%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-s-m-p-t-e_240/index.html">SMPTE_240</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-310178692%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-s-m-p-t-e_240/index.html">SMPTE_240</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-609794449%2FClasslikes%2F-2061415437" anchor-label="BT_2020" id="-609794449%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-b-t_2020/index.html">BT_2020</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-609794449%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-b-t_2020/index.html">BT_2020</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="104165162%2FClasslikes%2F-2061415437" anchor-label="RESERVED" id="104165162%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-r-e-s-e-r-v-e-d/index.html">RESERVED</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="104165162%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-r-e-s-e-r-v-e-d/index.html">RESERVED</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1255808083%2FClasslikes%2F-2061415437" anchor-label="RGB" id="1255808083%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-togglable="ENTRY" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-r-g-b/index.html">RGB</a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1255808083%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><div class="block"><a href="-r-g-b/index.html">RGB</a></div></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="tableheader">Types</h2>
+        <div class="table"><a data-name="559861299%2FClasslikes%2F-2061415437" anchor-label="Companion" id="559861299%2FClasslikes%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="559861299%2FClasslikes%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="tableheader">Properties</h2>
+        <div class="table"><a data-name="-1987599752%2FProperties%2F-2061415437" anchor-label="colourPrimaries" id="-1987599752%2FProperties%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="colour-primaries.html"><span>colour</span><wbr><span><span>Primaries</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1987599752%2FProperties%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="colour-primaries.html">colourPrimaries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2129476124%2FProperties%2F-2061415437" anchor-label="entries" id="2129476124%2FProperties%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="entries.html"><span><span>entries</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2129476124%2FProperties%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="entries.html">entries</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin.enums/-enum-entries/index.html">EnumEntries</a><span class="token operator">&lt;</span><a href="index.html">Vp9ColorSpace</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns a representation of an immutable list of all enum entries, in the order they're declared.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1088738319%2FProperties%2F-2061415437" anchor-label="matrixCoefficients" id="1088738319%2FProperties%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="matrix-coefficients.html"><span>matrix</span><wbr><span><span>Coefficients</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1088738319%2FProperties%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="matrix-coefficients.html">matrixCoefficients</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-372974862%2FProperties%2F-2061415437" anchor-label="name" id="-372974862%2FProperties%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.rtmp.rtmp.message.shared/-shared-object-event-type/-u-n-k-n-o-w-n/index.html#-372974862%2FProperties%2F-2061415437"><span><span>name</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-372974862%2FProperties%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../com.pedro.rtmp.rtmp.message.shared/-shared-object-event-type/-u-n-k-n-o-w-n/index.html#-372974862%2FProperties%2F-2061415437">name</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-739389684%2FProperties%2F-2061415437" anchor-label="ordinal" id="-739389684%2FProperties%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="../../com.pedro.rtmp.rtmp.message.shared/-shared-object-event-type/-u-n-k-n-o-w-n/index.html#-739389684%2FProperties%2F-2061415437"><span><span>ordinal</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-739389684%2FProperties%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="../../com.pedro.rtmp.rtmp.message.shared/-shared-object-event-type/-u-n-k-n-o-w-n/index.html#-739389684%2FProperties%2F-2061415437">ordinal</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1517956123%2FProperties%2F-2061415437" anchor-label="value" id="1517956123%2FProperties%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="value.html"><span><span>value</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1517956123%2FProperties%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">val </span><a href="value.html">value</a><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="tableheader">Functions</h2>
+        <div class="table"><a data-name="2099630229%2FFunctions%2F-2061415437" anchor-label="getTransferCharacteristics" id="2099630229%2FFunctions%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="get-transfer-characteristics.html"><span>get</span><wbr><span>Transfer</span><wbr><span><span>Characteristics</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2099630229%2FFunctions%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="get-transfer-characteristics.html"><span class="token function">getTransferCharacteristics</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">bitDepth<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-605097728%2FFunctions%2F-2061415437" anchor-label="valueOf" id="-605097728%2FFunctions%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="value-of.html"><span>value</span><wbr><span><span>Of</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-605097728%2FFunctions%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="value-of.html"><span class="token function">valueOf</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">value<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-string/index.html">String</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">Vp9ColorSpace</a></div><div class="brief "><p class="paragraph">Returns the enum constant of this type with the specified name. The string must match exactly an identifier used to declare an enum constant in this type. (Extraneous whitespace characters are not permitted.)</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1378254348%2FFunctions%2F-2061415437" anchor-label="values" id="1378254348%2FFunctions%2F-2061415437" data-filterable-set=":rtmp/release"></a>
+          <div class="table-row table-row_content" data-filterable-current=":rtmp/release" data-filterable-set=":rtmp/release">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="values.html"><span><span>values</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1378254348%2FFunctions%2F-2061415437"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtmp/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="values.html"><span class="token function">values</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-array/index.html">Array</a><span class="token operator">&lt;</span><a href="index.html">Vp9ColorSpace</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Returns an array containing the constants of this enum type, in the order they're declared.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    <div class="footer">
+        <div class="footer--container">
+            <a href="#content" id="go-to-top-link" class="footer--button footer--button_go-to-top"></a>
+            <div class="footer--content">
+                <div>
+                    <span>Generated by </span>
+                    <a class="footer--link footer--link_external" href="https://github.com/Kotlin/dokka">
+                        Dokka
+                    </a>
+                    <div>© 2026 Copyright</div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -38,7 +38,7 @@
             </a>        <button class="navigation-controls--btn navigation-controls--btn_toc ui-kit_mobile-only" id="toc-toggle" type="button">Toggle table of contents
         </button>
         <div class="navigation-controls--break ui-kit_mobile-only"></div>
-        <div class="library-version" id="library-version">2.8.0
+        <div class="library-version" id="library-version">2.8.1
         </div>
         <div class="navigation-controls">
         <ul class="filter-section filter-section_loading" id="filter-section" aria-label="Target filter">
@@ -93,7 +93,7 @@
   <div class="breadcrumbs"><a href="../../index.html">rtsp</a><span class="delimiter">/</span><a href="../index.html">com.pedro.rtsp.rtp.packets</a><span class="delimiter">/</span><span class="current">G711Packet</span></div>
   <div class="cover ">
     <h1 class="cover"><span><span>G711Packet</span></span></h1>
-    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtsp/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">G711Packet</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">track<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span> : <a href="../-base-packet/index.html">BasePacket</a></div><p class="paragraph">RFC 7655. Valid for G711A and G711U</p></div></div>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtsp/release"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">G711Packet</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">track<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span> : <a href="../-base-packet/index.html">BasePacket</a></div><p class="paragraph">RFC 3551, section 4.5.14. The packetization is the same for G711A (PCMA) and G711U (PCMU) but the payload type is not, so this only handle G711A because the payload type 8 is statically mapped to PCMA. G711U would need the payload type 0 instead.</p></div></div>
   </div>
   <div class="tabbedcontent">
     <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
@@ -145,21 +145,6 @@
               <div>
                 <div class="title">
                   <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtsp/release"><div class="symbol monospace"><span class="token keyword">open </span><span class="token keyword">fun </span><a href="../-base-packet/reset.html"><span class="token function">reset</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-<a data-name="1538400070%2FFunctions%2F-790475271" anchor-label="setAudioInfo" id="1538400070%2FFunctions%2F-790475271" data-filterable-set=":rtsp/release"></a>
-          <div class="table-row table-row_content" data-filterable-current=":rtsp/release" data-filterable-set=":rtsp/release">
-            <div class="main-subrow keyValue ">
-              <div class=""><span class="inline-flex">
-                  <div><a href="set-audio-info.html"><span>set</span><wbr><span>Audio</span><wbr><span><span>Info</span></span></a></div>
-<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1538400070%2FFunctions%2F-790475271"></span>
-                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
-                  </span></span></div>
-              <div>
-                <div class="title">
-                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable=":rtsp/release"><div class="symbol monospace"><span class="token keyword">fun </span><a href="set-audio-info.html"><span class="token function">setAudioInfo</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">sampleRate<span class="token operator">: </span><a href="https://kotlinlang.org/api/core/kotlin-stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span></div></div></div>
                 </div>
               </div>
             </div>
