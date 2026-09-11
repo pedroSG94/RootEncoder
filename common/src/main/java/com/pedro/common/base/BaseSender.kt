@@ -18,8 +18,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
+import kotlinx.coroutines.withTimeoutOrNull
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.milliseconds
 
 abstract class BaseSender(
     protected val connectChecker: ConnectChecker,
@@ -119,7 +121,7 @@ abstract class BaseSender(
         }
     }
 
-    suspend fun stop(clear: Boolean = true) {
+    suspend fun stop(clear: Boolean = true, unlockNeeded: suspend () -> Unit = {}) {
         running = false
         stopImp(clear)
         resetSentAudioFrames()
@@ -127,7 +129,11 @@ abstract class BaseSender(
         resetDroppedAudioFrames()
         resetDroppedVideoFrames()
         resetBytesSend()
-        job?.cancelAndJoin()
+        val stopped = withTimeoutOrNull(1000.milliseconds) { job?.cancelAndJoin() } != null
+        if (!stopped) {
+            unlockNeeded()
+            withTimeoutOrNull(1000.milliseconds) { job?.cancelAndJoin() }
+        }
         job = null
         queue.clear { bufferPool.release(it.data) }
         bufferPool.clear()
