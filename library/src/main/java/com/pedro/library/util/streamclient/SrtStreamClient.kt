@@ -73,6 +73,14 @@ class SrtStreamClient(
     srtClient.setLogs(enabled)
   }
 
+  /**
+   * Report a connection failure if the server sends nothing for [millis] (0 = disabled).
+   * See [com.pedro.srt.srt.SrtClient.setServerSilenceTimeout].
+   */
+  fun setServerSilenceTimeout(millis: Long) {
+    srtClient.setServerSilenceTimeout(millis)
+  }
+
   override fun setCheckServerAlive(enabled: Boolean) {
     srtClient.setCheckServerAlive(enabled)
   }
