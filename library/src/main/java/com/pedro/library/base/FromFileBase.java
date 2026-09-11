@@ -483,7 +483,7 @@ public abstract class FromFileBase {
       streaming = false;
       stopStreamImp();
     }
-    if (!recordController.isRecording()) {
+    if (!recordController.isRunning()) {
       if (glInterface != null) {
         glInterface.removeMediaCodecSurface();
         glInterface.stop();

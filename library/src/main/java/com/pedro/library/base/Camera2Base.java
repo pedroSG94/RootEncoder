@@ -776,7 +776,7 @@ public abstract class Camera2Base {
             streaming = false;
             stopStreamImp();
         }
-        if (!recordController.isRecording()) {
+        if (!recordController.isRunning()) {
             onPreview = !isBackground;
             if (audioInitialized) microphoneManager.stop();
             glInterface.removeMediaCodecSurface();

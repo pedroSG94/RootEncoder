@@ -766,7 +766,7 @@ public abstract class Camera1Base {
       streaming = false;
       stopStreamImp();
     }
-    if (!recordController.isRecording()) {
+    if (!recordController.isRunning()) {
       if (audioInitialized) microphoneManager.stop();
       if (glInterface != null && Build.VERSION.SDK_INT >= 18) {
         glInterface.removeMediaCodecSurface();

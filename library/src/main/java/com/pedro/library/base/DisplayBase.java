@@ -430,7 +430,7 @@ public abstract class DisplayBase {
       streaming = false;
       stopStreamImp();
     }
-    if (!recordController.isRecording()) {
+    if (!recordController.isRunning()) {
       if (audioInitialized) microphoneManager.stop();
       if (mediaProjection != null) {
         mediaProjection.stop();

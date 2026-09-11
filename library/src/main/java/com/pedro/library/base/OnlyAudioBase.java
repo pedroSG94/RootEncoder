@@ -208,7 +208,7 @@ public abstract class OnlyAudioBase {
       streaming = false;
       stopStreamImp();
     }
-    if (!recordController.isRecording()) {
+    if (!recordController.isRunning()) {
       microphoneManager.stop();
       audioEncoder.stop();
       recordController.resetFormats();
