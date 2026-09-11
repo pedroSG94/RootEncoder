@@ -426,16 +426,16 @@ class RtspClient(private val connectChecker: ConnectChecker) {
   }
 
   private suspend fun disconnect(clear: Boolean) {
-    if (isStreaming) rtspSender.stop()
+    if (isStreaming) rtspSender.stop(unlockNeeded = { socket?.close() })
     val error = runCatching {
       withTimeoutOrNull(100.milliseconds) {
         socket?.write(commandsManager.createTeardown())
         socket?.flush()
+        Log.i(TAG, "write teardown success")
       }
-      socket?.close()
-      socket = null
-      Log.i(TAG, "write teardown success")
     }.exceptionOrNull()
+    socket?.close()
+    socket = null
     if (error != null) {
       Log.e(TAG, "disconnect error", error)
     }

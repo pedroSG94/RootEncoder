@@ -33,11 +33,11 @@ import com.pedro.common.validMessage
 import com.pedro.rtmp.rtmp.message.Abort
 import com.pedro.rtmp.rtmp.message.Acknowledgement
 import com.pedro.rtmp.rtmp.message.Aggregate
+import com.pedro.rtmp.rtmp.message.Command
 import com.pedro.rtmp.rtmp.message.MessageType
 import com.pedro.rtmp.rtmp.message.SetChunkSize
 import com.pedro.rtmp.rtmp.message.SetPeerBandwidth
 import com.pedro.rtmp.rtmp.message.WindowAcknowledgementSize
-import com.pedro.rtmp.rtmp.message.Command
 import com.pedro.rtmp.rtmp.message.control.Type
 import com.pedro.rtmp.rtmp.message.control.UserControl
 import com.pedro.rtmp.utils.AuthUtil
@@ -566,7 +566,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   }
 
   private suspend fun disconnect(clear: Boolean) {
-    if (isStreaming) rtmpSender.stop(clear)
+    if (isStreaming) rtmpSender.stop(clear, unlockNeeded = { socket?.close() })
     runCatching {
       withTimeoutOrNull(100.milliseconds) {
         socket?.let { commandsManager.sendClose(it) }
