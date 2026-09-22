@@ -167,11 +167,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
-    // Codec config (e.g. AAC AudioSpecificConfig) is signalled per protocol and via
-    // MediaFormat csd-0 for the muxer; do not forward it as an encoded audio frame.
-    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) {
-      return false;
-    }
+    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) return false;
     return checkValidTimeStamp(bufferInfo);
   }
 
