@@ -107,6 +107,11 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     private set
   var packetsLost = 0
     private set
+  /**
+   * Unique lost sequence numbers reported by NAK. Each sequence is counted once.
+   */
+  var packetsLostUnique = 0
+    private set
   var socketType = SocketType.JAVA
   var socketTimeout = StreamSocket.DEFAULT_TIMEOUT
 
@@ -130,6 +135,14 @@ class SrtClient(private val connectChecker: ConnectChecker) {
 
   fun setLatency(latency: Int) {
     commandsManager.latency = latency
+  }
+
+  /**
+   * Max retransmit bandwidth as a percentage of the estimated media rate (libsrt SRTO_OHEADBW).
+   * Default 25. Values <= 0 disable the limit.
+   */
+  fun setRetransmitOverhead(percent: Int) {
+    commandsManager.retransmitOverheadPercent = percent
   }
 
   fun setDelay(millis: Long) {
@@ -326,6 +339,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
     commandsManager.reset()
     rtt = 0
     packetsLost = 0
+    packetsLostUnique = 0
     job?.cancelAndJoin()
     job = null
     scope.cancel()
@@ -405,6 +419,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
             commandsManager.updateHandlingQueue(lastPacketSequence)
             if (ackSequence != 0) {
               rtt = srtPacket.rtt
+              commandsManager.updateRtt(srtPacket.rtt, srtPacket.rttVariance)
               commandsManager.writeAck2(ackSequence, socket)
             }
           }
@@ -412,7 +427,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
             //packet lost reported, we should resend it
             val lostRanges = srtPacket.getNakRanges()
             this.packetsLost += srtPacket.getLostCount()
-            commandsManager.reSendPackets(lostRanges, socket)
+            packetsLostUnique += commandsManager.reSendPackets(lostRanges, socket)
           }
           is Shutdown -> {
             onMainThread {
