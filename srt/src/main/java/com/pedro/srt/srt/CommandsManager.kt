@@ -36,8 +36,6 @@ import com.pedro.srt.utils.SrtSocket
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 
 /**
@@ -46,8 +44,6 @@ import kotlin.random.Random
 class CommandsManager {
 
   private val TAG = "CommandsManager"
-  //used for packet lost
-  private val packetHandlingQueue = mutableListOf<DataPacket>()
 
   var sequenceNumber: Int = generateInitialSequence()
   var messageNumber = 1
@@ -60,30 +56,12 @@ class CommandsManager {
   var videoDisabled = false
   var host = ""
   var latency = 120 //in millis
-  /**
-   * Max retransmit bandwidth as a percentage of the estimated media rate.
-   * Values <= 0 disable the limit (legacy behavior).
-   */
-  var retransmitOverheadPercent: Int = 25
   //Avoid write a packet in middle of other.
   private val writeSync = Mutex(locked = false)
   private var encryptor: EncryptionUtil? = null
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
-
-  @Volatile
-  private var rtt = 0
-  @Volatile
-  private var rttVariance = 0
-  private var mediaBytesPerSecond = 0.0
-  private var mediaWindowStartUs = 0L
-  private var mediaWindowBytes = 0L
-  private var retransmitTokens = 0.0
-  private var lastTokenRefillUs = 0L
-  private var bucketInitialized = false
-  //used for unique packet lost
-  private var lastNakSequence = 0
-  private var lastNakInitialized = false
+  private val packetRetransmission = PacketRetransmission()
 
   fun setPassphrase(passphrase: String, type: EncryptionType) {
     encryptor = if (passphrase.isEmpty() || type == EncryptionType.NONE) null else EncryptionUtil(type, passphrase)
@@ -109,9 +87,7 @@ class CommandsManager {
   }
 
   fun updateRtt(rtt: Int, rttVariance: Int) {
-    val maxUs = latency * 1000
-    this.rtt = rtt.coerceIn(0, maxUs)
-    this.rttVariance = rttVariance.coerceIn(0, maxUs)
+    packetRetransmission.updateRtt(rtt, rttVariance, latency)
   }
 
   @Throws(IOException::class)
@@ -152,10 +128,10 @@ class CommandsManager {
         socketId = socketId
       )
       sequenceNumber++
-      packetHandlingQueue.add(dataPacket)
-      dropTooLatePackets(dataPacket.ts)
+      packetRetransmission.addPacket(dataPacket)
+      packetRetransmission.dropTooLatePackets(dataPacket.ts, latency)
       dataPacket.write()
-      trackMediaBytes(dataPacket.getSize(), TimeUtils.getCurrentTimeMicro())
+      packetRetransmission.trackMediaBytes(dataPacket.getSize(), TimeUtils.getCurrentTimeMicro())
       socket?.write(dataPacket)
       return dataPacket.getSize()
     }
@@ -164,125 +140,14 @@ class CommandsManager {
   @Throws(IOException::class)
   suspend fun reSendPackets(lostRanges: List<Pair<Int, Int>>, socket: SrtSocket?): Int {
     writeSync.withLock {
-      val budgetEnabled = retransmitOverheadPercent > 0
-      val nowTs = getTs()
-      val nowUs = TimeUtils.getCurrentTimeMicro()
-      if (budgetEnabled) refillRetransmitTokens(nowUs)
-
-      val latencyUs = latency * 1000
-      val minResendInterval = min(max(rtt + 4 * rttVariance, MIN_RESEND_INTERVAL_US), latencyUs / 4)
-      val newlyReported = countNewLostPackets(lostRanges)
-      var budgetExhausted = false
-      for (packet in packetHandlingQueue) {
-        if (!isInLostRange(packet.sequenceNumber, lostRanges)) continue
-        if ((nowTs - packet.ts + rtt / 2) >= latencyUs) continue
-        if (packet.retransmitted && (nowTs - packet.lastSentTs) < minResendInterval) continue
-        if (budgetEnabled) {
-          if (budgetExhausted) continue
-          val packetSize = packet.getSize()
-          if (retransmitTokens < packetSize) {
-            budgetExhausted = true
-            continue
-          }
-          retransmitTokens -= packetSize
-        }
-        packet.retransmitted = true
-        packet.write()
-        socket?.write(packet)
-        packet.lastSentTs = nowTs
-      }
-      return newlyReported
+      return packetRetransmission.reSendPackets(lostRanges, socket, getTs(), latency, MTU)
     }
   }
 
   suspend fun updateHandlingQueue(lastPacketSequence: Int) {
     writeSync.withLock {
-      packetHandlingQueue.removeAll {
-        //discard confirmed packets
-        val diff = (lastPacketSequence - it.sequenceNumber) and 0x7FFFFFFF
-        diff in 1 until 0x40000000
-      }
+      packetRetransmission.updateHandlingQueue(lastPacketSequence)
     }
-  }
-
-  //a nak reports the same missing packets again until received, only sequences after the last
-  //reported one are a new lost. Counted from the ranges so packets already dropped are counted too
-  private fun countNewLostPackets(lostRanges: List<Pair<Int, Int>>): Int {
-    var count = 0
-    lostRanges.forEach { (from, to) ->
-      val size = ((to - from) and 0x7FFFFFFF) + 1
-      if (!lastNakInitialized) {
-        lastNakInitialized = true
-        lastNakSequence = to
-        count += size
-      } else {
-        val ahead = (to - lastNakSequence) and 0x7FFFFFFF
-        if (ahead in 1 until 0x40000000) {
-          count += min(ahead, size)
-          lastNakSequence = to
-        }
-      }
-    }
-    return count
-  }
-
-  private fun isInLostRange(sequenceNumber: Int, lostRanges: List<Pair<Int, Int>>): Boolean {
-    return lostRanges.any { (min, max) ->
-      ((sequenceNumber - min) and 0x7FFFFFFF) <= ((max - min) and 0x7FFFFFFF)
-    }
-  }
-
-  private fun trackMediaBytes(bytes: Int, nowUs: Long) {
-    if (mediaWindowStartUs == 0L) mediaWindowStartUs = nowUs
-    mediaWindowBytes += bytes
-    val elapsed = nowUs - mediaWindowStartUs
-    val window = if (mediaBytesPerSecond > 0.0) MEDIA_RATE_WINDOW_US else MEDIA_RATE_WARMUP_WINDOW_US
-    if (elapsed >= window) {
-      val rate = mediaWindowBytes.toDouble() * MEDIA_RATE_WINDOW_US / elapsed
-      //follow an increase at once to not limit below the real media rate, average a decrease
-      mediaBytesPerSecond = if (rate > mediaBytesPerSecond) rate else {
-        mediaBytesPerSecond * MEDIA_RATE_EWMA_OLD + rate * MEDIA_RATE_EWMA_NEW
-      }
-      mediaWindowStartUs = nowUs
-      mediaWindowBytes = 0
-    }
-  }
-
-  private fun getRetransmitRate(): Double {
-    val percent = retransmitOverheadPercent
-    val mediaRate = if (mediaBytesPerSecond > 0.0) mediaBytesPerSecond else MIN_RETRANSMIT_BYTES_PER_SECOND.toDouble()
-    return max(mediaRate * percent / 100.0, MIN_RETRANSMIT_BYTES_PER_SECOND.toDouble())
-  }
-
-  private fun getRetransmitCapacity(rate: Double): Int {
-    val burstCapacity = if (mediaBytesPerSecond > 0.0) {
-      (mediaBytesPerSecond * RETRANSMIT_BURST_WINDOW_US / MEDIA_RATE_WINDOW_US).toInt()
-    } else {
-      0
-    }
-    return max(burstCapacity, max((rate * latency / 1000.0).toInt(), MTU))
-  }
-
-  private fun refillRetransmitTokens(nowUs: Long) {
-    if (!bucketInitialized) {
-      val rate = getRetransmitRate()
-      retransmitTokens = getRetransmitCapacity(rate).toDouble()
-      lastTokenRefillUs = nowUs
-      bucketInitialized = true
-      return
-    }
-    val elapsedUs = nowUs - lastTokenRefillUs
-    if (elapsedUs <= 0) return
-    val rate = getRetransmitRate()
-    val capacity = getRetransmitCapacity(rate)
-    retransmitTokens = min(retransmitTokens + rate * elapsedUs / MEDIA_RATE_WINDOW_US, capacity.toDouble())
-    lastTokenRefillUs = nowUs
-  }
-
-  private fun dropTooLatePackets(nowTs: Int) {
-    val thresholdUs = latency * 1000
-    val firstKept = packetHandlingQueue.indexOfFirst { (nowTs - it.ts) <= thresholdUs }
-    if (firstKept > 0) packetHandlingQueue.subList(0, firstKept).clear()
   }
 
   @Throws(IOException::class)
@@ -319,17 +184,7 @@ class CommandsManager {
     socketId = 0
     startTS = 0L
     host = ""
-    packetHandlingQueue.clear()
-    rtt = 0
-    rttVariance = 0
-    mediaBytesPerSecond = 0.0
-    mediaWindowStartUs = 0L
-    mediaWindowBytes = 0L
-    retransmitTokens = 0.0
-    lastTokenRefillUs = 0L
-    bucketInitialized = false
-    lastNakSequence = 0
-    lastNakInitialized = false
+    packetRetransmission.reset()
   }
 
   private fun generateInitialSequence(): Int {
@@ -338,15 +193,5 @@ class CommandsManager {
 
   private fun generateSocketId(): Int {
     return Random.nextInt(1, Int.MAX_VALUE)
-  }
-
-  companion object {
-    private const val MIN_RETRANSMIT_BYTES_PER_SECOND = 8_000
-    private const val MIN_RESEND_INTERVAL_US = 20_000
-    private const val MEDIA_RATE_WINDOW_US = 1_000_000L
-    private const val MEDIA_RATE_WARMUP_WINDOW_US = 200_000L
-    private const val RETRANSMIT_BURST_WINDOW_US = 500_000L
-    private const val MEDIA_RATE_EWMA_OLD = 0.8
-    private const val MEDIA_RATE_EWMA_NEW = 0.2
   }
 }
