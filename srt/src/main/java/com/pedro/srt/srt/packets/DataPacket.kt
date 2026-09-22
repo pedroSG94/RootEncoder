@@ -42,7 +42,6 @@ class DataPacket(
 ): SrtPacket() {
 
   var lastSentTs: Int = 0
-  var nakReported: Boolean = false
 
   fun write() {
     resetBuffer()

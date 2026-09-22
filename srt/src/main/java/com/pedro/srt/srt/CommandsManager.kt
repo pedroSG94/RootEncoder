@@ -43,7 +43,7 @@ import kotlin.random.Random
 /**
  * Created by pedro on 23/8/23.
  */
-class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurrentTimeMicro() }) {
+class CommandsManager {
 
   private val TAG = "CommandsManager"
   //used for packet lost
@@ -71,7 +71,9 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
 
+  @Volatile
   private var rtt = 0
+  @Volatile
   private var rttVariance = 0
   private var mediaBytesPerSecond = 0.0
   private var mediaWindowStartUs = 0L
@@ -79,6 +81,9 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
   private var retransmitTokens = 0.0
   private var lastTokenRefillUs = 0L
   private var bucketInitialized = false
+  //used for unique packet lost
+  private var lastNakSequence = 0
+  private var lastNakInitialized = false
 
   fun setPassphrase(passphrase: String, type: EncryptionType) {
     encryptor = if (passphrase.isEmpty() || type == EncryptionType.NONE) null else EncryptionUtil(type, passphrase)
@@ -95,19 +100,18 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
   fun encryptionEnabled() = encryptor != null
 
   fun loadStartTs() {
-    startTS = timeProvider()
+    startTS = TimeUtils.getCurrentTimeMicro()
     localSocketId = generateSocketId()
   }
 
   fun getTs(): Int {
-    return (timeProvider() - startTS).toInt()
+    return (TimeUtils.getCurrentTimeMicro() - startTS).toInt()
   }
 
-  suspend fun updateRtt(rtt: Int, rttVariance: Int) {
-    writeSync.withLock {
-      this.rtt = rtt
-      this.rttVariance = rttVariance
-    }
+  fun updateRtt(rtt: Int, rttVariance: Int) {
+    val maxUs = latency * 1000
+    this.rtt = rtt.coerceIn(0, maxUs)
+    this.rttVariance = rttVariance.coerceIn(0, maxUs)
   }
 
   @Throws(IOException::class)
@@ -150,8 +154,8 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
       sequenceNumber++
       packetHandlingQueue.add(dataPacket)
       dropTooLatePackets(dataPacket.ts)
-      trackMediaBytes(packet.buffer.size, timeProvider())
       dataPacket.write()
+      trackMediaBytes(dataPacket.getSize(), TimeUtils.getCurrentTimeMicro())
       socket?.write(dataPacket)
       return dataPacket.getSize()
     }
@@ -160,31 +164,22 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
   @Throws(IOException::class)
   suspend fun reSendPackets(lostRanges: List<Pair<Int, Int>>, socket: SrtSocket?): Int {
     writeSync.withLock {
-      val unlimited = retransmitOverheadPercent <= 0
+      val budgetEnabled = retransmitOverheadPercent > 0
       val nowTs = getTs()
-      val nowUs = timeProvider()
-      if (!unlimited) {
-        refillRetransmitTokens(nowUs)
-      }
+      val nowUs = TimeUtils.getCurrentTimeMicro()
+      if (budgetEnabled) refillRetransmitTokens(nowUs)
+
       val latencyUs = latency * 1000
-      val minResendInterval = if (unlimited) 0 else {
-        min(max(rtt + 4 * rttVariance, MIN_RESEND_INTERVAL_US), latencyUs / 4)
-      }
-      var newlyReported = 0
+      val minResendInterval = min(max(rtt + 4 * rttVariance, MIN_RESEND_INTERVAL_US), latencyUs / 4)
+      val newlyReported = countNewLostPackets(lostRanges)
       var budgetExhausted = false
       for (packet in packetHandlingQueue) {
         if (!isInLostRange(packet.sequenceNumber, lostRanges)) continue
-        if (!packet.nakReported) {
-          packet.nakReported = true
-          newlyReported++
-        }
-        if (!unlimited) {
-          if ((nowTs - packet.ts + rtt / 2) >= latencyUs) continue
-          // The gate only suppresses repeated reports of a packet that was already retransmitted;
-          // the first NAK is always honored even when it arrives within minResendInterval of the original send.
-          if (packet.retransmitted && (nowTs - packet.lastSentTs) < minResendInterval) continue
+        if ((nowTs - packet.ts + rtt / 2) >= latencyUs) continue
+        if (packet.retransmitted && (nowTs - packet.lastSentTs) < minResendInterval) continue
+        if (budgetEnabled) {
           if (budgetExhausted) continue
-          val packetSize = dataPacketWireSize(packet)
+          val packetSize = packet.getSize()
           if (retransmitTokens < packetSize) {
             budgetExhausted = true
             continue
@@ -210,6 +205,27 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
     }
   }
 
+  //a nak reports the same missing packets again until received, only sequences after the last
+  //reported one are a new lost. Counted from the ranges so packets already dropped are counted too
+  private fun countNewLostPackets(lostRanges: List<Pair<Int, Int>>): Int {
+    var count = 0
+    lostRanges.forEach { (from, to) ->
+      val size = ((to - from) and 0x7FFFFFFF) + 1
+      if (!lastNakInitialized) {
+        lastNakInitialized = true
+        lastNakSequence = to
+        count += size
+      } else {
+        val ahead = (to - lastNakSequence) and 0x7FFFFFFF
+        if (ahead in 1 until 0x40000000) {
+          count += min(ahead, size)
+          lastNakSequence = to
+        }
+      }
+    }
+    return count
+  }
+
   private fun isInLostRange(sequenceNumber: Int, lostRanges: List<Pair<Int, Int>>): Boolean {
     return lostRanges.any { (min, max) ->
       ((sequenceNumber - min) and 0x7FFFFFFF) <= ((max - min) and 0x7FFFFFFF)
@@ -220,9 +236,11 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
     if (mediaWindowStartUs == 0L) mediaWindowStartUs = nowUs
     mediaWindowBytes += bytes
     val elapsed = nowUs - mediaWindowStartUs
-    if (elapsed >= MEDIA_RATE_WINDOW_US) {
+    val window = if (mediaBytesPerSecond > 0.0) MEDIA_RATE_WINDOW_US else MEDIA_RATE_WARMUP_WINDOW_US
+    if (elapsed >= window) {
       val rate = mediaWindowBytes.toDouble() * MEDIA_RATE_WINDOW_US / elapsed
-      mediaBytesPerSecond = if (mediaBytesPerSecond == 0.0) rate else {
+      //follow an increase at once to not limit below the real media rate, average a decrease
+      mediaBytesPerSecond = if (rate > mediaBytesPerSecond) rate else {
         mediaBytesPerSecond * MEDIA_RATE_EWMA_OLD + rate * MEDIA_RATE_EWMA_NEW
       }
       mediaWindowStartUs = nowUs
@@ -237,8 +255,6 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
   }
 
   private fun getRetransmitCapacity(rate: Double): Int {
-    // Allow an immediate burst up to half a second of media so short loss events
-    // (e.g. a brief link flap) are not retried one packet at a time on healthy links.
     val burstCapacity = if (mediaBytesPerSecond > 0.0) {
       (mediaBytesPerSecond * RETRANSMIT_BURST_WINDOW_US / MEDIA_RATE_WINDOW_US).toInt()
     } else {
@@ -261,10 +277,6 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
     val capacity = getRetransmitCapacity(rate)
     retransmitTokens = min(retransmitTokens + rate * elapsedUs / MEDIA_RATE_WINDOW_US, capacity.toDouble())
     lastTokenRefillUs = nowUs
-  }
-
-  private fun dataPacketWireSize(packet: DataPacket): Int {
-    return packet.payload.size + DATA_HEADER_SIZE
   }
 
   private fun dropTooLatePackets(nowTs: Int) {
@@ -316,6 +328,8 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
     retransmitTokens = 0.0
     lastTokenRefillUs = 0L
     bucketInitialized = false
+    lastNakSequence = 0
+    lastNakInitialized = false
   }
 
   private fun generateInitialSequence(): Int {
@@ -327,10 +341,10 @@ class CommandsManager(private val timeProvider: () -> Long = { TimeUtils.getCurr
   }
 
   companion object {
-    private const val DATA_HEADER_SIZE = 16
     private const val MIN_RETRANSMIT_BYTES_PER_SECOND = 8_000
     private const val MIN_RESEND_INTERVAL_US = 20_000
     private const val MEDIA_RATE_WINDOW_US = 1_000_000L
+    private const val MEDIA_RATE_WARMUP_WINDOW_US = 200_000L
     private const val RETRANSMIT_BURST_WINDOW_US = 500_000L
     private const val MEDIA_RATE_EWMA_OLD = 0.8
     private const val MEDIA_RATE_EWMA_NEW = 0.2
