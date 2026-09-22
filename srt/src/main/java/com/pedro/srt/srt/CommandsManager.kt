@@ -63,6 +63,10 @@ class CommandsManager {
   var audioCodec = AudioCodec.AAC
   private val packetRetransmission = PacketRetransmission()
 
+  fun setRetransmitOverhead(percent: Int) {
+    packetRetransmission.retransmitOverheadPercent = percent
+  }
+  
   fun setPassphrase(passphrase: String, type: EncryptionType) {
     encryptor = if (passphrase.isEmpty() || type == EncryptionType.NONE) null else EncryptionUtil(type, passphrase)
   }
