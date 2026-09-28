@@ -142,7 +142,7 @@ class SrtClient(private val connectChecker: ConnectChecker) {
    * Default 25. Values <= 0 disable the limit.
    */
   fun setRetransmitOverhead(percent: Int) {
-    commandsManager.retransmitOverheadPercent = percent
+    commandsManager.setRetransmitOverhead(percent)
   }
 
   fun setDelay(millis: Long) {

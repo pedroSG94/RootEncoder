@@ -119,14 +119,12 @@ class AacMuxerRecordController : AsyncBaseRecordController() {
 
   private suspend fun write(byteBuffer: ByteBuffer, info: MediaCodec.BufferInfo) {
     try {
-      if ((info.flags and MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != MediaCodec.BUFFER_FLAG_CODEC_CONFIG) {
-        val header = createAdtsHeader(2, info.size - info.offset, sampleRate, channels).array()
-        outputStream?.write(header)
-        val data = ByteArray(byteBuffer.remaining())
-        byteBuffer.get(data)
-        outputStream?.write(data)
-        bitrateManager?.calculateBitrate(info.size * 8L)
-      }
+      val header = createAdtsHeader(2, info.size - info.offset, sampleRate, channels).array()
+      outputStream?.write(header)
+      val data = ByteArray(byteBuffer.remaining())
+      byteBuffer.get(data)
+      outputStream?.write(data)
+      bitrateManager?.calculateBitrate(info.size * 8L)
     } catch (e: Exception) {
       listener?.onError(e)
     }
