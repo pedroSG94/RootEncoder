@@ -96,14 +96,21 @@ class MainRender {
   fun release() {
     running.set(false)
     cameraRender.release()
-    for (baseFilterRender in filterRenders) baseFilterRender.release()
+    for (baseFilterRender in filterRenders) releaseFilter(baseFilterRender)
     filterRenders.clear()
     screenRender.release()
+  }
+
+  private fun releaseFilter(baseFilterRender: BaseFilterRender) {
+    baseFilterRender.release()
+    baseFilterRender.releaseFBOLink()
   }
 
   private fun setFilter(position: Int, baseFilterRender: BaseFilterRender) {
     val id = filterRenders[position].previousTexId
     val renderHandler = filterRenders[position].renderHandler
+    //the fbo is reused by the new filter, so the old one must not release it
+    filterRenders[position].renderHandler = RenderHandler()
     filterRenders[position].release()
     filterRenders[position] = baseFilterRender
     filterRenders[position].previousTexId = id
@@ -125,18 +132,17 @@ class MainRender {
 
   private fun clearFilters() {
     for (baseFilterRender in filterRenders) {
-      baseFilterRender.release()
+      releaseFilter(baseFilterRender)
     }
     filterRenders.clear()
   }
 
   private fun removeFilter(position: Int) {
-    filterRenders.removeAt(position).release()
+    releaseFilter(filterRenders.removeAt(position))
   }
 
   private fun removeFilter(baseFilterRender: BaseFilterRender) {
-    baseFilterRender.release()
-    filterRenders.remove(baseFilterRender)
+    if (filterRenders.remove(baseFilterRender)) releaseFilter(baseFilterRender)
   }
 
   private fun reOrderFilters(filters: List<BaseFilterRender>) {

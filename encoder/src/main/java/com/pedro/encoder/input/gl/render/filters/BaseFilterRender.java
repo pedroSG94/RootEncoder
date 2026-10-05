@@ -63,6 +63,10 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
         renderHandler.getTexId());
   }
 
+  public void releaseFBOLink() {
+    releaseFBO(renderHandler.getFboId(), renderHandler.getRboId(), renderHandler.getTexId());
+  }
+
   protected abstract void initGlFilter(Context context);
 
   public void draw() {

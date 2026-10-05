@@ -86,4 +86,13 @@ public abstract class BaseRenderOffScreen {
     }
     GlUtil.checkGlError("initFBO_E");
   }
+
+  protected void releaseFBO(int[] fboId, int[] rboId, int[] texId) {
+    GLES20.glDeleteFramebuffers(1, fboId, 0);
+    GLES20.glDeleteRenderbuffers(1, rboId, 0);
+    GLES20.glDeleteTextures(1, texId, 0);
+    fboId[0] = 0;
+    rboId[0] = 0;
+    texId[0] = 0;
+  }
 }
