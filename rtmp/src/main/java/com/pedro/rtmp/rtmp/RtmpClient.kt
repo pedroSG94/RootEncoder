@@ -69,6 +69,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   private val validSchemes = arrayOf("rtmp", "rtmps", "rtmpt", "rtmpts")
 
+  @Volatile
   private var socket: RtmpSocket? = null
   private var scope = CoroutineScope(Dispatchers.IO)
   private var scopeRetry = CoroutineScope(Dispatchers.IO)
@@ -115,6 +116,19 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   var rtt = 0 //in micro
     private set
   private val pingTs = AtomicLong(0)
+
+  /**
+   * Smoothed TCP round-trip time reported by the kernel, in microseconds.
+   *
+   * Returns null when no eligible local socket exists, the platform is unsupported, or the query
+   * fails. This is currently available for direct RTMP/RTMPS connections using [SocketType.JAVA]
+   * on Android 10 or newer.
+   */
+  fun getTcpRtt(): Long? {
+    val currentSocket = socket as? TcpSocket ?: return null
+    val rtt = currentSocket.getTcpRtt()
+    return rtt.takeIf { socket === currentSocket }
+  }
 
   /**
    * Add certificates for TLS connection

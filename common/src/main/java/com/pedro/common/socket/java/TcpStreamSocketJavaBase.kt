@@ -1,5 +1,7 @@
 package com.pedro.common.socket.java
 
+import android.os.Build
+import android.os.ParcelFileDescriptor
 import com.pedro.common.readUntil
 import com.pedro.common.socket.base.TcpStreamSocket
 import java.io.ByteArrayInputStream
@@ -8,6 +10,7 @@ import java.net.Socket
 
 abstract class TcpStreamSocketJavaBase: TcpStreamSocket() {
 
+    private val socketLock = Any()
     private var socket = Socket()
     private var input = ByteArrayInputStream(byteArrayOf()).buffered()
     private var output = ByteArrayOutputStream().buffered()
@@ -15,17 +18,34 @@ abstract class TcpStreamSocketJavaBase: TcpStreamSocket() {
     abstract fun onConnectSocket(timeout: Long): Socket
 
     override suspend fun connect() {
-        socket = onConnectSocket(timeout)
-        output = socket.getOutputStream().buffered()
-        input = socket.getInputStream().buffered()
+        val connectedSocket = onConnectSocket(timeout)
+        synchronized(socketLock) {
+            socket = connectedSocket
+            output = socket.getOutputStream().buffered()
+            input = socket.getInputStream().buffered()
+        }
     }
 
     override suspend fun close() {
-        if (socket.isConnected) {
-            runCatching { socket.shutdownOutput() }
-            runCatching { socket.shutdownInput() }
-            runCatching { socket.close() }
+        synchronized(socketLock) {
+            if (socket.isConnected) {
+                runCatching { socket.shutdownOutput() }
+                runCatching { socket.shutdownInput() }
+                runCatching { socket.close() }
+            }
         }
+    }
+
+    override fun getTcpRtt(): Long? {
+        // Before API 29, closing the ParcelFileDescriptor can close the live stream socket.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
+        val descriptor = synchronized(socketLock) {
+            if (!socket.isConnected || socket.isClosed) return null
+            runCatching { ParcelFileDescriptor.fromSocket(socket) }.getOrNull()
+        } ?: return null
+        return runCatching {
+            descriptor.use { TcpInfo.getRttMicros(it.fd) }
+        }.getOrNull()
     }
 
     override suspend fun write(bytes: ByteArray) {

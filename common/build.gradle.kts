@@ -6,12 +6,22 @@ plugins {
 
 android {
     namespace = "com.pedro.common"
+    // The selected NDK supports API 21+, while common retains minSdk 16.
+    // This is safe because the JNI shim is loaded only on API 29+.
+    ndkVersion = "28.2.13676358"
+    experimentalProperties["android.ndk.suppressMinSdkVersionError"] = 21
     //noinspection GradleDependency
     compileSdk = 35
 
     defaultConfig {
         minSdk = 16
         lint.targetSdk = 37
+    }
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
     }
     testOptions {
         unitTests.isReturnDefaultValues = true

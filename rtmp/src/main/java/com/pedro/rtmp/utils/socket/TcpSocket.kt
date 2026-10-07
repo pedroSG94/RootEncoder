@@ -52,6 +52,8 @@ class TcpSocket(
 
   override fun isReachable(): Boolean = socket.isReachable()
 
+  fun getTcpRtt(): Long? = socket.getTcpRtt()
+
   override suspend fun write(b: Int) {
     socket.write(b)
   }

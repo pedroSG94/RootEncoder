@@ -89,6 +89,15 @@ class RtmpStreamClient(
   fun getRtt() = rtmpClient.rtt
 
   /**
+   * Smoothed TCP round-trip time reported by the kernel, in microseconds.
+   *
+   * Returns null when no eligible local socket exists, the platform is unsupported, or the query
+   * fails. This is currently available for direct RTMP/RTMPS connections using [SocketType.JAVA]
+   * on Android 10 or newer.
+   */
+  fun getTcpRtt(): Long? = rtmpClient.getTcpRtt()
+
+  /**
    * Send ping commands each second to server.
    * This allow get a RTT and keep alive the read channel in servers that close it due to inactivity.
    *

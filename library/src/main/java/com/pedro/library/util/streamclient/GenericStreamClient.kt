@@ -123,6 +123,13 @@ class GenericStreamClient(
     rtmpClient.setWriteChunkSize(chunkSize)
   }
 
+  /**
+   * Smoothed TCP round-trip time reported by the kernel, in microseconds.
+   *
+   * Returns null unless the active client is an eligible RTMP/RTMPS connection.
+   */
+  fun getTcpRtt(): Long? = (connectedStreamClient as? RtmpStreamClient)?.getTcpRtt()
+
   override fun setAuthorization(user: String?, password: String?) {
     rtmpClient.setAuthorization(user, password)
     rtspClient.setAuthorization(user, password)
