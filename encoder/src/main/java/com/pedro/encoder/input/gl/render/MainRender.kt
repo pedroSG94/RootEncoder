@@ -96,26 +96,16 @@ class MainRender {
   fun release() {
     running.set(false)
     cameraRender.release()
-    for (baseFilterRender in filterRenders) releaseFilter(baseFilterRender)
+    for (baseFilterRender in filterRenders) baseFilterRender.releaseFilter()
     filterRenders.clear()
     screenRender.release()
   }
 
-  private fun releaseFilter(baseFilterRender: BaseFilterRender) {
-    baseFilterRender.release()
-    baseFilterRender.releaseFBOLink()
-  }
-
   private fun setFilter(position: Int, baseFilterRender: BaseFilterRender) {
-    val id = filterRenders[position].previousTexId
-    val renderHandler = filterRenders[position].renderHandler
-    //the fbo is reused by the new filter, so the old one must not release it
-    filterRenders[position].renderHandler = RenderHandler()
-    filterRenders[position].release()
+    filterRenders[position].releaseFilter()
     filterRenders[position] = baseFilterRender
-    filterRenders[position].previousTexId = id
-    filterRenders[position].initGl(width, height, context, previewWidth, previewHeight)
-    filterRenders[position].renderHandler = renderHandler
+    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight)
+    baseFilterRender.initFBOLink()
   }
 
   private fun addFilter(baseFilterRender: BaseFilterRender) {
@@ -131,18 +121,16 @@ class MainRender {
   }
 
   private fun clearFilters() {
-    for (baseFilterRender in filterRenders) {
-      releaseFilter(baseFilterRender)
-    }
+    for (baseFilterRender in filterRenders) baseFilterRender.releaseFilter()
     filterRenders.clear()
   }
 
   private fun removeFilter(position: Int) {
-    releaseFilter(filterRenders.removeAt(position))
+    filterRenders.removeAt(position).releaseFilter()
   }
 
   private fun removeFilter(baseFilterRender: BaseFilterRender) {
-    if (filterRenders.remove(baseFilterRender)) releaseFilter(baseFilterRender)
+    if (filterRenders.remove(baseFilterRender)) baseFilterRender.releaseFilter()
   }
 
   private fun reOrderFilters(filters: List<BaseFilterRender>) {
@@ -156,7 +144,7 @@ class MainRender {
 
   fun setFilterAction(filterAction: FilterAction, position: Int, baseFilterRender: BaseFilterRender) {
     when (filterAction) {
-      FilterAction.SET -> if (filterRenders.size > 0) {
+      FilterAction.SET -> if (filterRenders.isNotEmpty()) {
         setFilter(position, baseFilterRender)
       } else {
         addFilter(baseFilterRender)

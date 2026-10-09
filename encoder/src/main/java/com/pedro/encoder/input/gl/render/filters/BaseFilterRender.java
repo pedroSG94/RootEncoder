@@ -63,7 +63,8 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
         renderHandler.getTexId());
   }
 
-  public void releaseFBOLink() {
+  public void releaseFilter() {
+    release();
     releaseFBO(renderHandler.getFboId(), renderHandler.getRboId(), renderHandler.getTexId());
   }
 
