@@ -96,19 +96,16 @@ class MainRender {
   fun release() {
     running.set(false)
     cameraRender.release()
-    for (baseFilterRender in filterRenders) baseFilterRender.release()
+    for (baseFilterRender in filterRenders) baseFilterRender.releaseFilter()
     filterRenders.clear()
     screenRender.release()
   }
 
   private fun setFilter(position: Int, baseFilterRender: BaseFilterRender) {
-    val id = filterRenders[position].previousTexId
-    val renderHandler = filterRenders[position].renderHandler
-    filterRenders[position].release()
+    filterRenders[position].releaseFilter()
     filterRenders[position] = baseFilterRender
-    filterRenders[position].previousTexId = id
-    filterRenders[position].initGl(width, height, context, previewWidth, previewHeight)
-    filterRenders[position].renderHandler = renderHandler
+    baseFilterRender.initGl(width, height, context, previewWidth, previewHeight)
+    baseFilterRender.initFBOLink()
   }
 
   private fun addFilter(baseFilterRender: BaseFilterRender) {
@@ -124,19 +121,16 @@ class MainRender {
   }
 
   private fun clearFilters() {
-    for (baseFilterRender in filterRenders) {
-      baseFilterRender.release()
-    }
+    for (baseFilterRender in filterRenders) baseFilterRender.releaseFilter()
     filterRenders.clear()
   }
 
   private fun removeFilter(position: Int) {
-    filterRenders.removeAt(position).release()
+    filterRenders.removeAt(position).releaseFilter()
   }
 
   private fun removeFilter(baseFilterRender: BaseFilterRender) {
-    baseFilterRender.release()
-    filterRenders.remove(baseFilterRender)
+    if (filterRenders.remove(baseFilterRender)) baseFilterRender.releaseFilter()
   }
 
   private fun reOrderFilters(filters: List<BaseFilterRender>) {
@@ -150,7 +144,7 @@ class MainRender {
 
   fun setFilterAction(filterAction: FilterAction, position: Int, baseFilterRender: BaseFilterRender) {
     when (filterAction) {
-      FilterAction.SET -> if (filterRenders.size > 0) {
+      FilterAction.SET -> if (filterRenders.isNotEmpty()) {
         setFilter(position, baseFilterRender)
       } else {
         addFilter(baseFilterRender)
