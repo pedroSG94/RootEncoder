@@ -20,6 +20,7 @@ import android.content.Context;
 import android.opengl.GLES20;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import com.pedro.encoder.input.gl.render.BaseRenderOffScreen;
@@ -43,7 +44,8 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
   private RenderHandler renderHandler = new RenderHandler();
   private RenderMode renderMode = RenderMode.ALL;
 
-  public void initGl(int width, int height, Context context, int previewWidth, int previewHeight) {
+  public void initGl(int width, int height, @NonNull Context context,
+      int previewWidth, int previewHeight) {
     this.width = width;
     this.height = height;
     this.previewWidth = previewWidth;
@@ -63,12 +65,12 @@ public abstract class BaseFilterRender extends BaseRenderOffScreen {
         renderHandler.getTexId());
   }
 
+  protected abstract void initGlFilter(@NonNull Context context);
+
   public void releaseFilter() {
     release();
     releaseFBO(renderHandler.getFboId(), renderHandler.getRboId(), renderHandler.getTexId());
   }
-
-  protected abstract void initGlFilter(Context context);
 
   public void draw() {
     GlUtil.checkGlError("drawFilter start");

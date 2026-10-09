@@ -25,6 +25,7 @@ import android.opengl.GLES11Ext;
 import android.opengl.GLES20;
 import android.os.Build;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.io.ByteArrayOutputStream;
@@ -97,7 +98,7 @@ public class GlUtil {
     createTextures(quantity, texturesId, offset, GLES20.GL_LINEAR, true);
   }
 
-  public static String getStringFromRaw(Context context, int id) {
+  public static String getStringFromRaw(@NonNull Context context, int id) {
     String str;
     try {
       Resources r = context.getResources();

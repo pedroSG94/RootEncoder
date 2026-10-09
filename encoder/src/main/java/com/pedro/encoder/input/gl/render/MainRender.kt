@@ -38,7 +38,7 @@ class MainRender {
   private var height = 0
   private var previewWidth = 0
   private var previewHeight = 0
-  private var context: Context? = null
+  private lateinit var context: Context
   private var filterRenders = mutableListOf<BaseFilterRender>()
   private val running = AtomicBoolean(false)
 

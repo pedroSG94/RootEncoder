@@ -49,6 +49,7 @@ class HandshakeTest {
     val handshake = Handshake(
       extensionField = ExtensionField.HS_REQ.value or ExtensionField.CONFIG.value,
       handshakeType = HandshakeType.CONCLUSION,
+      srtSocketId = 762640158,
       handshakeExtension = HandshakeExtension(
         flags = ExtensionContentFlag.TSBPDSND.value or ExtensionContentFlag.TSBPDRCV.value or
             ExtensionContentFlag.CRYPT.value or ExtensionContentFlag.TLPKTDROP.value or
@@ -80,8 +81,8 @@ class HandshakeTest {
   @Test
   fun `GIVEN a buffer WHEN read buffer as handshake packet THEN get expected handshake packet`() {
     val buffer = byteArrayOf(-128, 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, -60, 0, 0, 0, 64, 0, 0, 0, 4, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 5, -36, 0, 0, 32, 0, 0, 0, 0, 1, 45, 116, -9, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
-    val expectedPacket = Handshake()
-    val packet = Handshake()
+    val expectedPacket = Handshake(srtSocketId = 762640158)
+    val packet = Handshake(srtSocketId = 762640158)
     packet.read(ByteArrayInputStream(buffer))
 
     Utils.assertObjectEquals(expectedPacket, packet)
