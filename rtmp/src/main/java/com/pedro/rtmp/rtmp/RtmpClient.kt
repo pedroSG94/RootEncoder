@@ -55,6 +55,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.io.IOException
 import java.net.URISyntaxException
+import java.net.Socket
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicLong
 import javax.net.ssl.TrustManager
@@ -149,6 +150,13 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
   fun shouldSendPings(enabled: Boolean) {
     shouldSendPings = enabled
   }
+
+  /**
+   * Returns the active direct RTMP Java socket for read-only diagnostics.
+   *
+   * The socket can become stale during reconnect. Returns null for tunneled or non-Java sockets.
+   */
+  fun getJavaSocket(): Socket? = (socket as? TcpSocket)?.getJavaSocket()
 
   /**
    * Must be called before connect

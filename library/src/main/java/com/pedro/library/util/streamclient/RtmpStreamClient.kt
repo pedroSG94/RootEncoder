@@ -18,6 +18,7 @@ package com.pedro.library.util.streamclient
 
 import com.pedro.common.socket.base.SocketType
 import com.pedro.rtmp.rtmp.RtmpClient
+import java.net.Socket
 import javax.net.ssl.TrustManager
 
 /**
@@ -87,6 +88,9 @@ class RtmpStreamClient(
    * shouldSendPings must be enabled to work properly.
    */
   fun getRtt() = rtmpClient.rtt
+
+  /** Returns the active direct RTMP Java socket for read-only diagnostics. */
+  fun getJavaSocket(): Socket? = rtmpClient.getJavaSocket()
 
   /**
    * Send ping commands each second to server.

@@ -19,6 +19,7 @@ package com.pedro.library.util.streamclient
 import com.pedro.common.socket.base.SocketType
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
+import java.net.Socket
 import javax.net.ssl.TrustManager
 
 /**
@@ -179,6 +180,17 @@ class GenericStreamClient(
   override fun getSentVideoFrames(): Long = connectedStreamClient?.getSentVideoFrames() ?: 0
 
   override fun getBytesSend(): Long = connectedStreamClient?.getBytesSend() ?: 0
+
+  /**
+   * Returns the active direct RTMP Java socket for read-only diagnostics.
+   *
+   * Returns null when another protocol or socket implementation is active.
+   */
+  fun getJavaSocket(): Socket? = if (connectedStreamClient === rtmpClient) {
+    rtmpClient.getJavaSocket()
+  } else {
+    null
+  }
 
   override fun getDroppedAudioFrames(): Long = connectedStreamClient?.getDroppedAudioFrames() ?: 0
 
