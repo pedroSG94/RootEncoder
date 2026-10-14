@@ -89,7 +89,13 @@ class RtmpStreamClient(
    */
   fun getRtt() = rtmpClient.rtt
 
-  /** Returns the active direct RTMP Java socket for read-only diagnostics. */
+  /**
+   * Returns the active direct RTMP Java socket for read-only diagnostics.
+   *
+   * For RTMPS connections, the returned object is an SSLSocket. Callers must not read from, write
+   * to, close, or reconfigure it because the stream owns all socket I/O. The socket can become
+   * stale during reconnect.
+   */
   fun getJavaSocket(): Socket? = rtmpClient.getJavaSocket()
 
   /**

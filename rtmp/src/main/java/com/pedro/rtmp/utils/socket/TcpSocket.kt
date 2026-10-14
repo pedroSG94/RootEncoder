@@ -54,7 +54,12 @@ class TcpSocket(
 
   override fun isReachable(): Boolean = socket.isReachable()
 
-  /** Returns the active Java socket for read-only diagnostics, or null for non-Java sockets. */
+  /**
+   * Returns the active Java socket for read-only diagnostics, or null for non-Java sockets.
+   *
+   * For TLS connections, the returned object is an SSLSocket. Callers must not read from, write
+   * to, close, or reconfigure it because this RTMP socket owns all socket I/O.
+   */
   fun getJavaSocket(): Socket? = (socket as? TcpStreamSocketJavaBase)?.getJavaSocket()
 
   override suspend fun write(b: Int) {

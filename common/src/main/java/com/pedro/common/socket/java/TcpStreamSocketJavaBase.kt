@@ -18,8 +18,9 @@ abstract class TcpStreamSocketJavaBase: TcpStreamSocket() {
     /**
      * Returns the current Java socket for read-only diagnostics.
      *
-     * The socket can be replaced or closed concurrently during a reconnect. Callers must not
-     * close it or change its configuration.
+     * For TLS connections, the returned object is an SSLSocket. The socket can be replaced or
+     * closed concurrently during a reconnect. Callers must not read from, write to, close, or
+     * reconfigure it because this stream owns all socket I/O.
      */
     fun getJavaSocket(): Socket? = socket.takeIf { it.isConnected && !it.isClosed }
 
