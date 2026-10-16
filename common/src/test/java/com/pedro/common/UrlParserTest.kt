@@ -9,6 +9,16 @@ import java.net.URISyntaxException
  */
 class UrlParserTest {
 
+  @Test(expected = URISyntaxException::class)
+  fun rejectUrlWithoutScheme() {
+    UrlParser.parse("//localhost/live/test", arrayOf("rtmp"))
+  }
+
+  @Test(expected = URISyntaxException::class)
+  fun rejectUrlWithoutSchemeWithExplicitPort() {
+    UrlParser.parse("//127.0.0.1:1935/live/test", arrayOf("rtmp"))
+  }
+
   @Test
   fun testRtmpUrls() {
     try {
