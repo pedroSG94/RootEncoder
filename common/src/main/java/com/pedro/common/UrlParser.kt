@@ -16,7 +16,7 @@ class UrlParser private constructor(
     @Throws(URISyntaxException::class)
     fun parse(endpoint: String, requiredProtocol: Array<String>): UrlParser {
       val uri = URI(endpoint.substringBefore("?"))
-      if (uri.scheme != null && !requiredProtocol.contains(uri.scheme.trim())) {
+      if (uri.scheme == null || !requiredProtocol.contains(uri.scheme.trim())) {
         throw URISyntaxException(endpoint, "Invalid protocol: ${uri.scheme}")
       }
       if (uri.userInfo != null && !uri.userInfo.contains(":")) {
