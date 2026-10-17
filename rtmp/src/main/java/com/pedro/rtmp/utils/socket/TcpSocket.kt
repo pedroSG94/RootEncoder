@@ -18,10 +18,12 @@ package com.pedro.rtmp.utils.socket
 
 import com.pedro.common.socket.base.SocketType
 import com.pedro.common.socket.base.StreamSocket
+import com.pedro.common.socket.java.TcpStreamSocketJavaBase
 import com.pedro.common.toUInt16
 import com.pedro.common.toUInt24
 import com.pedro.common.toUInt32
 import com.pedro.common.toUInt32LittleEndian
+import java.net.Socket
 import javax.net.ssl.TrustManager
 
 /**
@@ -51,6 +53,14 @@ class TcpSocket(
   override fun isConnected(): Boolean = socket.isConnected()
 
   override fun isReachable(): Boolean = socket.isReachable()
+
+  /**
+   * Returns the active Java socket for read-only diagnostics, or null for non-Java sockets.
+   *
+   * For TLS connections, the returned object is an SSLSocket. Callers must not read from, write
+   * to, close, or reconfigure it because this RTMP socket owns all socket I/O.
+   */
+  fun getJavaSocket(): Socket? = (socket as? TcpStreamSocketJavaBase)?.getJavaSocket()
 
   override suspend fun write(b: Int) {
     socket.write(b)
