@@ -71,7 +71,7 @@ class CommandsManagerImp: CommandsManager() {
     connect.writeHeader(socket)
     connect.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "connect")
-    Log.i(TAG, "send $connect")
+    if (isEnableLogs) Log.i(TAG, "send $connect")
   }
 
   override suspend fun createStreamImp(socket: RtmpSocket) {
@@ -83,7 +83,7 @@ class CommandsManagerImp: CommandsManager() {
     releaseStream.writeHeader(socket)
     releaseStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "releaseStream")
-    Log.i(TAG, "send $releaseStream")
+    if (isEnableLogs) Log.i(TAG, "send $releaseStream")
 
     val fcPublish = Command("FCPublish", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_STREAM.mark))
@@ -93,7 +93,7 @@ class CommandsManagerImp: CommandsManager() {
     fcPublish.writeHeader(socket)
     fcPublish.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "FCPublish")
-    Log.i(TAG, "send $fcPublish")
+    if (isEnableLogs) Log.i(TAG, "send $fcPublish")
 
     val createStream = Command("createStream", ++commandId, getCurrentTimestamp(), streamId,
         BasicHeader(ChunkType.TYPE_0, ChunkStreamId.OVER_CONNECTION.mark))
@@ -102,7 +102,7 @@ class CommandsManagerImp: CommandsManager() {
     createStream.writeHeader(socket)
     createStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, "createStream")
-    Log.i(TAG, "send $createStream")
+    if (isEnableLogs) Log.i(TAG, "send $createStream")
   }
 
   override suspend fun sendMetadataImp(socket: RtmpSocket) {
@@ -146,7 +146,7 @@ class CommandsManagerImp: CommandsManager() {
 
     metadata.writeHeader(socket)
     metadata.writeBody(socket, config.writeChunkSize)
-    Log.i(TAG, "send $metadata")
+    if (isEnableLogs) Log.i(TAG, "send $metadata")
   }
 
   override suspend fun sendPublishImp(socket: RtmpSocket) {
@@ -160,7 +160,7 @@ class CommandsManagerImp: CommandsManager() {
     publish.writeHeader(socket)
     publish.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, name)
-    Log.i(TAG, "send $publish")
+    if (isEnableLogs) Log.i(TAG, "send $publish")
   }
 
   override suspend fun sendCloseImp(socket: RtmpSocket) {
@@ -171,6 +171,6 @@ class CommandsManagerImp: CommandsManager() {
     closeStream.writeHeader(socket)
     closeStream.writeBody(socket, config.writeChunkSize)
     sessionHistory.setPacket(commandId, name)
-    Log.i(TAG, "send $closeStream")
+    if (isEnableLogs) Log.i(TAG, "send $closeStream")
   }
 }

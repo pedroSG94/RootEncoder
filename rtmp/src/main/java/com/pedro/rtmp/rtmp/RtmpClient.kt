@@ -652,6 +652,7 @@ class RtmpClient(private val connectChecker: ConnectChecker) {
 
   fun setLogs(enable: Boolean) {
     rtmpSender.setLogs(enable)
+    commandsManager.isEnableLogs = enable
   }
 
   fun clearCache() {
