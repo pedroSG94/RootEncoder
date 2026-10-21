@@ -365,7 +365,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                         }
                     })
 
-                    val result = withTimeoutOrNull(5_000.milliseconds) { dtlsResult.await() }
+                    val result = withTimeoutOrNull(10_000.milliseconds) { dtlsResult.await() }
                         ?: Result.failure(Exception("timeout"))
                     val srtpKeys = result.getOrNull()
                     if (srtpKeys == null) {
