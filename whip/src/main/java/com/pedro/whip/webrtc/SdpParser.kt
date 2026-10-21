@@ -29,12 +29,18 @@ object SdpParser {
     val uPass = extractContent(body, "a=ice-pwd:")
     val fingerprint = extractContent(body, "a=fingerprint:sha-256")
     val candidates = extractCandidates(body)
-    return SdpInfo(uFrag, uPass, fingerprint, candidates)
+    val isActiveMode = extractOptionalContent(body, "a=setup:").equals("active", ignoreCase = true)
+    return SdpInfo(uFrag, uPass, fingerprint, candidates, isActiveMode)
   }
 
   private fun extractContent(sdp: String, content: String): String {
     return sdp.lines()
       .map { it.trim() }.last { it.startsWith(content, ignoreCase = true) }.removePrefix(content).trim()
+  }
+
+  private fun extractOptionalContent(sdp: String, content: String): String? {
+    return sdp.lines()
+      .map { it.trim() }.lastOrNull { it.startsWith(content, ignoreCase = true) }?.substring(content.length)?.trim()
   }
 
   private fun extractCandidates(sdp: String): List<Candidate> {
