@@ -430,9 +430,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     }
 
     private suspend fun disconnect(clear: Boolean) {
-        if (isStreaming) whipSender.stop()
         dtlsConnection?.close()
         dtlsConnection = null
+        if (isStreaming) whipSender.stop()
         val error = runCatching {
             withTimeoutOrNull(100.milliseconds) {
                 commandsManager.writeDelete()
