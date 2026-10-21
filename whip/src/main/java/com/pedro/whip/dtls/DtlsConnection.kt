@@ -204,17 +204,20 @@ class DtlsConnection(
     System.arraycopy(keys, offs, serverMasterSalt, 0, saltLength)
     return listOf(
       deriveCryptoProperties(clientMasterKey, clientMasterSalt),
-      deriveCryptoProperties(serverMasterKey, serverMasterSalt)
+      deriveCryptoProperties(serverMasterKey, serverMasterSalt),
+      deriveCryptoProperties(clientMasterKey, clientMasterSalt, true),
+      deriveCryptoProperties(serverMasterKey, serverMasterSalt, true)
     )
   }
 
   // RFC 3711 4.3.1: derive SRTP session keys from master key + master salt via AES-CM PRF.
   // label 0x00 → cipher key, 0x01 → auth key, 0x02 → session salt
   // x = master_salt with byte[7] XOR'd with the label (label * 2^48 in 112-bit representation)
-  private fun deriveCryptoProperties(masterKey: ByteArray, masterSalt: ByteArray): CryptoProperties {
-    val cipherKey = deriveKey(masterKey, masterSalt, 0x00.toByte(), 16)
-    val authKey = deriveKey(masterKey, masterSalt, 0x01.toByte(), 20)
-    val salt = deriveKey(masterKey, masterSalt, 0x02.toByte(), 14)
+  private fun deriveCryptoProperties(masterKey: ByteArray, masterSalt: ByteArray, rtcp: Boolean = false): CryptoProperties {
+    val base = if (rtcp) 0x03 else 0x00
+    val cipherKey = deriveKey(masterKey, masterSalt, (base + 0).toByte(), 16)
+    val authKey = deriveKey(masterKey, masterSalt, (base + 1).toByte(), 20)
+    val salt = deriveKey(masterKey, masterSalt, (base + 2).toByte(), 14)
     return CryptoProperties(authKey, cipherKey, salt)
   }
 

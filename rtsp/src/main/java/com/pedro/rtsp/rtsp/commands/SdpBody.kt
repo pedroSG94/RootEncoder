@@ -41,7 +41,7 @@ object SdpBody {
     } else "a=control:streamid=$trackAudio\r\n"
     return "m=audio $port $type ${payload}\r\n" +
         "a=rtpmap:$payload OPUS/${RtpConstants.clockOpusFrequency}/2\r\n" +
-        "a=fmtp:$payload sprop-stereo=${isStereo.toInt()}; sprop-maxcapturerate=$sampleRate\r\n" +
+        "a=fmtp:$payload sprop-stereo=${isStereo.toInt()};sprop-maxcapturerate=$sampleRate\r\n" +
         identifier
   }
 
@@ -72,7 +72,7 @@ object SdpBody {
     } else "a=control:streamid=$trackAudio\r\n"
     return "m=audio $port $type ${payload}\r\n" +
         "a=rtpmap:$payload MPEG4-GENERIC/$sampleRate/$channels\r\n" +
-        "a=fmtp:$payload profile-level-id=1; mode=AAC-hbr; config=$configHex; sizelength=13; indexlength=3; indexdeltalength=3\r\n" +
+        "a=fmtp:$payload profile-level-id=1;mode=AAC-hbr;config=$configHex;sizelength=13;indexlength=3;indexdeltalength=3\r\n" +
         identifier
   }
 
@@ -88,7 +88,7 @@ object SdpBody {
     } else "a=control:streamid=$trackVideo\r\n"
     return "m=video $port $type $payload\r\n" +
         "a=rtpmap:$payload AV1/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:$payload profile=${sequenceHeader.seqProfile}; level-idx=${sequenceHeader.seqLevelIdx}\r\n" +
+        "a=fmtp:$payload profile=${sequenceHeader.seqProfile};level-idx=${sequenceHeader.seqLevelIdx}\r\n" +
         identifier
   }
 
@@ -103,13 +103,14 @@ object SdpBody {
     val profileLevelId = "%02x%02x%02x".format(
       spsH264Parser.profileIdc, spsH264Parser.profileCompatibility, spsH264Parser.levelIdc
     )
+    val asymmetryAllowed = if (secured) "level-asymmetry-allowed=1;" else ""
     val identifier = if (secured) {
       "a=sendonly\r\n" +
           "a=mid:$trackVideo\r\n"
     } else "a=control:streamid=$trackVideo\r\n"
     return "m=video $port $type $payload\r\n" +
         "a=rtpmap:$payload H264/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:$payload packetization-mode=1; sprop-parameter-sets=$spsString,$ppsString; profile-level-id=$profileLevelId\r\n" +
+        "a=fmtp:$payload ${asymmetryAllowed}packetization-mode=1;sprop-parameter-sets=$spsString,$ppsString;profile-level-id=$profileLevelId\r\n" +
         identifier
   }
 
@@ -126,7 +127,7 @@ object SdpBody {
     } else "a=control:streamid=$trackVideo\r\n"
     return "m=video $port $type ${payload}\r\n" +
         "a=rtpmap:$payload H265/${RtpConstants.clockVideoFrequency}\r\n" +
-        "a=fmtp:$payload sprop-sps=$spsString; sprop-pps=$ppsString; sprop-vps=$vpsString\r\n" +
+        "a=fmtp:$payload sprop-sps=$spsString;sprop-pps=$ppsString;sprop-vps=$vpsString\r\n" +
         identifier
   }
 
