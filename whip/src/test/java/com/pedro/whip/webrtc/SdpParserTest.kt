@@ -19,6 +19,7 @@
 package com.pedro.whip.webrtc
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Test
 
@@ -44,7 +45,7 @@ class SdpParserTest {
         "a=mid:0\r\n" +
         candidate
     val info = SdpParser.parseBodyAnswer(answer)
-    assertEquals("passive", info.setup)
+    assertEquals(false, info.isActiveMode)
     assertEquals("94441946", info.uFrag)
     assertEquals("37b9579j5pr97o6a86sm205436991m8k", info.uPass)
     assertEquals("D8:9F:3B:9D:05:F6:C2:84:6C:DD:DD:F2:C3:3A:21:EE:AD:9D:57:4B:A2:24:AC:88:A2:E0:1F:DF:95:70:21:A2", info.fingerprint)
@@ -55,20 +56,20 @@ class SdpParserTest {
   fun `GIVEN active answer WHEN parse THEN get active setup`() {
     val answer = sessionHeader + mediaInfo + "a=setup:active\r\n" + candidate
     val info = SdpParser.parseBodyAnswer(answer)
-    assertEquals("active", info.setup)
+    assertEquals(true, info.isActiveMode)
   }
 
   @Test
   fun `GIVEN setup in session and media level WHEN parse THEN media level has priority`() {
     val answer = sessionHeader + "a=setup:active\r\n" + mediaInfo + "a=setup:passive\r\n" + candidate
     val info = SdpParser.parseBodyAnswer(answer)
-    assertEquals("passive", info.setup)
+    assertEquals(false, info.isActiveMode)
   }
 
   @Test
   fun `GIVEN answer without setup WHEN parse THEN setup is null`() {
     val answer = sessionHeader + mediaInfo + candidate
     val info = SdpParser.parseBodyAnswer(answer)
-    assertNull(info.setup)
+    assertFalse(info.isActiveMode)
   }
 }
