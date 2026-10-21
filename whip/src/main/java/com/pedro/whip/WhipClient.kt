@@ -271,8 +271,11 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     val host = remoteCandidates[0].getRealHost()
                     val port = remoteCandidates[0].getRealPort()
-                    val socket = StreamSocket.createUdpSocket(socketType, host, port, socketTimeout)
-                    socket.connect()
+                    //bind socket instead of connect to avoid ignore packets received from other port
+                    val bindHost = if (host.contains(":")) "::" else "0.0.0.0"
+                    val socket = StreamSocket.createUdpSocket(socketType, bindHost, 0, socketTimeout)
+                    socket.bind()
+                    socket.setRemoteAddress(host, port)
 
                     val dtlsTransport = DtlsTransport(socket)
                     val requestId = commandsManager.generateTransactionId()
