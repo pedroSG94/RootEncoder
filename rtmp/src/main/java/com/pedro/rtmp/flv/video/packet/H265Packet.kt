@@ -45,6 +45,7 @@ class H265Packet: BasePacket() {
 
   private val header = ByteArray(8)
   private val naluSize = 4
+  private val START_CODE = byteArrayOf(0x00, 0x00, 0x00, 0x01)
   //first time we need send video config
   private var configSend = false
 
@@ -111,11 +112,33 @@ class H265Packet: BasePacket() {
     }
     header[0] = (0b10000000 or (nalType shl 4) or VideoFourCCPacketType.CODED_FRAMES.value).toByte()
     var offset = header.size
-    nals.forEach {
-      val nalSize = it.capacity()
-      buffer.writeUInt32(offset, nalSize)
-      it.get(buffer, offset + naluSize, nalSize)
-      offset += naluSize + nalSize
+    if (nals.size > 1) {
+      // Multi-slice access unit (e.g. Qualcomm SD888 HEVC encoder emits one
+      // slice segment per tile). YouTube's enhanced-RTMP HEVC ingest only
+      // consumes the first length-prefixed NAL of a video tag, so spec
+      // packaging yields a permanently "preparing" stream. Pack the AU as a
+      // single unit with Annex-B start codes between slices (2.7.2 behaviour,
+      // verified decodable by YouTube). Single-NAL frames are unaffected.
+      val joinedSize = size + START_CODE.size * (nals.size - 1)
+      buffer = ByteArray(header.size + naluSize + joinedSize)
+      buffer.writeUInt32(offset, joinedSize)
+      offset += naluSize
+      nals.forEachIndexed { index, nal ->
+        if (index > 0) {
+          System.arraycopy(START_CODE, 0, buffer, offset, START_CODE.size)
+          offset += START_CODE.size
+        }
+        val nalSize = nal.capacity()
+        nal.get(buffer, offset, nalSize)
+        offset += nalSize
+      }
+    } else {
+      nals.forEach {
+        val nalSize = it.capacity()
+        buffer.writeUInt32(offset, nalSize)
+        it.get(buffer, offset + naluSize, nalSize)
+        offset += naluSize + nalSize
+      }
     }
     System.arraycopy(header, 0, buffer, 0, header.size)
     callback(FlvPacket(buffer, ts, buffer.size, FlvType.VIDEO))
