@@ -14,10 +14,12 @@ import com.pedro.common.socket.base.UdpStreamSocket
 import com.pedro.common.toMediaFrameInfo
 import com.pedro.common.toUInt32
 import com.pedro.common.validMessage
-import com.pedro.rtsp.utils.CryptoProperties
 import com.pedro.rtsp.utils.RtpConstants
+import com.pedro.whip.dtls.DtlsClientConnection
 import com.pedro.whip.dtls.DtlsConnection
+import com.pedro.whip.dtls.DtlsServerConnection
 import com.pedro.whip.dtls.DtlsTransport
+import com.pedro.whip.dtls.SrtpKeys
 import com.pedro.whip.utils.Network
 import com.pedro.whip.webrtc.CandidateType
 import com.pedro.whip.webrtc.CommandsManager
@@ -269,9 +271,13 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     val host = remoteCandidates[0].getRealHost()
                     val port = remoteCandidates[0].getRealPort()
-                    val socket = StreamSocket.createUdpSocket(socketType, host, port, socketTimeout, receiveSize = RtpConstants.MTU)
-                    socket.connect()
+                    //bind socket instead of connect to avoid ignore packets received from other port
+                    val bindHost = if (host.contains(":")) "::" else "0.0.0.0"
+                    val socket = StreamSocket.createUdpSocket(socketType, bindHost, 0, socketTimeout)
+                    socket.bind()
+                    socket.setRemoteAddress(host, port)
 
+                    val dtlsTransport = DtlsTransport(socket)
                     val requestId = commandsManager.generateTransactionId()
                     val userName = StunAttributeValueParser.createUserName(localFrag, remoteFrag)
                     val attributes = listOf(
@@ -283,8 +289,13 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     var candidateResponses = 0
                     var requestSuccessReceived = false
-                    while (candidateResponses < 1 || !requestSuccessReceived) {
-                        val command = commandsManager.readStun(socket)
+                    while (!requestSuccessReceived) {
+                        val bytes = socket.read()
+                        if (bytes.isNotEmpty() && (bytes[0].toInt() and 0xFF) in 20..63) {
+                            dtlsTransport.enqueue(bytes)
+                            continue
+                        }
+                        val command = commandsManager.readStun(bytes)
                         if (command.header.id.contentEquals(requestId) && command.header.type == HeaderType.SUCCESS) {
                             requestSuccessReceived = true
                         } else if (command.header.type == HeaderType.REQUEST) {
@@ -308,7 +319,12 @@ class WhipClient(private val connectChecker: ConnectChecker) {
 
                     var nominateSuccessReceived = false
                     while (!nominateSuccessReceived) {
-                        val command = commandsManager.readStun(socket)
+                        val bytes = socket.read()
+                        if (bytes.isNotEmpty() && (bytes[0].toInt() and 0xFF) in 20..63) {
+                            dtlsTransport.enqueue(bytes)
+                            continue
+                        }
+                        val command = commandsManager.readStun(bytes)
                         if (command.header.id.contentEquals(nominateId) && command.header.type == HeaderType.SUCCESS) {
                             nominateSuccessReceived = true
                         } else if (command.header.type == HeaderType.REQUEST) {
@@ -324,9 +340,14 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     val certificate = commandsManager.certificate ?: return@launch
                     val fingerprint = commandsManager.remoteSdpInfo?.fingerprint ?: return@launch
 
-                    val dtlsResult = CompletableDeferred<Result<List<CryptoProperties>>>()
-                    val dtlsTransport = DtlsTransport(socket)
-                    dtlsConnection = DtlsConnection(certificate, fingerprint)
+                    val dtlsResult = CompletableDeferred<Result<SrtpKeys>>()
+                    val isDtlsServer = commandsManager.remoteSdpInfo?.isActiveMode ?: false
+                    Log.i(TAG, "Using dtls ${if (isDtlsServer) "server" else "client"} role")
+                    dtlsConnection = if (isDtlsServer) {
+                        DtlsServerConnection(certificate, fingerprint)
+                    } else {
+                        DtlsClientConnection(certificate, fingerprint)
+                    }
 
                     val dispatchJob = launch {
                         while (isActive) {
@@ -339,18 +360,18 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     }
 
                     dtlsConnection?.start(dtlsTransport, object : DtlsConnection.Callback {
-                        override fun onHandshakeComplete(properties: List<CryptoProperties>) {
-                            dtlsResult.complete(Result.success(properties))
+                        override fun onHandshakeComplete(keys: SrtpKeys) {
+                            dtlsResult.complete(Result.success(keys))
                         }
                         override fun onHandshakeFailed(reason: String?) {
                             dtlsResult.complete(Result.failure(Exception(reason ?: "DTLS handshake failed")))
                         }
                     })
 
-                    val result = withTimeoutOrNull(5_000.milliseconds) { dtlsResult.await() }
+                    val result = withTimeoutOrNull(10_000.milliseconds) { dtlsResult.await() }
                         ?: Result.failure(Exception("timeout"))
-                    val cryptoProperties = result.getOrNull()
-                    if (cryptoProperties == null) {
+                    val srtpKeys = result.getOrNull()
+                    if (srtpKeys == null) {
                         dispatchJob.cancel()
                         dtlsConnection?.close()
                         dtlsConnection = null
@@ -362,7 +383,7 @@ class WhipClient(private val connectChecker: ConnectChecker) {
                     Log.i(TAG, "dtls connected!!")
                     onMainThread { connectChecker.onConnectionSuccess() }
                     whipSender.setSocketsInfo(socket)
-                    whipSender.setCrypto(cryptoProperties[1])
+                    whipSender.setCrypto(srtpKeys.rtp, srtpKeys.rtcp)
                     whipSender.start()
                 }.exceptionOrNull()
                 if (error != null) {
@@ -412,9 +433,9 @@ class WhipClient(private val connectChecker: ConnectChecker) {
     }
 
     private suspend fun disconnect(clear: Boolean) {
-        if (isStreaming) whipSender.stop()
         dtlsConnection?.close()
         dtlsConnection = null
+        if (isStreaming) whipSender.stop()
         val error = runCatching {
             withTimeoutOrNull(100.milliseconds) {
                 commandsManager.writeDelete()

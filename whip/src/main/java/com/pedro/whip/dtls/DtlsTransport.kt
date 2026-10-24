@@ -61,7 +61,7 @@ class DtlsTransport(
 
   override fun send(buffer: ByteArray, offset: Int, length: Int) {
     runBlocking {
-      socket.write(buffer.sliceArray(offset until length))
+      socket.write(buffer.sliceArray(offset until offset + length))
     }
   }
 

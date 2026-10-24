@@ -45,10 +45,10 @@ class WhipSender(
         baseSenderReport = BaseSenderReport.getInstance(commandsManager.rtpTracks, socket)
     }
 
-    fun setCrypto(properties: CryptoProperties) {
-        baseSenderReport?.setCrypto(properties)
-        videoPacket.setCryptoProperties(properties)
-        audioPacket.setCryptoProperties(properties)
+    fun setCrypto(rtpProperties: CryptoProperties, rtcpProperties: CryptoProperties) {
+        baseSenderReport?.setCrypto(rtcpProperties)
+        videoPacket.setCryptoProperties(rtpProperties)
+        audioPacket.setCryptoProperties(rtpProperties)
     }
 
     override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {
