@@ -3,13 +3,17 @@ package com.pedro.common.base
 import com.pedro.common.ConnectChecker
 import com.pedro.common.frame.MediaFrame
 import com.pedro.common.removeInfo
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.mockito.Mockito
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * The sender copies each frame into a pooled array bigger than the frame itself. These tests lock
@@ -17,7 +21,7 @@ import java.nio.ByteBuffer
  */
 class BaseSenderTest {
 
-  private class FakeSender: BaseSender(Mockito.mock(ConnectChecker::class.java), "FakeSender") {
+  private open class FakeSender: BaseSender(Mockito.mock(ConnectChecker::class.java), "FakeSender") {
     override fun setVideoInfo(sps: ByteBuffer, pps: ByteBuffer?, vps: ByteBuffer?) {}
     override fun setAudioInfo(sampleRate: Int, isStereo: Boolean) {}
     override suspend fun onRun() {}
@@ -124,6 +128,61 @@ class BaseSenderTest {
       assertSame(firstArray, mediaFrame.data.array())
       assertEquals(small.size, mediaFrame.data.capacity())
       assertArrayEquals(small, mediaFrame.data.readAll())
+    }
+  }
+
+  @Test
+  fun `GIVEN sender blocked WHEN stop THEN unlockNeeded is invoked and stop returns`() = runBlocking {
+    val unlockCalled = AtomicBoolean(false)
+    val canExit = AtomicBoolean(false)
+    val sender = object : FakeSender() {
+      override suspend fun onRun() {
+        while (!canExit.get()) {
+          try {
+            delay(Long.MAX_VALUE)
+          } catch (e: CancellationException) {
+            if (!canExit.get()) {
+              Thread.sleep(10)
+              continue
+            }
+            throw e
+          }
+        }
+      }
+    }
+    sender.start()
+    sender.stop(unlockNeeded = {
+      unlockCalled.set(true)
+      canExit.set(true)
+    })
+    assertTrue(unlockCalled.get())
+  }
+
+  @Test
+  fun `GIVEN unlockNeeded throws WHEN stop THEN exception does not propagate`() = runBlocking {
+    val canExit = AtomicBoolean(false)
+    val sender = object : FakeSender() {
+      override suspend fun onRun() {
+        while (!canExit.get()) {
+          try {
+            delay(Long.MAX_VALUE)
+          } catch (e: CancellationException) {
+            if (!canExit.get()) {
+              Thread.sleep(10)
+              continue
+            }
+            throw e
+          }
+        }
+      }
+    }
+    sender.start()
+    try {
+      sender.stop(unlockNeeded = {
+        throw RuntimeException("unlock failed")
+      })
+    } finally {
+      canExit.set(true)
     }
   }
 
