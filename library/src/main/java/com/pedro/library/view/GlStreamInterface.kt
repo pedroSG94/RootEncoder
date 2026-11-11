@@ -348,7 +348,9 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
           surfaceManager.swapBuffer()
         }
       }
-      val previewSnapshot = multiPreviewSurfaceManagers.values.toList()
+      // Not toList(): for one element it calls iterator().next(), which throws NoSuchElementException
+      // if that surface is removed from another thread in between. ArrayList copies via toArray(), which can't.
+      val previewSnapshot = ArrayList(multiPreviewSurfaceManagers.values)
       previewSnapshot.forEach { info ->
         if (info.surfaceManager.isReady) {
           if (info.surfaceManager.makeCurrent()) {
