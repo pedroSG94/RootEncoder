@@ -68,7 +68,7 @@ class UrlParser private constructor(
     val queries = getAllQueries().map { (key, value) -> "$key=$value" }.joinToString("&")
     val fullPath = getFullPath().ifEmpty { query ?: "" }
     val path = fullPath.replace(queries, "")
-    val segments = path.split('/').filter { it.isNotEmpty() }
+    val segments = path.split('/')
     return when(segments.size) {
       0 -> ""
       1 -> fullPath.trimEnd('/')
