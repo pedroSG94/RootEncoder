@@ -62,7 +62,7 @@ class CropFilterRender: BaseFilterRender() {
     Matrix.setIdentityM(positionMatrix, 0)
   }
 
-  override fun initGlFilter(context: Context?) {
+  override fun initGlFilter(context: Context) {
     val vertexShader = GlUtil.getStringFromRaw(context, R.raw.simple_vertex)
     val fragmentShader = GlUtil.getStringFromRaw(context, R.raw.simple_fragment)
     program = GlUtil.createProgram(vertexShader, fragmentShader)

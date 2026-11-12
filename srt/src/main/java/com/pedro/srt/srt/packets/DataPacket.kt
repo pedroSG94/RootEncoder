@@ -41,6 +41,8 @@ class DataPacket(
   var payload: ByteArray = byteArrayOf()
 ): SrtPacket() {
 
+  var lastSentTs: Int = 0
+
   fun write() {
     resetBuffer()
     val headerData = (PacketType.DATA.value shl 31) or (sequenceNumber and 0x7FFFFFFF)

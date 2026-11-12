@@ -8,11 +8,21 @@ import java.net.Socket
 
 abstract class TcpStreamSocketJavaBase: TcpStreamSocket() {
 
+    @Volatile
     private var socket = Socket()
     private var input = ByteArrayInputStream(byteArrayOf()).buffered()
     private var output = ByteArrayOutputStream().buffered()
 
     abstract fun onConnectSocket(timeout: Long): Socket
+
+    /**
+     * Returns the current Java socket for read-only diagnostics.
+     *
+     * For TLS connections, the returned object is an SSLSocket. The socket can be replaced or
+     * closed concurrently during a reconnect. Callers must not read from, write to, close, or
+     * reconfigure it because this stream owns all socket I/O.
+     */
+    fun getJavaSocket(): Socket? = socket.takeIf { it.isConnected && !it.isClosed }
 
     override suspend fun connect() {
         socket = onConnectSocket(timeout)

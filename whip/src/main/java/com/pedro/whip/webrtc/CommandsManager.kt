@@ -331,7 +331,10 @@ class CommandsManager {
             if (media.isNotEmpty()) {
                 videoBody = media +
                     "a=rtcp-mux\r\n" +
-                    "a=ssrc:$videoSsrc cname:$cName\r\n"
+                    "a=setup:actpass\r\n" +
+                    "a=ssrc:$videoSsrc cname:$cName\r\n" +
+                    "a=ssrc:$videoSsrc msid:$cName video\r\n"
+
             }
         }
         var audioBody = ""
@@ -343,7 +346,9 @@ class CommandsManager {
             }
             audioBody = media +
                 "a=rtcp-mux\r\n" +
-                "a=ssrc:$audioSsrc cname:$cName\r\n"
+                "a=setup:actpass\r\n" +
+                "a=ssrc:$audioSsrc cname:$cName\r\n" +
+                "a=ssrc:$audioSsrc msid:$cName audio\r\n"
         }
         val bundleMids = listOfNotNull(
             if (videoBody.isNotEmpty()) rtpTracks.trackVideo else null,

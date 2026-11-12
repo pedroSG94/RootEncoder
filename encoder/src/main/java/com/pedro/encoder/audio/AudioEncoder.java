@@ -167,6 +167,7 @@ public class AudioEncoder extends BaseEncoder implements GetMicrophoneData {
   @Override
   protected boolean checkBuffer(@NonNull ByteBuffer byteBuffer,
       @NonNull MediaCodec.BufferInfo bufferInfo) {
+    if ((bufferInfo.flags & MediaCodec.BUFFER_FLAG_CODEC_CONFIG) != 0) return false;
     return checkValidTimeStamp(bufferInfo);
   }
 

@@ -84,11 +84,11 @@ class SdpBodyTest {
 
     val stereo48k = SdpBody.createOpusBody(track, 48000, true)
     assertTrue(stereo48k.contains(expectedType))
-    assertTrue(stereo48k.contains("a=fmtp:$payload sprop-stereo=1; sprop-maxcapturerate=48000\r\n"))
+    assertTrue(stereo48k.contains("a=fmtp:$payload sprop-stereo=1;sprop-maxcapturerate=48000\r\n"))
 
     val mono16k = SdpBody.createOpusBody(track, 16000, false)
     assertTrue(mono16k.contains(expectedType))
-    assertTrue(mono16k.contains("a=fmtp:$payload sprop-stereo=0; sprop-maxcapturerate=16000\r\n"))
+    assertTrue(mono16k.contains("a=fmtp:$payload sprop-stereo=0;sprop-maxcapturerate=16000\r\n"))
   }
 
   @Test
@@ -183,7 +183,7 @@ class SdpBodyTest {
     val track = 1
 
     val expectedType = "H265/${RtpConstants.clockVideoFrequency}"
-    val expectedConfig = "sprop-sps=QgEBAQ==; sprop-pps=RAHAZg==; sprop-vps=QAEMAQ=="
+    val expectedConfig = "sprop-sps=QgEBAQ==;sprop-pps=RAHAZg==;sprop-vps=QAEMAQ=="
     val expectedPayload = "a=rtpmap:${RtpConstants.payloadType + track}"
     val expectedTrack = "a=control:streamid=${track}"
 
@@ -209,7 +209,7 @@ class SdpBodyTest {
     assertTrue(result.contains(expectedPayload))
     assertTrue(result.contains(expectedTrack))
     //seq_profile and seq_level_idx of the obu payload. Parsing the raw obu instead would report 8
-    assertTrue(result.contains("a=fmtp:${RtpConstants.payloadType + track} profile=0; level-idx=4\r\n"))
+    assertTrue(result.contains("a=fmtp:${RtpConstants.payloadType + track} profile=0;level-idx=4\r\n"))
   }
 
   @Test

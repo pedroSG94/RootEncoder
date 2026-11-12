@@ -25,5 +25,6 @@ data class SdpInfo(
   val uFrag: String,
   val uPass: String,
   val fingerprint: String,
-  val candidates: List<Candidate>
+  val candidates: List<Candidate>,
+  val isActiveMode: Boolean = false
 )

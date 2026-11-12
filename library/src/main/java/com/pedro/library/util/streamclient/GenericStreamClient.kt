@@ -19,6 +19,7 @@ package com.pedro.library.util.streamclient
 import com.pedro.common.socket.base.SocketType
 import com.pedro.rtsp.rtsp.Protocol
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType
+import java.net.Socket
 import javax.net.ssl.TrustManager
 
 /**
@@ -179,6 +180,19 @@ class GenericStreamClient(
   override fun getSentVideoFrames(): Long = connectedStreamClient?.getSentVideoFrames() ?: 0
 
   override fun getBytesSend(): Long = connectedStreamClient?.getBytesSend() ?: 0
+
+  /**
+   * Returns the active direct RTMP Java socket for read-only diagnostics.
+   *
+   * For RTMPS connections, the returned object is an SSLSocket. Callers must not read from, write
+   * to, close, or reconfigure it because the stream owns all socket I/O. The socket can become
+   * stale during reconnect. Returns null when another protocol or socket implementation is active.
+   */
+  fun getJavaSocket(): Socket? = if (connectedStreamClient === rtmpClient) {
+    rtmpClient.getJavaSocket()
+  } else {
+    null
+  }
 
   override fun getDroppedAudioFrames(): Long = connectedStreamClient?.getDroppedAudioFrames() ?: 0
 

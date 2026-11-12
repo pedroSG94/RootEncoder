@@ -348,7 +348,7 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
           surfaceManager.swapBuffer()
         }
       }
-      val previewSnapshot = multiPreviewSurfaceManagers.values.toList()
+      val previewSnapshot = ArrayList(multiPreviewSurfaceManagers.values)
       previewSnapshot.forEach { info ->
         if (info.surfaceManager.isReady) {
           if (info.surfaceManager.makeCurrent()) {

@@ -44,8 +44,6 @@ import kotlin.random.Random
 class CommandsManager {
 
   private val TAG = "CommandsManager"
-  //used for packet lost
-  private val packetHandlingQueue = mutableListOf<DataPacket>()
 
   var sequenceNumber: Int = generateInitialSequence()
   var messageNumber = 1
@@ -63,7 +61,12 @@ class CommandsManager {
   private var encryptor: EncryptionUtil? = null
   var videoCodec = VideoCodec.H264
   var audioCodec = AudioCodec.AAC
+  private val packetRetransmission = PacketRetransmission()
 
+  fun setRetransmitOverhead(percent: Int) {
+    packetRetransmission.retransmitOverheadPercent = percent
+  }
+  
   fun setPassphrase(passphrase: String, type: EncryptionType) {
     encryptor = if (passphrase.isEmpty() || type == EncryptionType.NONE) null else EncryptionUtil(type, passphrase)
   }
@@ -85,6 +88,10 @@ class CommandsManager {
 
   fun getTs(): Int {
     return (TimeUtils.getCurrentTimeMicro() - startTS).toInt()
+  }
+
+  fun updateRtt(rtt: Int, rttVariance: Int) {
+    packetRetransmission.updateRtt(rtt, rttVariance, latency)
   }
 
   @Throws(IOException::class)
@@ -125,44 +132,26 @@ class CommandsManager {
         socketId = socketId
       )
       sequenceNumber++
-      packetHandlingQueue.add(dataPacket)
-      dropTooLatePackets(dataPacket.ts)
+      packetRetransmission.addPacket(dataPacket)
+      packetRetransmission.dropTooLatePackets(dataPacket.ts, latency)
       dataPacket.write()
+      packetRetransmission.trackMediaBytes(dataPacket.getSize(), TimeUtils.getCurrentTimeMicro())
       socket?.write(dataPacket)
       return dataPacket.getSize()
     }
   }
 
   @Throws(IOException::class)
-  suspend fun reSendPackets(lostRanges: List<Pair<Int, Int>>, socket: SrtSocket?) {
+  suspend fun reSendPackets(lostRanges: List<Pair<Int, Int>>, socket: SrtSocket?): Int {
     writeSync.withLock {
-      val dataPackets = packetHandlingQueue.filter { packet ->
-        lostRanges.any { (min, max) ->
-          ((packet.sequenceNumber - min) and 0x7FFFFFFF) <= ((max - min) and 0x7FFFFFFF)
-        }
-      }
-      dataPackets.forEach { packet ->
-        packet.retransmitted = true
-        packet.write()
-        socket?.write(packet)
-      }
+      return packetRetransmission.reSendPackets(lostRanges, socket, getTs(), latency, MTU)
     }
   }
 
   suspend fun updateHandlingQueue(lastPacketSequence: Int) {
     writeSync.withLock {
-      packetHandlingQueue.removeAll {
-        //discard confirmed packets
-        val diff = (lastPacketSequence - it.sequenceNumber) and 0x7FFFFFFF
-        diff in 1 until 0x40000000
-      }
+      packetRetransmission.updateHandlingQueue(lastPacketSequence)
     }
-  }
-
-  private fun dropTooLatePackets(nowTs: Int) {
-    val thresholdUs = latency * 1000
-    val firstKept = packetHandlingQueue.indexOfFirst { (nowTs - it.ts) <= thresholdUs }
-    if (firstKept > 0) packetHandlingQueue.subList(0, firstKept).clear()
   }
 
   @Throws(IOException::class)
@@ -199,7 +188,7 @@ class CommandsManager {
     socketId = 0
     startTS = 0L
     host = ""
-    packetHandlingQueue.clear()
+    packetRetransmission.reset()
   }
 
   private fun generateInitialSequence(): Int {

@@ -53,6 +53,7 @@ public class GifStreamObject extends StreamObjectBase {
   }
 
   public void load(InputStream inputStreamGif) throws IOException {
+    if (inputStreamGif == null) throw new IOException("Read gif error: input stream is null");
     GifDecoder gifDecoder = new GifDecoder();
     if (gifDecoder.read(inputStreamGif, inputStreamGif.available()) == 0) {
       Log.i(TAG, "read gif ok");

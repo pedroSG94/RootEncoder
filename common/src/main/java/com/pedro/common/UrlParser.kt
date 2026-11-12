@@ -16,7 +16,7 @@ class UrlParser private constructor(
     @Throws(URISyntaxException::class)
     fun parse(endpoint: String, requiredProtocol: Array<String>): UrlParser {
       val uri = URI(endpoint.substringBefore("?"))
-      if (uri.scheme != null && !requiredProtocol.contains(uri.scheme.trim())) {
+      if (uri.scheme == null || !requiredProtocol.contains(uri.scheme.trim())) {
         throw URISyntaxException(endpoint, "Invalid protocol: ${uri.scheme}")
       }
       if (uri.userInfo != null && !uri.userInfo.contains(":")) {
@@ -68,7 +68,7 @@ class UrlParser private constructor(
     val queries = getAllQueries().map { (key, value) -> "$key=$value" }.joinToString("&")
     val fullPath = getFullPath().ifEmpty { query ?: "" }
     val path = fullPath.replace(queries, "")
-    val segments = path.split('/').filter { it.isNotEmpty() }
+    val segments = path.split('/')
     return when(segments.size) {
       0 -> ""
       1 -> fullPath.trimEnd('/')

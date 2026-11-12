@@ -183,4 +183,17 @@ class SrtStreamClient(
    * Packets lost reported by NAK command. Increment each time a NAK is received.
    */
   fun getPacketsLost() = srtClient.packetsLost
+
+  /**
+   * Unique lost sequence numbers reported by NAK. Each sequence is counted once.
+   */
+  fun getPacketsLostUnique() = srtClient.packetsLostUnique
+
+  /**
+   * Max retransmit bandwidth as a percentage of the estimated media rate (libsrt SRTO_OHEADBW).
+   * Default 25. Values <= 0 disable the limit.
+   */
+  fun setRetransmitOverhead(percent: Int) {
+    srtClient.setRetransmitOverhead(percent)
+  }
 }

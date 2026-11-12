@@ -28,6 +28,7 @@ import com.pedro.srt.srt.packets.control.handshake.extension.HandshakeExtension
 import com.pedro.srt.utils.Constants
 import java.io.InputStream
 import java.net.InetAddress
+import kotlin.random.Random
 
 /**
  * Created by pedro on 21/8/23.
@@ -75,7 +76,7 @@ data class Handshake(
   var MTU: Int = Constants.MTU,
   var flowWindowsSize: Int = 8192,
   var handshakeType: HandshakeType = HandshakeType.INDUCTION,
-  var srtSocketId: Int = 762640158,
+  var srtSocketId: Int = Random.nextInt(1, Int.MAX_VALUE),
   var synCookie: Int = 0,
   var ipAddress: String = "0.0.0.0", //128 bits (32 bits each number)
   var handshakeExtension: HandshakeExtension? = null
