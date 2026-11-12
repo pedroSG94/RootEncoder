@@ -12,6 +12,7 @@ import java.io.FileDescriptor
 import java.nio.ByteBuffer
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * The controller copies each frame into a pooled buffer before handing it to the muxer. These
@@ -22,15 +23,25 @@ class AsyncBaseRecordControllerTest {
   private class FakeRecordController: AsyncBaseRecordController() {
     val written = mutableListOf<Pair<ByteArray, Int>>()
     var latch = CountDownLatch(1)
+    //what the real muxers do inside startRecordImp, like creating the MediaMuxer
+    var onStartRecordImp: () -> Unit = {}
+    @Volatile
+    private var startingRecord = false
+    val writtenWhileStarting = AtomicInteger(0)
 
     override fun startRecordImp(fd: FileDescriptor, listener: RecordController.Listener?, tracks: RecordController.RecordTracks) {}
-    override fun startRecordImp(path: String, listener: RecordController.Listener?, tracks: RecordController.RecordTracks) {}
+    override fun startRecordImp(path: String, listener: RecordController.Listener?, tracks: RecordController.RecordTracks) {
+      startingRecord = true
+      onStartRecordImp()
+      startingRecord = false
+    }
     override fun stopRecordImp() {}
     override fun setVideoFormat(videoFormat: MediaFormat) {}
     override fun setAudioFormat(audioFormat: MediaFormat) {}
     override fun resetFormats() {}
 
     override suspend fun onWriteFrame(frame: MediaFrame) {
+      if (startingRecord) writtenWhileStarting.incrementAndGet()
       //keep the array identity and the capacity, the buffer itself is recycled right after
       written.add(frame.data.array() to frame.data.capacity())
     }
@@ -94,6 +105,30 @@ class AsyncBaseRecordControllerTest {
     assertSame(controller.written[0].first, controller.written[1].first)
     //but capped to its own size, the 0xFF left behind are unreachable
     assertEquals(second.size, controller.written[1].second)
+  }
+
+  @Test
+  fun `GIVEN a frame sent while startRecordImp runs WHEN record THEN the muxer never gets it`() {
+    val controller = FakeRecordController()
+    controller.latch = CountDownLatch(1)
+    controller.onStartRecordImp = {
+      //the encoder keeps sending frames while the muxer is still being created
+      val early = byteArrayOf(0, 0, 0, 1, 101, 1, 2, 3)
+      controller.recordVideo(ByteBuffer.wrap(early), bufferInfoOf(early.size))
+      //time enough for the muxer thread to take it if the recorder already accepted frames
+      Thread.sleep(200)
+    }
+    controller.start()
+
+    val frame = byteArrayOf(0, 0, 0, 1, 101, 9, 8, 7)
+    controller.recordVideo(ByteBuffer.wrap(frame), bufferInfoOf(frame.size))
+    controller.awaitFrames(1)
+    controller.stopRecord()
+
+    assertEquals(0, controller.writtenWhileStarting.get())
+    assertEquals(1, controller.written.size)
+    val (array, capacity) = controller.written[0]
+    assertArrayEquals(frame, array.copyOfRange(0, capacity))
   }
 
   @Test

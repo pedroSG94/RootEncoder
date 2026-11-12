@@ -75,8 +75,6 @@ class AacMuxerRecordController : AsyncBaseRecordController() {
 
   @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
   override fun stopRecordImp() {
-    sampleRate = -1
-    channels = -1
     try {
       outputStream?.close()
     } catch (_: Exception) {

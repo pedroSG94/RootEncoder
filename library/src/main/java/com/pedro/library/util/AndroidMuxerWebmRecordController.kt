@@ -55,7 +55,6 @@ class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
       throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
     }
     mediaMuxer = MediaMuxer(path, outputFormat)
-    if (tracks == RecordTracks.AUDIO && audioFormat != null) init()
   }
 
   @RequiresApi(api = Build.VERSION_CODES.O)
@@ -72,7 +71,6 @@ class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
       throw IOException("Unsupported VideoCodec: " + getVideoCodec().name)
     }
     mediaMuxer = MediaMuxer(fd, outputFormat)
-    if (tracks == RecordTracks.AUDIO && audioFormat != null) init()
   }
 
   override fun stopRecordImp() {
@@ -91,9 +89,6 @@ class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
 
   override fun setAudioFormat(audioFormat: MediaFormat) {
     this.audioFormat = audioFormat
-    if (tracks == RecordTracks.AUDIO && recordStatus == RecordController.Status.STARTED) {
-      init()
-    }
   }
 
   override fun resetFormats() {
@@ -101,9 +96,15 @@ class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
     audioFormat = null
   }
 
+  /**
+   * Only called from onWriteFrame, so it always runs in the muxer thread and never twice at once.
+   */
   private fun init() {
-    if (tracks != RecordTracks.VIDEO) audioTrack = mediaMuxer?.addTrack(audioFormat!!) ?: -1
-    mediaMuxer?.start()
+    if (recordStatus != RecordController.Status.STARTED) return
+    val muxer = mediaMuxer ?: return
+    if (tracks != RecordTracks.AUDIO) videoTrack = muxer.addTrack(videoFormat!!)
+    if (tracks != RecordTracks.VIDEO) audioTrack = muxer.addTrack(audioFormat!!)
+    muxer.start()
     recordStatus = RecordController.Status.RECORDING
     listener?.onStatusChange(recordStatus)
   }
@@ -121,10 +122,10 @@ class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
   override suspend fun onWriteFrame(frame: MediaFrame) {
     when (frame.type) {
       MediaFrame.Type.VIDEO -> {
-        if (recordStatus == RecordController.Status.STARTED && videoFormat != null && (audioFormat != null || tracks == RecordTracks.VIDEO)) {
+        if (recordStatus == RecordController.Status.STARTED && tracks != RecordTracks.AUDIO
+          && videoFormat != null && (audioFormat != null || tracks == RecordTracks.VIDEO)) {
           if (frame.info.isKeyFrame || isKeyFrame(frame.data)) {
             myRequestKeyFrame = null
-            videoTrack = mediaMuxer?.addTrack(videoFormat!!) ?: -1
             init()
           } else if (myRequestKeyFrame != null) {
             myRequestKeyFrame?.onRequestKeyFrame()
@@ -141,6 +142,14 @@ class AndroidMuxerWebmRecordController : AsyncBaseRecordController() {
         }
       }
       MediaFrame.Type.AUDIO -> {
+        if (tracks == RecordTracks.AUDIO) {
+          if (recordStatus == RecordController.Status.STARTED && audioFormat != null) {
+            init()
+          } else if (recordStatus == RecordController.Status.RESUMED) {
+            recordStatus = RecordController.Status.RECORDING
+            listener?.onStatusChange(recordStatus)
+          }
+        }
         if (recordStatus == RecordController.Status.RECORDING && tracks != RecordTracks.VIDEO) {
           write(audioTrack, frame)
         }
