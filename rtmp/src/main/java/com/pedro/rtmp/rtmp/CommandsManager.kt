@@ -61,6 +61,15 @@ abstract class CommandsManager {
   val config = RtmpConfig()
   var audioDisabled = false
   var videoDisabled = false
+  /**
+   * Controlled by [com.pedro.rtmp.rtmp.RtmpClient.setLogs].
+   *
+   * The command logs print the message as it goes on the wire, which for
+   * connect/releaseStream/FCPublish/publish includes the tcUrl and the
+   * stream name. On most services the stream name IS the stream key, so
+   * these lines put a publishing credential in logcat.
+   */
+  var isEnableLogs = true
   var customAmfObject: Map<String, Any> = emptyMap()
   var customMetadata: Map<String, Any> = emptyMap()
   private var bytesRead = 0
@@ -110,9 +119,9 @@ abstract class CommandsManager {
         chunkSize.writeHeader(socket)
         chunkSize.writeBody(socket, config.writeChunkSize)
         socket.flush()
-        Log.i(TAG, "send $chunkSize")
+        if (isEnableLogs) Log.i(TAG, "send $chunkSize")
       } else {
-        Log.i(TAG, "using default write chunk size ${RtmpConfig.DEFAULT_CHUNK_SIZE}")
+        if (isEnableLogs) Log.i(TAG, "using default write chunk size ${RtmpConfig.DEFAULT_CHUNK_SIZE}")
       }
     }
   }
@@ -137,7 +146,7 @@ abstract class CommandsManager {
   suspend fun readMessageResponse(socket: RtmpSocket): RtmpMessage {
     val message = RtmpMessage.getRtmpMessage(socket, config.readChunkSize, sessionHistory)
     sessionHistory.setReadHeader(message.header)
-    Log.i(TAG, "read $message")
+    if (isEnableLogs) Log.i(TAG, "read $message")
     bytesRead += message.header.getPacketLength()
     return message
   }
@@ -174,7 +183,7 @@ abstract class CommandsManager {
       pong.writeHeader(socket)
       pong.writeBody(socket, config.writeChunkSize)
       socket.flush()
-      Log.i(TAG, "send pong")
+      if (isEnableLogs) Log.i(TAG, "send pong")
     }
   }
 
@@ -184,7 +193,7 @@ abstract class CommandsManager {
       ping.writeHeader(socket)
       ping.writeBody(socket, config.writeChunkSize)
       socket.flush()
-      Log.i(TAG, "send ping")
+      if (isEnableLogs) Log.i(TAG, "send ping")
     }
   }
 
@@ -204,7 +213,7 @@ abstract class CommandsManager {
         acknowledgement.writeHeader(socket)
         acknowledgement.writeBody(socket, config.writeChunkSize)
         socket.flush()
-        Log.i(TAG, "send $acknowledgement")
+        if (isEnableLogs) Log.i(TAG, "send $acknowledgement")
       }
     }
   }
