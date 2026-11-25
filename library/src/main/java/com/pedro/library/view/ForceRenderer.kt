@@ -20,6 +20,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -31,6 +32,7 @@ import kotlinx.coroutines.launch
 class ForceRenderer {
 
   private var enabled = false
+  @Volatile
   private var job: Job? = null
   private var fps = 5L
   @Volatile
@@ -46,10 +48,12 @@ class ForceRenderer {
 
   fun start(callback: () -> Unit) {
     if (!enabled) return
+    job?.cancel()
     running = true
     job = CoroutineScope(Dispatchers.IO).launch {
       while (running) {
         delay(1000 / fps)
+        if (!running || !isActive) break
         if (renderer) renderer = false
         else callback()
       }

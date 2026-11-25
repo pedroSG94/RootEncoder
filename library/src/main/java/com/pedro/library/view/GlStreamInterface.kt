@@ -189,9 +189,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
   override fun start() {
     glTimestamp.reset()
     threadQueue.clear()
-    executor?.shutdownNow()
-    executor = null
-    executor = newSingleThreadExecutor(threadQueue)
+    synchronized(sync) {
+      executor?.shutdownNow()
+      executor = newSingleThreadExecutor(threadQueue)
+    }
     surfaceHandlerThread?.quitSafely()
     surfaceHandlerThread = HandlerThread("GlStreamHandler")
     surfaceHandlerThread?.start()
@@ -233,11 +234,10 @@ class GlStreamInterface(private val context: Context): OnFrameAvailableListener,
     surfaceHandlerThread?.quitSafely()
     surfaceHandlerThread = null
     threadQueue.clear()
-    val executor = this.executor
+    val executor = synchronized(sync) { this.executor.also { this.executor = null } }
     if (executor != null) {
       executor.secureSubmit(100) { releaseSurfaceManagers() }
       executor.shutdownNow()
-      this.executor = null
     } else releaseSurfaceManagers()
   }
 
