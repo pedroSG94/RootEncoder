@@ -131,8 +131,18 @@ abstract class BaseSender(
         resetBytesSend()
         val stopped = withTimeoutOrNull(1000.milliseconds) { job?.cancelAndJoin() } != null
         if (!stopped) {
-            unlockNeeded()
-            withTimeoutOrNull(1000.milliseconds) { job?.cancelAndJoin() }
+            Log.w(TAG, "sender did not stop in time, probably blocked in a socket write, unlocking it")
+            try {
+                unlockNeeded()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Log.e(TAG, "error unlocking sender", e)
+            }
+            val stoppedAfterUnlock = withTimeoutOrNull(1000.milliseconds) { job?.cancelAndJoin() } != null
+            if (!stoppedAfterUnlock) {
+                Log.w(TAG, "sender job did not finish after unlock")
+            }
         }
         job = null
         queue.clear { bufferPool.release(it.data) }
