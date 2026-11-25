@@ -366,4 +366,21 @@ class Camera2Source(context: Context): VideoSource() {
    * Resume camera repeating capture requests after [pauseRepeating].
    */
   fun resumeRepeating(): Boolean = camera.resumeRepeating()
+  
+   * Set the Camera2 capture request template (e.g. [android.hardware.camera2.CameraDevice.TEMPLATE_RECORD]
+   * or [android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW]).
+   */
+  fun setTemplateType(templateType: Int) {
+    camera.templateType = templateType
+  }
+
+  /**
+   * Set a callback invoked when creating the initial [CaptureRequest.Builder] (and on camera switches)
+   * so callers can configure tonemap, antibanding, EV, etc. before the first frame.
+   */
+  fun setInitialRequestCustomizer(
+    customizer: ((CaptureRequest.Builder, CameraCharacteristics?) -> Unit)?
+  ) {
+    camera.setInitialRequestCustomizer(customizer)
+  }
 }
