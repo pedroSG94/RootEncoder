@@ -264,6 +264,33 @@ class Camera2ApiManager(context: Context) {
         builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, bestRange)
     }
 
+    fun pauseRepeating(): Boolean {
+        val session = cameraCaptureSession ?: return false
+        return try {
+            session.stopRepeating()
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error stopping repeating request", e)
+            false
+        }
+    }
+
+    fun resumeRepeating(): Boolean {
+        val session = cameraCaptureSession ?: return false
+        val builder = builderInputSurface ?: return false
+        return try {
+            session.setRepeatingRequest(
+                builder.build(),
+                if (faceDetectionEnabled || frameCapturedCallback != null || customCaptureCompletedCallback != null) cb else null,
+                null
+            )
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error resuming repeating request", e)
+            false
+        }
+    }
+
     fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
         val builderInputSurface = this.builderInputSurface ?: return false
         request(builderInputSurface)

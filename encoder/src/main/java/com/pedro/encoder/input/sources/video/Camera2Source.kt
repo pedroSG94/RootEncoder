@@ -356,4 +356,14 @@ class Camera2Source(context: Context): VideoSource() {
   fun setDynamicFps(enabled: Boolean) {
     camera.dynamicFps = enabled
   }
+
+  /**
+   * Pause camera repeating capture requests without closing the session.
+   */
+  fun pauseRepeating(): Boolean = camera.pauseRepeating()
+
+  /**
+   * Resume camera repeating capture requests after [pauseRepeating].
+   */
+  fun resumeRepeating(): Boolean = camera.resumeRepeating()
 }
