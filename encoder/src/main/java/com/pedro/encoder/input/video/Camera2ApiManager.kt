@@ -83,6 +83,8 @@ class Camera2ApiManager(context: Context) {
     private var physicalCameraId: String? = null
     private var facing = Facing.BACK
     private var builderInputSurface: CaptureRequest.Builder? = null
+    var templateType: Int = CameraDevice.TEMPLATE_RECORD
+    private var initialRequestCustomizer: ((CaptureRequest.Builder, CameraCharacteristics?) -> Unit)? = null
     private var fingerSpacing = 0f
     private var zoomLevel = 0f
     var isLanternEnabled: Boolean = false
@@ -202,10 +204,11 @@ class Camera2ApiManager(context: Context) {
 
     @Throws(IllegalStateException::class, Exception::class)
     private fun drawSurface(cameraDevice: CameraDevice, surfaces: List<Surface>): CaptureRequest {
-        val builderInputSurface = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD)
+        val builderInputSurface = cameraDevice.createCaptureRequest(templateType)
         for (surface in surfaces) builderInputSurface.addTarget(surface)
         builderInputSurface.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO)
         if (dynamicFps) adaptFpsRangeDynamic(fps, builderInputSurface) else adaptFpsRange(fps, builderInputSurface)
+        initialRequestCustomizer?.invoke(builderInputSurface, cameraCharacteristics)
         this.builderInputSurface = builderInputSurface
         return builderInputSurface.build()
     }
@@ -262,6 +265,12 @@ class Camera2ApiManager(context: Context) {
             Log.e(TAG, "Error finding dynamic FPS range", e)
         }
         builderInputSurface.set(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, bestRange)
+    }
+
+    fun setInitialRequestCustomizer(
+        customizer: ((CaptureRequest.Builder, CameraCharacteristics?) -> Unit)?
+    ) {
+        this.initialRequestCustomizer = customizer
     }
 
     fun setCustomRequest(request: (CaptureRequest.Builder) -> Unit): Boolean {
