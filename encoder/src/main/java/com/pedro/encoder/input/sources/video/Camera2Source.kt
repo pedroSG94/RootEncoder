@@ -358,6 +358,16 @@ class Camera2Source(context: Context): VideoSource() {
   }
 
   /**
+   * Pause camera repeating capture requests without closing the session.
+   */
+  fun pauseRepeating(): Boolean = camera.pauseRepeating()
+
+  /**
+   * Resume camera repeating capture requests after [pauseRepeating].
+   */
+  fun resumeRepeating(): Boolean = camera.resumeRepeating()
+  
+  /**
    * Set the Camera2 capture request template (e.g. [android.hardware.camera2.CameraDevice.TEMPLATE_RECORD]
    * or [android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW]).
    */
