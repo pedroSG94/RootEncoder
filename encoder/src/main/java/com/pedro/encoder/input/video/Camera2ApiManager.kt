@@ -292,6 +292,7 @@ class Camera2ApiManager(context: Context) {
             Log.e(TAG, "Error resuming repeating request", e)
             false
         }
+    }
         
     fun setInitialRequestCustomizer(
         customizer: ((CaptureRequest.Builder, CameraCharacteristics?) -> Unit)?

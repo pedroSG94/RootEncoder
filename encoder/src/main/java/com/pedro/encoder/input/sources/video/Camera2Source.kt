@@ -367,6 +367,7 @@ class Camera2Source(context: Context): VideoSource() {
    */
   fun resumeRepeating(): Boolean = camera.resumeRepeating()
   
+  /**
    * Set the Camera2 capture request template (e.g. [android.hardware.camera2.CameraDevice.TEMPLATE_RECORD]
    * or [android.hardware.camera2.CameraDevice.TEMPLATE_PREVIEW]).
    */
