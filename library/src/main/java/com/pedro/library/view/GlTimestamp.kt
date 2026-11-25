@@ -1,19 +1,18 @@
 package com.pedro.library.view
 
-import kotlin.math.min
-
 class GlTimestamp {
 
   companion object {
-    private const val DEFAULT_DRIFT = 100_000_000L
+    private const val MAX_DRIFT = 500_000_000L
   }
-  private var drift = DEFAULT_DRIFT
   private var lastSourceTimestamp = 0L
   private var lastClockTimestamp = 0L
   private var currentTimestamp = 0L
+  private var forcedAdvanceNs = 0L
 
   fun setFps(fps: Int) {
-    drift = if (fps <= 0) DEFAULT_DRIFT else min(DEFAULT_DRIFT, 1000_000_000L / fps)
+    // Keep MAX_DRIFT at 500ms so Camera2 ISP + HandlerThread jitter
+    // and sensor-vs-CPU clock drift do not clamp timestamps back to wall clock.
   }
 
   fun getTimestamp(sourceTimestamp: Long, clockTimestamp: Long): Long {
@@ -21,23 +20,36 @@ class GlTimestamp {
       lastSourceTimestamp = sourceTimestamp
       lastClockTimestamp = clockTimestamp
       currentTimestamp = clockTimestamp
+      forcedAdvanceNs = 0L
       return currentTimestamp
     }
+    val clockDelta = (clockTimestamp - lastClockTimestamp).coerceAtLeast(0L)
     val delta = if (sourceTimestamp <= lastSourceTimestamp) {
-      clockTimestamp - lastClockTimestamp
-    } else sourceTimestamp - lastSourceTimestamp
-    lastSourceTimestamp = sourceTimestamp
+      forcedAdvanceNs += clockDelta
+      clockDelta
+    } else {
+      val sourceDelta = sourceTimestamp - lastSourceTimestamp
+      lastSourceTimestamp = sourceTimestamp
+      if (forcedAdvanceNs > 0L) {
+        val adjusted = (sourceDelta - forcedAdvanceNs).coerceAtLeast(0L)
+        forcedAdvanceNs = 0L
+        adjusted
+      } else {
+        sourceDelta
+      }
+    }
     lastClockTimestamp = clockTimestamp
     currentTimestamp += delta
 
-    if (currentTimestamp > clockTimestamp + drift) currentTimestamp = clockTimestamp + drift
-    else if (currentTimestamp < clockTimestamp - drift) currentTimestamp = clockTimestamp - drift
+    if (currentTimestamp > clockTimestamp + MAX_DRIFT) currentTimestamp = clockTimestamp + MAX_DRIFT
+    else if (currentTimestamp < clockTimestamp - MAX_DRIFT) currentTimestamp = clockTimestamp - MAX_DRIFT
     return currentTimestamp
   }
 
   fun reset() {
-    lastSourceTimestamp = 0
-    lastClockTimestamp = 0
-    currentTimestamp = 0
+    lastSourceTimestamp = 0L
+    lastClockTimestamp = 0L
+    currentTimestamp = 0L
+    forcedAdvanceNs = 0L
   }
 }
